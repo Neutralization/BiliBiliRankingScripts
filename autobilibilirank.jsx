@@ -247,6 +247,7 @@ function rank_part(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset) {
         VideoMaskImage = DirectoryPrefix + RankData[LastRank - i][0] + ".png";
         VideoDuration = RankData[LastRank - i][1];
         VideoOffset = RankData[LastRank - i][2];
+        VideoOffset = 0;
         NewVideoLayer = AddLayer(
             MasterComposition,
             VideoFile,
@@ -285,6 +286,7 @@ function rank_part(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset) {
         if (CheckLost == true) {
             VideoDuration = RankData[LastRank - i][1];
             // VideoOffset = RankData[LastRank - i][2];
+            VideoOffset = 0;
             LostVideoLayer = AddLayer(MasterComposition, LostFile, VideoDuration, GlobalOffset);
             LostVideoLayer.inPoint = GlobalOffset;
             LostVideoLayer.outPoint = GlobalOffset + VideoDuration;
@@ -621,6 +623,7 @@ for (i = 0; LastRank - i >= 1; i++) {
     TopImage = DirectoryPrefix + RankData_16[LastRank - i][0] + "_.png";
     VideoDuration = RankData_16[LastRank - i][1];
     VideoOffset = RankData_16[LastRank - i][2];
+    VideoOffset = 0;
     NewVideoLayer = AddLayer(
         MasterComposition,
         VideoFile,
@@ -778,5 +781,5 @@ MasterComposition.duration = GlobalRankOffset + EDAudioLength + 0.1;
 app.project.save(File(".\\AutoBiliRank.aep"));
 renderQueue = app.project.renderQueue;
 render = renderQueue.items.add(MasterComposition);
-render.outputModules[1].file = new File(".\\output.aep");
+render.outputModules[1].file = new File(".\\output_" + weeks + ".mp4");
 app.project.renderQueue.queueInAME(false);
