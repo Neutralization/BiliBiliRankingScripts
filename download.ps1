@@ -1,6 +1,6 @@
+Import-Module powershell-yaml
+
 $ProgressPreference = 'SilentlyContinue'
-#$BID = "av586742631"
-#$Part = "0"
 
 function BiliDown {
     param (
@@ -37,7 +37,6 @@ function BiliDown {
     } else {
         exit
     }
-    
     $Pages = (Invoke-WebRequest -Uri $PageList -Headers $Headers ).Content | ConvertFrom-Json
     $CIDs = @()
     if ($Part -EQ "") {
@@ -47,34 +46,50 @@ function BiliDown {
     } else {
         $CIDs += $Pages.data | Where-Object page -EQ $Part | Select-Object cid
     }
+    Write-Host "$($BID) Video Downloading......"
     $CIDs | ForEach-Object {
         function DownWithFFMPEG {
             param (
-                [parameter(position=1)]$CIDIndex,
-                [parameter(position=2)]$CIDPart
+                [parameter(position=1)]$CID,
+                [parameter(position=2)]$CIDIndex
             )
-            $VideoData = (Invoke-WebRequest -Uri $SourceUrl -Headers $Headers).Content | ConvertFrom-Json
-            Invoke-WebRequest -Uri $VideoData.data.dash.audio[0].baseUrl -WebSession $Session -Headers $Headers -OutFile "$($CIDIndex)_a.m4s"
-            Invoke-WebRequest -Uri $VideoData.data.dash.video[0].baseUrl -WebSession $Session -Headers $Headers -OutFile "$($CIDIndex)_v.m4s"
-            if ($CIDPart -EQ "0") {
-                $Filename = $BID
+            $NormalUrl = "https://www.bilibili.com/video/$($BID)"
+            $ReDirectTest = Invoke-WebRequest -Method Head -Uri $NormalUrl -Headers $Headers
+            if ($ReDirectTest.RequestMessage.RequestUri -ne $null -and $ReDirectTest.RequestMessage.RequestUri.ToString() -Match "bangumi" ) {
+                # Write-Host $ReDirectTest.BaseResponse.RequestMessage.RequestUri
+                $EPId = $ReDirectTest.BaseResponse.RequestMessage.RequestUri.ToString().Split('/')[-1].Substring(2)
+                $PGCSourceUrl = "https://api.bilibili.com/pgc/player/web/playurl?cid=$($CID)&qn=116&type=&otype=json&fourk=1&ep_id=$($EPId)&fnver=0&fnval=80"
+                $VideoData = (Invoke-WebRequest -Uri $PGCSourceUrl -Headers $Headers).Content | ConvertFrom-Json
+                $SourceFiles = $VideoData.result.dash
             } else {
-                $Filename = "$($BID)_$($CIDPart)"
+                $VideoData = (Invoke-WebRequest -Uri $SourceUrl -Headers $Headers).Content | ConvertFrom-Json
+                $SourceFiles = $VideoData.data.dash
             }
-            $ffmpegArgs = "-y -hide_banner -i $($CID.cid)_a.m4s -i $($CID.cid)_v.m4s -c copy $($Filename).mp4"
-            Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError ".\$($CID.cid)_.log" -ArgumentList $ffmpegArgs
-            Remove-Item "$($CID.cid)_*.*"
+            try {
+                Invoke-WebRequest -Uri $SourceFiles.audio[0].baseUrl -WebSession $Session -Headers $Headers -OutFile ".\ranking\list0\$($CID)_a.m4s"
+                Invoke-WebRequest -Uri $SourceFiles.video[0].baseUrl -WebSession $Session -Headers $Headers -OutFile ".\ranking\list0\$($CID)_v.m4s"
+                if ($CIDIndex -EQ "0") {
+                    $Filename = $BID
+                } else {
+                    $Filename = "$($BID)_$($CIDIndex)"
+                }
+                $ffmpegArgs = "-y -hide_banner -i .\ranking\list0\$($CID)_a.m4s -i .\ranking\list0\$($CID)_v.m4s -c copy .\ranking\list0\$($Filename).mp4"
+                Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError ".\ranking\list0\$($CID)_.log" -ArgumentList $ffmpegArgs
+                Remove-Item ".\ranking\list0\$($CID)_*.*"
+            } catch {
+                New-Item -Path ".\ranking\list0\" -Name "$($BID).txt" -ItemType "file" -Value "" -Force
+            }
         }
-        $CID = $_
-        $SourceUrl = "$SourcePrefix=$VID&cid=$($CID.cid)&qn=116&fnver=0&fnval=16&otype=json&type="
-        DownWithFFMPEG $CID.cid $CIDs.IndexOf($CID)
+        $OID = $_
+        $SourceUrl = "$SourcePrefix=$VID&cid=$($OID.cid)&qn=116&fnver=0&fnval=16&otype=json&type="
+        DownWithFFMPEG $OID.cid $CIDs.IndexOf($OID)
     }
 }
 
 $VideoCutArgs = @()
 $ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
 
-Get-ChildItem "D:\bilibiliweek\ranking\list1\556_5.yml" | ForEach-Object {
+Get-ChildItem ".\ranking\list1\*.yml" | ForEach-Object {
     [string[]]$FileContent = Get-Content $_
     $YamlContent = ''
     $FileContent | ForEach-Object {
@@ -92,3 +107,5 @@ $VideoCutArgs | ForEach-Object -Parallel {
     $function:BiliDown = $using:Call
     BiliDown $_
 } -ThrottleLimit $ThreadNums
+
+# BiliDown "BV1pz4y127yh"
