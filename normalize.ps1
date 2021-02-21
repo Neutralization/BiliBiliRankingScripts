@@ -11,15 +11,15 @@ Get-ChildItem ".\ranking\list1\*.yml" | ForEach-Object {
     }
     ConvertFrom-Yaml $YamlContent | ForEach-Object {
         $_ | ForEach-Object {
-            $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -i .\ranking\list0\$($_.':name').mp4 -c:v libx264 -c:a aac .\ranking\list0\cut_$($_.':name').mp4"
-            # $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -vsync 0 -hwaccel cuvid -c:v h264_cuvid -i .\ranking\list0\$($_.':name').mp4 -c:v h264_nvenc -c:a aac .\ranking\list0\cut_$($_.':name').mp4"
+            # $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -i .\ranking\list0\$($_.':name').mp4 -c:v libx264 -c:a aac .\ranking\list0\cut_$($_.':name').mp4"
+            $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -vsync 0 -hwaccel cuvid -c:v h264_cuvid -i .\ranking\list0\$($_.':name').mp4 -c:v h264_nvenc -c:a aac .\ranking\list0\cut_$($_.':name').mp4"
         }
     }
 }
 
 $VideoCutArgs | ForEach-Object -Parallel {
     Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError ".\ranking\list0\temp.log" -ArgumentList $_
-} -ThrottleLimit $ThreadNums
+} -ThrottleLimit 2 # Whem using GPU, should not be more than 2
 
 Get-ChildItem ".\ranking\list0\cut_*.mp4" | ForEach-Object -Parallel {
     Write-Host "$($_.Basename.Substring($_.Basename.IndexOf("_")+1)) Volume Normalizing......"
