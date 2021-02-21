@@ -11,8 +11,8 @@ Get-ChildItem ".\ranking\list1\*.yml" | ForEach-Object {
     }
     ConvertFrom-Yaml $YamlContent | ForEach-Object {
         $_ | ForEach-Object {
-            # $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -i .\ranking\list0\$($_.':name').mp4 -codec copy -avoid_negative_ts 1 .\ranking\list0\cut_$($_.':name').mp4"
-            $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -vsync 0 -hwaccel cuvid -c:v h264_cuvid -i .\ranking\list0\$($_.':name').mp4 -c:v h264_nvenc -c:a aac .\ranking\list0\cut_$($_.':name').mp4"
+            $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -i .\ranking\list0\$($_.':name').mp4 -c:v libx264 -c:a aac .\ranking\list0\cut_$($_.':name').mp4"
+            # $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -vsync 0 -hwaccel cuvid -c:v h264_cuvid -i .\ranking\list0\$($_.':name').mp4 -c:v h264_nvenc -c:a aac .\ranking\list0\cut_$($_.':name').mp4"
         }
     }
 }
