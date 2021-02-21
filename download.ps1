@@ -81,7 +81,7 @@ function BiliDown {
             }
         }
         $OID = $_
-        $SourceUrl = "$SourcePrefix=$VID&cid=$($OID.cid)&qn=116&fnver=0&fnval=16&otype=json&type="
+        $SourceUrl = "$($SourcePrefix)=$($VID)&cid=$($OID.cid)&qn=116&fnver=0&fnval=16&otype=json&type="
         DownWithFFMPEG $OID.cid $CIDs.IndexOf($OID)
     }
 }
