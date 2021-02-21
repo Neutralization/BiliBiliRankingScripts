@@ -19,7 +19,7 @@ Get-ChildItem ".\ranking\list1\*.yml" | ForEach-Object {
 
 $VideoCutArgs | ForEach-Object -Parallel {
     Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError ".\ranking\list0\temp.log" -ArgumentList $_
-} -ThrottleLimit 2 # Whem using GPU, should not be more than 2
+} -ThrottleLimit 2 # When using GPU, should not be more than 2
 
 Get-ChildItem ".\ranking\list0\cut_*.mp4" | ForEach-Object -Parallel {
     Write-Host "$($_.Basename.Substring($_.Basename.IndexOf("_")+1)) Volume Normalizing......"
