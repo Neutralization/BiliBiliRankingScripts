@@ -28,8 +28,8 @@
 4. Select video range, modify the offset value in yaml file
 5. Run `normalize.ps1` to cut videos and normalize the audio volume
 6. Start After Effects, run `autobilibilirank.jsx` generate the last rank video
-7. Run `rankdoor.py` to generate stickie comment
+7. Run `rankdoor.ps1` to generate stickie comment
 
 ## Todo
-- [ ] Rewrite `rankdoor.ps1` with PowerShell
+- [x] Rewrite `rankdoor.py` with PowerShell
 - [ ] Artificial Idiot video range select
