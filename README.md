@@ -7,11 +7,8 @@
 - [FFMPEG](https://ffmpeg.org/) Using v4.3.2-2021-02-02
 	> Add `ffmpeg.exe` into `$PATH`
 - [PowerShell](https://github.com/PowerShell/PowerShell) Using v7.1.2
-	> [powershell-yaml](https://github.com/cloudbase/powershell-yaml)
+	> [powershell-yaml](https://github.com/cloudbase/powershell-yaml)  
 	> Install-Module powershell-yaml
-- [Python](https://www.python.org/) Using v3.8.6
-	> [aiohttp](https://github.com/aio-libs/aiohttp)
-	> python -m pip install aiohttp
 
 ## GetReady
 - For Chrome
@@ -34,5 +31,5 @@
 7. Run `rankdoor.py` to generate stickie comment
 
 ## Todo
-- [ ] Rewrite `rankdoor.py` with PowerShell
+- [ ] Rewrite `rankdoor.ps1` with PowerShell
 - [ ] Artificial Idiot video range select
