@@ -4,8 +4,8 @@ $ProgressPreference = 'SilentlyContinue'
 
 function BiliDown {
     param (
-        [parameter(position=1)]$BID,
-        [parameter(position=2)]$Part=""
+        [parameter(position = 1)]$BID,
+        [parameter(position = 2)]$Part = ""
     )
     $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
     $Cookie = Get-Content -Path ".\bilibili.com_cookies.txt"
@@ -30,38 +30,43 @@ function BiliDown {
         $VID = $BID.Substring(2)
         $PageList = "https://api.bilibili.com/x/player/pagelist?aid=$($VID)&jsonp=jsonp"
         $SourcePrefix = "https://api.bilibili.com/x/player/playurl?avid"
-    } elseif ($BID.StartsWith('b') -or $BID.StartsWith('B')) {
+    }
+    elseif ($BID.StartsWith('b') -or $BID.StartsWith('B')) {
         $VID = $BID
         $PageList = "https://api.bilibili.com/x/player/pagelist?bvid=$($VID)&jsonp=jsonp"
         $SourcePrefix = "https://api.bilibili.com/x/player/playurl?bvid"
-    } else {
+    }
+    else {
         exit
     }
     $Pages = (Invoke-WebRequest -Uri $PageList -Headers $Headers ).Content | ConvertFrom-Json
     $CIDs = @()
     if ($Part -EQ "") {
         $CIDs += $Pages.data | Where-Object page -EQ 1 | Select-Object cid
-    } elseif ($Part -EQ "0") {
+    }
+    elseif ($Part -EQ "0") {
         $CIDs += $Pages.data | Select-Object cid
-    } else {
+    }
+    else {
         $CIDs += $Pages.data | Where-Object page -EQ $Part | Select-Object cid
     }
     Write-Host "$($BID) Video Downloading......"
     $CIDs | ForEach-Object {
         function DownWithFFMPEG {
             param (
-                [parameter(position=1)]$CID,
-                [parameter(position=2)]$CIDIndex
+                [parameter(position = 1)]$CID,
+                [parameter(position = 2)]$CIDIndex
             )
             $NormalUrl = "https://www.bilibili.com/video/$($BID)"
             $ReDirectTest = Invoke-WebRequest -Method Head -Uri $NormalUrl -Headers $Headers
-            if ($ReDirectTest.RequestMessage.RequestUri -ne $null -and $ReDirectTest.RequestMessage.RequestUri.ToString() -Match "bangumi" ) {
+            if ($null -ne $ReDirectTest.RequestMessage.RequestUri -and $ReDirectTest.RequestMessage.RequestUri.ToString() -Match "bangumi" ) {
                 # Write-Host $ReDirectTest.BaseResponse.RequestMessage.RequestUri
                 $EPId = $ReDirectTest.BaseResponse.RequestMessage.RequestUri.ToString().Split('/')[-1].Substring(2)
                 $PGCSourceUrl = "https://api.bilibili.com/pgc/player/web/playurl?cid=$($CID)&qn=116&type=&otype=json&fourk=1&ep_id=$($EPId)&fnver=0&fnval=80"
                 $VideoData = (Invoke-WebRequest -Uri $PGCSourceUrl -Headers $Headers).Content | ConvertFrom-Json
                 $SourceFiles = $VideoData.result.dash
-            } else {
+            }
+            else {
                 $VideoData = (Invoke-WebRequest -Uri $SourceUrl -Headers $Headers).Content | ConvertFrom-Json
                 $SourceFiles = $VideoData.data.dash
             }
@@ -70,13 +75,15 @@ function BiliDown {
                 Invoke-WebRequest -Uri $SourceFiles.video[0].baseUrl -WebSession $Session -Headers $Headers -OutFile ".\ranking\list0\$($CID)_v.m4s"
                 if ($CIDIndex -EQ "0") {
                     $Filename = $BID
-                } else {
+                }
+                else {
                     $Filename = "$($BID)_$($CIDIndex)"
                 }
                 $ffmpegArgs = "-y -hide_banner -i .\ranking\list0\$($CID)_a.m4s -i .\ranking\list0\$($CID)_v.m4s -c copy .\ranking\list0\$($Filename).mp4"
                 Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError ".\ranking\list0\$($CID)_.log" -ArgumentList $ffmpegArgs
                 Remove-Item ".\ranking\list0\$($CID)_*.*"
-            } catch {
+            }
+            catch {
                 New-Item -Path ".\ranking\list0\" -Name "$($BID).txt" -ItemType "file" -Value "" -Force
             }
         }

@@ -101,7 +101,7 @@ parts = [3, 5, 7, 9, 11, 13, 15, 16];
 RankDataList = [];
 YUME = 1277009809;
 weeks = Math.floor((Date.now() / 1000 - YUME) / 3600 / 24 / 7);
-alert(weeks)
+alert(weeks);
 for (n = 0; n < parts.length; n++) {
     file = new File(DirectoryPrefix + weeks + "_" + parts[n] + ".yml");
     file.open("r");
