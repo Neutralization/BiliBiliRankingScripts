@@ -2,8 +2,9 @@ Import-Module powershell-yaml
 
 $VideoCutArgs = @()
 $ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
 
-Get-ChildItem ".\ranking\list1\*.yml" | ForEach-Object {
+Get-ChildItem ".\ranking\list1\$($RankNum)_*.yml" | ForEach-Object {
     [string[]]$FileContent = Get-Content $_
     $YamlContent = ''
     $FileContent | ForEach-Object {

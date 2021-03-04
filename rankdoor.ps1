@@ -5,13 +5,14 @@ $ProgressPreference = 'SilentlyContinue'
 $ABDict = @{}
 $VideoNames = @{}
 $Contents = @()
+$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
 $RankParts = [ordered]@{
     3 = 'Pickup'; 5 = '主榜'; 9 = '主榜'; 13 = '主榜'; 16 = '主榜'; 15 = '历史'; 7 = '国创'; 11 = '番剧'
 }
 
 $RankParts.Keys | ForEach-Object {
     $Part = $_
-    Get-ChildItem ".\ranking\list1\*_$($Part).yml" | ForEach-Object {
+    Get-ChildItem ".\ranking\list1\$($RankNum)_$($Part).yml" | ForEach-Object {
         [string[]]$FileContent = Get-Content $_
         $YamlContent = ''
         $FileContent | ForEach-Object {
@@ -45,4 +46,4 @@ $RankParts.Keys | ForEach-Object {
     }
     $Contents += $ABDict.Values | Where-Object PART -EQ $_ | Select-Object -Property RANK, BVID, TITLE | Sort-Object -Property @{Expression = "PART"; Descending = $True }, @{Expression = "RANK"; Descending = $True }
 }
-$Contents | ConvertTo-Csv | Select-Object -Skip 1 | Out-File -Encoding "utf8BOM" -FilePath .\rankdoor.csv
+$Contents | ConvertTo-Csv | Select-Object -Skip 1 | Out-File -Encoding "utf8BOM" -FilePath ".\$($RankNum)_rankdoor.csv"
