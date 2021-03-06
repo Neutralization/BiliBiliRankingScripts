@@ -234,7 +234,7 @@ function AddVideoProperty(target, f_type, s_time, duration, direction) {
     return NewProperty;
 }
 
-function rank_part(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset) {
+function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset) {
     GlobalOffset = Number(GlobalOffset.toFixed(1));
     SortRank = [];
     for (rank in RankData) {
@@ -406,7 +406,7 @@ AddVideoProperty(NextLayer_2, 2, 40.5, 1, 1);
 GlobalRankOffset = 44.5;
 
 // Part 3
-GlobalRankOffset = rank_part(PickupData, 1, false, true, GlobalRankOffset);
+GlobalRankOffset = AddRankPart(PickupData, 1, false, true, GlobalRankOffset);
 
 // Part 4
 BlankLayer_4 = AddLayer(MasterComposition, PublicImageDict["0_blank_1"], 4, GlobalRankOffset);
@@ -421,7 +421,7 @@ GlobalRankOffset = GlobalRankOffset + 4;
 
 // Part 5 (30+ to 21)
 
-GlobalRankOffset = rank_part(RankData_5, 21, true, false, GlobalRankOffset);
+GlobalRankOffset = AddRankPart(RankData_5, 21, true, false, GlobalRankOffset);
 
 // Part 6 (tv & bangumi)
 BlankLayer_6 = AddLayer(MasterComposition, PublicImageDict["0_blank_2"], 49.1, GlobalRankOffset);
@@ -498,7 +498,7 @@ AddVideoProperty(RankLayer_6_cn_main, 2, GlobalRankOffset + 45.4, 0.6, 1);
 GlobalRankOffset = GlobalRankOffset + 49.1;
 
 // Part 7 (tv & bangumi)
-GlobalRankOffset = rank_part(RankData_7, 1, false, false, GlobalRankOffset);
+GlobalRankOffset = AddRankPart(RankData_7, 1, false, false, GlobalRankOffset);
 
 // Part 8
 BlankLayer_8 = AddLayer(MasterComposition, PublicImageDict["0_blank_1"], 4, GlobalRankOffset);
@@ -512,7 +512,7 @@ AddVideoProperty(NextLayer_8, 2, GlobalRankOffset, 1, 1);
 GlobalRankOffset = GlobalRankOffset + 4;
 
 // Part 9 (20 to 11)
-GlobalRankOffset = rank_part(RankData_9, 11, true, false, GlobalRankOffset);
+GlobalRankOffset = AddRankPart(RankData_9, 11, true, false, GlobalRankOffset);
 
 // Part 10 (bangumi)
 BlankLayer_10 = AddLayer(MasterComposition, PublicImageDict["0_blank_2"], 33, GlobalRankOffset);
@@ -564,7 +564,7 @@ AddVideoProperty(BangumiTopLayer, 1, GlobalRankOffset + 26.6, 1, 1);
 GlobalRankOffset = GlobalRankOffset + 33;
 
 // Part 11 (bangumi)
-GlobalRankOffset = rank_part(RankData_11, 1, false, false, GlobalRankOffset);
+GlobalRankOffset = AddRankPart(RankData_11, 1, false, false, GlobalRankOffset);
 
 // Part 12
 BlankLayer_12 = AddLayer(MasterComposition, PublicImageDict["0_blank_1"], 4, GlobalRankOffset);
@@ -578,7 +578,7 @@ AddVideoProperty(NextLayer_12, 2, GlobalRankOffset, 1, 1);
 GlobalRankOffset = GlobalRankOffset + 4;
 
 // Part 13 (10 to 1)
-GlobalRankOffset = rank_part(RankData_13, 4, true, false, GlobalRankOffset);
+GlobalRankOffset = AddRankPart(RankData_13, 4, true, false, GlobalRankOffset);
 
 // Part 14
 BlankLayer_14 = AddLayer(MasterComposition, PublicImageDict["0_blank_2"], 14.4, GlobalRankOffset);
@@ -608,7 +608,7 @@ AddVideoProperty(HistoryLayer, 1, GlobalRankOffset + 7.9, 0.5, 1);
 GlobalRankOffset = GlobalRankOffset + 14.4;
 
 // Part 15 (history)
-GlobalRankOffset = rank_part(RankData_15, 1, false, false, GlobalRankOffset);
+GlobalRankOffset = AddRankPart(RankData_15, 1, false, false, GlobalRankOffset);
 
 // Part 16 (3 to 1)
 GlobalOffset = GlobalRankOffset;
