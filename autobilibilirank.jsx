@@ -657,6 +657,8 @@ for (i = 0; LastRank - i >= 1; i++) {
     LogoLayer.property("Scale").setValue([(1280 / 640) * 100, (720 / 384) * 100]);
     LogoLayer.property("Position").setValue([640, 360]);
     // 12 seconds
+    BlackLayer = MasterComposition.layers.addSolid([0, 0, 0], 'black', 1280, 720, 1, 12);
+    BlackLayer.startTime = GlobalOffset - VideoOffset;
     NewVideoLayer_small = AddLayer(MasterComposition, VideoFile, 12, GlobalOffset - VideoOffset);
     NewVideoLayer_small.audioEnabled = false;
     NewVideoLayer_small.inPoint = NewVideoLayer.inPoint;
