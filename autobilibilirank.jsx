@@ -682,7 +682,8 @@ for (i = 0; LastRank - i >= 1; i++) {
     AddVideoProperty(TopRankLayer, 1, GlobalOffset, 1, 1);
     GlobalOffset = GlobalOffset + VideoDuration + 0.6;
 }
-GlobalRankOffset = GlobalRankOffset + 91.8;
+// GlobalRankOffset = GlobalRankOffset + 91.8;
+GlobalRankOffset = GlobalOffset;
 
 // Part 17
 BlankLayer_17 = AddLayer(MasterComposition, PublicImageDict["0_blank_3"], 25, GlobalRankOffset);
