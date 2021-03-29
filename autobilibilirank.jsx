@@ -241,8 +241,11 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
         SortRank[SortRank.length] = rank;
     }
     LastRank = Math.max.apply(Math, SortRank);
-
+    FirstRank = Math.min.apply(Math, SortRank);
     for (i = 0; LastRank - i >= FirstRank; i++) {
+        if (!(LastRank - i in RankData)) {
+            continue
+        }
         VideoFile = DirectoryPrefix + RankData[LastRank - i][0] + ".mp4";
         VideoMaskImage = DirectoryPrefix + RankData[LastRank - i][0] + ".png";
         VideoDuration = RankData[LastRank - i][1];
