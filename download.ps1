@@ -93,27 +93,33 @@ function BiliDown {
     }
 }
 
-$VideoCutArgs = @()
-$ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
-$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
+function Main {
+    $RankVideos = @()
+    $ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+    $RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
 
-Get-ChildItem ".\ranking\list1\$($RankNum)_*.yml" | ForEach-Object {
-    [string[]]$FileContent = Get-Content $_
-    $YamlContent = ''
-    $FileContent | ForEach-Object {
-        $YamlContent = $YamlContent + "`n" + $_
-    }
-    ConvertFrom-Yaml $YamlContent | ForEach-Object {
-        $_ | ForEach-Object {
-            $VideoCutArgs += "$($_.':name')"
+    Get-ChildItem ".\ranking\list1\$($RankNum)_*.yml" | ForEach-Object {
+        [string[]]$FileContent = Get-Content $_
+        $YamlContent = ''
+        $FileContent | ForEach-Object {
+            $YamlContent = $YamlContent + "`n" + $_
+        }
+        ConvertFrom-Yaml $YamlContent | ForEach-Object {
+            $_ | ForEach-Object {
+                $RankVideos += "$($_.':name')"
+            }
         }
     }
+
+    $ExistVideos = @()
+    Get-Item ".\ranking\list0\*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
+    $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
+
+    $Call = $function:BiliDown.ToString()
+    $NeedVideos | ForEach-Object -Parallel {
+        $function:BiliDown = $using:Call
+        BiliDown $_
+    } -ThrottleLimit $ThreadNums
 }
 
-$Call = $function:BiliDown.ToString()
-$VideoCutArgs | ForEach-Object -Parallel {
-    $function:BiliDown = $using:Call
-    BiliDown $_
-} -ThrottleLimit $ThreadNums
-
-# BiliDown "BV1pz4y127yh"
+Main
