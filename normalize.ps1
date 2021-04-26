@@ -1,38 +1,45 @@
 Import-Module powershell-yaml
 
-$VideoCutArgs = @()
-$ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
 $RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
 
-Get-ChildItem ".\ranking\list1\$($RankNum)_*.yml" | ForEach-Object {
-    [string[]]$FileContent = Get-Content $_
-    $YamlContent = ''
-    $FileContent | ForEach-Object {
-        $YamlContent = $YamlContent + "`n" + $_
-    }
-    ConvertFrom-Yaml $YamlContent | ForEach-Object {
-        $_ | ForEach-Object {
-            # $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -i .\ranking\list0\$($_.':name').mp4 -c:v libx264 -c:a aac .\ranking\list0\cut_$($_.':name').mp4"
-            $VideoCutArgs += "-y -hide_banner -ss $($_.':offset') -t $($_.':length') -vsync 0 -hwaccel cuvid -c:v h264_cuvid -i .\ranking\list0\$($_.':name').mp4 -c:v h264_nvenc -c:a aac .\ranking\list0\cut_$($_.':name').mp4"
+function Normailze {
+    param (
+        [parameter(position = 1)]$FileName,
+        [parameter(position = 2)]$Offset,
+        [parameter(position = 3)]$Length
+    )
+    $Target = "loudnorm=I=-12.0:LRA=+7.0:tp=-2.0"
+    $Length = $Length + 5
+    $AudioArg = "-y -hide_banner -i .\ranking\list0\$($FileName).mp4 -af $($Target):print_format=json -f null -"
+    $AudioInfo = ".\ranking\list0\$($FileName).log"
+    Write-Host "$($FileName) Audio Analyzing......"
+    Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError $AudioInfo -ArgumentList $AudioArg
+    $AudioData = Get-Content -Path $AudioInfo | Select-Object -Last 12 | ConvertFrom-Json
+    $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
+    # Nvidia GPU
+    $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -vsync cfr -hwaccel_output_format cuda -c:v h264_cuvid -i .\ranking\list0\$($FileName).mp4 -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -c:v h264_nvenc -c:a aac .\ranking\list1\$($FileName).mp4"
+    # CPU
+    # $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i .\ranking\list0\$($FileName).mp4 -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -c:v libx264 -c:a aac .\ranking\list1\$($FileName).mp4"
+    Write-Host "$($FileName) Volume Normalizing......"
+    Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -ArgumentList $VideoArg
+    Remove-Item $AudioInfo
+}
+
+function Main {
+    Get-ChildItem ".\ranking\list1\$($RankNum)_*.yml" | ForEach-Object {
+        [string[]]$FileContent = Get-Content $_
+        $YamlContent = ''
+        $FileContent | ForEach-Object {
+            $YamlContent = $YamlContent + "`n" + $_
+        }
+        $Call = $function:Normailze.ToString()
+        ConvertFrom-Yaml $YamlContent | ForEach-Object {
+            $_ | ForEach-Object -Parallel {
+                $function:Normailze = $using:Call
+                Normailze $_.':name' $_.':offset' $_.':length'
+            } -ThrottleLimit 2
         }
     }
 }
 
-$VideoCutArgs | ForEach-Object -Parallel {
-    Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError ".\ranking\list0\temp.log" -ArgumentList $_
-} -ThrottleLimit 2 # When using GPU, should not be more than 2
-
-Get-ChildItem ".\ranking\list0\cut_*.mp4" | ForEach-Object -Parallel {
-    Write-Host "$($_.Basename.Substring($_.Basename.IndexOf("_")+1)) Volume Normalizing......"
-    $Target = "loudnorm=I=-12.0:LRA=+7.0:tp=-2.0"
-    $AudioArg_1 = "-y -hide_banner -i .\ranking\list0\$($_.Name) -pass 1 -af $($Target):print_format=json -f null -"
-    $AudioInfo = ".\ranking\list0\$($_.Basename).log"
-    Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError $AudioInfo -ArgumentList $AudioArg_1
-    $AudioData = Get-Content -Path $AudioInfo | Select-Object -Last 12 | ConvertFrom-Json
-    $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
-    $AudioArg_2 = "-y -hide_banner -i .\ranking\list0\$($_.Name) -pass 2 -af $($Target):print_format=summary:linear=true:$($Source) -c:v copy -ar 48k .\ranking\list1\$($_.Basename.Substring($_.Basename.IndexOf("_")+1)).mp4"
-    Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError ".\ranking\list0\temp.log" -ArgumentList $AudioArg_2
-} -ThrottleLimit $ThreadNums
-
-Remove-Item "ffmpeg2pass-0.log"
-Remove-Item ".\ranking\list0\*" -Include *.txt, *.log, cut_*.mp4
+Main
