@@ -1,4 +1,4 @@
-MasterComposition = app.project.items.addComp("bilibilirank", 1280, 720, 1, 1800, 30);
+MasterComposition = app.project.items.addComp("bilibilirank", 1280, 720, 1, 1800, 60);
 
 // image resource
 PublicImageDict = {
@@ -784,7 +784,7 @@ AddVideoProperty(EdCardLayer, 1, GlobalRankOffset + EDAudioLength - 1, 1, 2);
 MasterComposition.openInViewer();
 
 MasterComposition.duration = GlobalRankOffset + EDAudioLength + 0.1;
-app.project.save(File(".\\AutoBiliRank.aep"));
+app.project.save(File(".\\AutoBiliRank_" + weeks + ".aep"));
 renderQueue = app.project.renderQueue;
 render = renderQueue.items.add(MasterComposition);
 render.outputModules[1].file = new File(".\\output_" + weeks + ".mp4");
