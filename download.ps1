@@ -62,7 +62,7 @@ function BiliDown {
             if ($null -ne $ReDirectTest.RequestMessage.RequestUri -and $ReDirectTest.RequestMessage.RequestUri.ToString() -Match "bangumi" ) {
                 # Write-Host $ReDirectTest.BaseResponse.RequestMessage.RequestUri
                 $EPId = $ReDirectTest.BaseResponse.RequestMessage.RequestUri.ToString().Split('/')[-1].Substring(2)
-                $PGCSourceUrl = "https://api.bilibili.com/pgc/player/web/playurl?cid=$($CID)&qn=116&type=&otype=json&fourk=1&ep_id=$($EPId)&fnver=0&fnval=80"
+                $PGCSourceUrl = "https://api.bilibili.com/pgc/player/web/playurl?cid=$($CID)&qn=120&type=&otype=json&fourk=1&ep_id=$($EPId)&fnver=0&fnval=80"
                 $VideoData = (Invoke-WebRequest -Uri $PGCSourceUrl -Headers $Headers).Content | ConvertFrom-Json
                 $SourceFiles = $VideoData.result.dash
             }
@@ -88,7 +88,7 @@ function BiliDown {
             }
         }
         $OID = $_
-        $SourceUrl = "$($SourcePrefix)=$($VID)&cid=$($OID.cid)&qn=116&fnver=0&fnval=16&otype=json&type="
+        $SourceUrl = "$($SourcePrefix)=$($VID)&cid=$($OID.cid)&qn=120&fnver=0&fourk=1&fnval=80&otype=json&type="
         DownWithFFMPEG $OID.cid $CIDs.IndexOf($OID)
     }
 }
