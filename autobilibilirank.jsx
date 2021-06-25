@@ -1,12 +1,13 @@
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 app.newProject();
 app.project.workingSpace = "Rec.709 Gamma 2.4";
-MasterComposition = app.project.items.addComp("bilibilirank", 1280, 720, 1, 1800, 60);
+MasterComposition = app.project.items.addComp("bilibilirank", 1920, 1080, 1, 1800, 60);
 MasterComposition.openInViewer();
 StaticFolder = app.project.items.addFolder("StaticResource");
 WeeklyFolder = app.project.items.addFolder("WeeklyResource");
 
-NormalRankSize = [960, 540];
+NormalRankSize = [1440, 810];
+VideoSize = [1920, 1080];
 DirectoryPrefix = ".\\ranking\\list1\\";
 LostFile = "404_tv";
 // @include "json2.js"
@@ -327,7 +328,7 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
                 (NormalRankSize[1] / VideoItemSize.height) * 100,
             ]);
         }
-        NewVideoLayer.property("Position").setValue([640 - 149, 360 - 79]);
+        NewVideoLayer.property("Position").setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
         NewVideoLayer.comment = LastRank - i + "-" + VideoFile;
         writeLn(NewVideoLayer.comment); // DEBUG
 
@@ -343,14 +344,14 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
             LostTextLayer = MasterComposition.layers.addText("视频已失效");
             LostTextDocument = LostTextLayer.property("Source Text").value;
             LostTextDocument.resetCharStyle();
-            LostTextDocument.fontSize = 33;
+            LostTextDocument.fontSize = 48;
             LostTextDocument.fillColor = [0.8, 0, 0];
             LostTextDocument.applyFill = true;
             LostTextDocument.font = "方正粗圆_GBK";
             LostTextDocument.justification = ParagraphJustification.CENTER_JUSTIFY;
             LostTextLayer.inPoint = GlobalOffset;
             LostTextLayer.outPoint = GlobalOffset + VideoDuration;
-            LostTextLayer.property("Position").setValue([720, 520]);
+            LostTextLayer.property("Position").setValue([1100, 777]);
             LostTextLayer.property("Source Text").setValue(LostTextDocument);
             if (NeedProperty) {
                 AddVideoProperty(LostVideoLayer, 1, LostVideoLayer.inPoint, 0.6, 1);
@@ -370,7 +371,7 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
                     (NormalRankSize[1] / VideoItemSize.height) * 100,
                 ]);
             }
-            LostVideoLayer.property("Position").setValue([640 - 149, 360 - 79]);
+            LostVideoLayer.property("Position").setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
         }
         NewVideoLayer_mask = AddLayer(MasterComposition, VideoMaskImage, VideoDuration, GlobalOffset);
         if (NeedSpace && LastRank - i > FirstRank) {
@@ -605,21 +606,21 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
     VideoItemSize = NewVideoLayer.sourceRectAtTime(NewVideoLayer.inPoint, false);
     if (VideoItemSize.width / VideoItemSize.height >= 16 / 9) {
         NewVideoLayer.property("Scale").setValue([
-            (1280 / VideoItemSize.width) * 100,
-            (1280 / VideoItemSize.width) * 100,
+            (VideoSize[0] / VideoItemSize.width) * 100,
+            (VideoSize[0] / VideoItemSize.width) * 100,
         ]);
     } else {
         NewVideoLayer.property("Scale").setValue([
-            (720 / VideoItemSize.height) * 100,
-            (720 / VideoItemSize.height) * 100,
+            (VideoSize[1] / VideoItemSize.height) * 100,
+            (VideoSize[1] / VideoItemSize.height) * 100,
         ]);
     }
-    NewVideoLayer.property("Position").setValue([640, 360]);
+    NewVideoLayer.property("Position").setValue([VideoSize[0] / 2, VideoSize[1] / 2]);
     NewVideoLayer.comment = LastRank - i + "-" + VideoFile;
     writeLn(NewVideoLayer.comment); // DEBUG
     LogoLayer = AddLayer(MasterComposition, "16_logo", VideoDuration + 0.6, GlobalOffset);
-    LogoLayer.property("Scale").setValue([(1280 / 640) * 100, (720 / 384) * 100]);
-    LogoLayer.property("Position").setValue([640, 360]);
+    LogoLayer.property("Scale").setValue([(VideoSize[0] / 640) * 100, (VideoSize[1] / 384) * 100]);
+    LogoLayer.property("Position").setValue([VideoSize[0] / 2, VideoSize[1] / 2]);
 
     CheckLost = false;
     for (lost in LostVideos) {
@@ -633,14 +634,14 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
         LostTextLayer = MasterComposition.layers.addText("视频已失效");
         LostTextDocument = LostTextLayer.property("Source Text").value;
         LostTextDocument.resetCharStyle();
-        LostTextDocument.fontSize = 33;
+        LostTextDocument.fontSize = 48;
         LostTextDocument.fillColor = [0.8, 0, 0];
         LostTextDocument.applyFill = true;
         LostTextDocument.font = "方正粗圆_GBK";
         LostTextDocument.justification = ParagraphJustification.CENTER_JUSTIFY;
         LostTextLayer.inPoint = GlobalOffset;
         LostTextLayer.outPoint = GlobalOffset + VideoDuration;
-        LostTextLayer.property("Position").setValue([990, 670]);
+        LostTextLayer.property("Position").setValue([1500, 1020]);
         LostTextLayer.property("Source Text").setValue(LostTextDocument);
         AddVideoProperty(LostVideoLayer, 1, LostVideoLayer.outPoint - 0.6, 0.6, 2);
         AddVideoProperty(LostTextLayer, 1, LostTextLayer.outPoint - 0.6, 0.6, 2);
@@ -649,16 +650,16 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
         VideoItemSize = LostVideoLayer.sourceRectAtTime(LostVideoLayer.inPoint, false);
         if (VideoItemSize.width / VideoItemSize.height >= 16 / 9) {
             LostVideoLayer.property("Scale").setValue([
-                (1280 / VideoItemSize.width) * 100,
-                (1280 / VideoItemSize.width) * 100,
+                (VideoSize[0] / VideoItemSize.width) * 100,
+                (VideoSize[0] / VideoItemSize.width) * 100,
             ]);
         } else {
             LostVideoLayer.property("Scale").setValue([
-                (720 / VideoItemSize.height) * 100,
-                (720 / VideoItemSize.height) * 100,
+                (VideoSize[1] / VideoItemSize.height) * 100,
+                (VideoSize[1] / VideoItemSize.height) * 100,
             ]);
         }
-        LostVideoLayer.property("Position").setValue([640, 360]);
+        LostVideoLayer.property("Position").setValue([VideoSize[0] / 2, VideoSize[1] / 2]);
     }
     // 12 seconds
     BlackLayer = AddLayer(MasterComposition, "0_black", 12, GlobalOffset - VideoOffset);
@@ -678,7 +679,7 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
             (NormalRankSize[1] / VideoItemSize.height) * 100,
         ]);
     }
-    NewVideoLayer_small.property("Position").setValue([640 - 149, 360 - 79]);
+    NewVideoLayer_small.property("Position").setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
     if (CheckLost == true) {
         VideoOffset = 0;
         LostVideoLayer_small = AddLayer(MasterComposition, LostFile, VideoDuration, GlobalOffset);
@@ -687,14 +688,14 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
         LostTextLayer_small = MasterComposition.layers.addText("视频已失效");
         LostTextDocument = LostTextLayer.property("Source Text").value;
         LostTextDocument.resetCharStyle();
-        LostTextDocument.fontSize = 33;
+        LostTextDocument.fontSize = 48;
         LostTextDocument.fillColor = [0.8, 0, 0];
         LostTextDocument.applyFill = true;
         LostTextDocument.font = "方正粗圆_GBK";
         LostTextDocument.justification = ParagraphJustification.CENTER_JUSTIFY;
         LostTextLayer_small.inPoint = GlobalOffset;
         LostTextLayer_small.outPoint = LostTextLayer_small.inPoint + 12;
-        LostTextLayer_small.property("Position").setValue([720, 520]);
+        LostTextLayer_small.property("Position").setValue([1100, 777]);
         LostTextLayer_small.property("Source Text").setValue(LostTextDocument);
         AddAudioProperty(LostVideoLayer_small, 1, LostVideoLayer_small.inPoint, 0.6, 1);
         AddAudioProperty(LostVideoLayer_small, 1, LostVideoLayer_small.outPoint - 0.6, 0.6, 2);
@@ -710,7 +711,7 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
                 (NormalRankSize[1] / VideoItemSize.height) * 100,
             ]);
         }
-        LostVideoLayer_small.property("Position").setValue([640 - 149, 360 - 79]);
+        LostVideoLayer_small.property("Position").setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
     }
     AddLayer(MasterComposition, "0_blank_1", 5, GlobalOffset);
     AddLayer(MasterComposition, VideoMaskImage, 7, GlobalOffset + 5);
