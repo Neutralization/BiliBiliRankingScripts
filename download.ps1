@@ -96,7 +96,7 @@ function BiliDown {
 function Main {
     $RankVideos = @()
     $ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
-    $RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
+    $RankNum = [Math]::Floor(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
 
     Get-ChildItem ".\ranking\list1\$($RankNum)_*.yml" | ForEach-Object {
         [string[]]$FileContent = Get-Content $_
@@ -114,6 +114,13 @@ function Main {
     $ExistVideos = @()
     Get-Item ".\ranking\list0\*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
     $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
+    $ExtraVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
+    $ExtraVideos | ForEach-Object { Remove-Item ".\ranking\list0\$($_).mp4" }
+    $ExistVideos = @()
+    Get-Item ".\ranking\list1\*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
+    $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
+    $ExtraVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
+    $ExtraVideos | ForEach-Object { Remove-Item ".\ranking\list1\$($_).mp4" }
 
     $Call = $function:BiliDown.ToString()
     $NeedVideos | ForEach-Object -Parallel {
