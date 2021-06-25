@@ -1,7 +1,7 @@
 $ProgressPreference = 'SilentlyContinue'
 $FromFolder = 'FileRecv'
 $DistFolder = 'bilibiliweek\ranking'
-$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
+$RankNum = [Math]::Floor(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
 
 Expand-Archive -Path "$($FromFolder)\$($RankNum)history.zip" -DestinationPath "$($DistFolder)\list1" -Force
 Expand-Archive -Path "$($FromFolder)\$($RankNum)other.zip" -DestinationPath "$($DistFolder)\pic" -Force

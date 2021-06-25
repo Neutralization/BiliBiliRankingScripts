@@ -5,7 +5,7 @@ $ProgressPreference = 'SilentlyContinue'
 $ABDict = @{}
 $VideoNames = @{}
 $Contents = @()
-$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
+$RankNum = [Math]::Floor(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
 $RankParts = [ordered]@{
     3 = 'Pickup'; 5 = '主榜'; 9 = '主榜'; 13 = '主榜'; 16 = '主榜'; 15 = '历史'; 7 = '国创'; 11 = '番剧'
 }
