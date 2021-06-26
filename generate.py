@@ -10,7 +10,7 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 
 YUME = 1277009809
-WEEKS = int((int(arrow.now("Asia/Shanghai").timestamp()) - YUME) / 3600 / 24 / 7)
+WEEKS = round((int(arrow.now("Asia/Shanghai").timestamp()) - YUME) / 3600 / 24 / 7)
 EMOJIONE = "./footage/EmojiOneColor.OTF"
 HYM2GJ = "./footage/汉仪黑咪体简_[HYm2gj].TTF"
 HUAWENYUANTI_BOLD = "./footage/华文圆体粗体_[STYuanBold].TTF"
@@ -52,9 +52,7 @@ MRankData = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
         "bv": x["bv"],
-        "cdate": arrow.get(x["cdate"], "YYYY-MM-DD HH:mm:ss Z").format(
-            "YYYY-MM-DD HH:mm"
-        ),
+        "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "changqi": x["changqi"],
         "clicks_rank": format(x["clicks_rank"], ","),
         "clicks": format(x["clicks"], ","),
@@ -90,9 +88,7 @@ BRankData = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
         "bv": x["bv"],
-        "cdate": arrow.get(x["cdate"], "YYYY-MM-DD HH:mm:ss Z").format(
-            "YYYY-MM-DD HH:mm"
-        ),
+        "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "clicks_rank": format(x["click_rank"], ","),
         "clicks": format(x["click"], ","),
         "comments_rank": format(x["comm_rank"], ","),
@@ -126,9 +122,7 @@ GRankData = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
         "bv": x["bv"],
-        "cdate": arrow.get(x["cdate"], "YYYY-MM-DD HH:mm:ss Z").format(
-            "YYYY-MM-DD HH:mm"
-        ),
+        "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "clicks_rank": format(x["click_rank"], ","),
         "clicks": format(x["click"], ","),
         "comments_rank": format(x["comm_rank"], ","),
@@ -162,9 +156,7 @@ HRankData = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
         "bv": x["bv"],
-        "cdate": arrow.get(x["cdate"], "YYYY-MM-DD HH:mm:ss Z").format(
-            "YYYY-MM-DD HH:mm"
-        ),
+        "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "score": format(x["score"], ","),
         "score_rank": str(x["score_rank"]),
         "title": str(x["name"]),
