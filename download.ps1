@@ -1,6 +1,6 @@
 Import-Module powershell-yaml
 
-$ProgressPreference = 'SilentlyContinue'
+$ProgressPreference = "SilentlyContinue"
 
 function BiliDown {
     param (
@@ -11,7 +11,7 @@ function BiliDown {
     $Cookie = Get-Content -Path ".\bilibili.com_cookies.txt"
     $CookieString = ""
     $Cookie | ForEach-Object {
-        if (!$_.StartsWith('#') -and $_.StartsWith('.bilibili.com')) {
+        if (!$_.StartsWith("#") -and $_.StartsWith(".bilibili.com")) {
             $Single = $_.Split("`t")
             $SingleCookie = New-Object System.Net.Cookie
             $SingleCookie.Name = $Single[5]
@@ -26,12 +26,12 @@ function BiliDown {
     $Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0")
     $Headers.Add("Referer", "https://www.bilibili.com")
 
-    if ($BID.StartsWith('a') -or $BID.StartsWith('A')) {
+    if ($BID.StartsWith("a") -or $BID.StartsWith("A")) {
         $VID = $BID.Substring(2)
         $PageList = "https://api.bilibili.com/x/player/pagelist?aid=$($VID)&jsonp=jsonp"
         $SourcePrefix = "https://api.bilibili.com/x/player/playurl?avid"
     }
-    elseif ($BID.StartsWith('b') -or $BID.StartsWith('B')) {
+    elseif ($BID.StartsWith("b") -or $BID.StartsWith("B")) {
         $VID = $BID
         $PageList = "https://api.bilibili.com/x/player/pagelist?bvid=$($VID)&jsonp=jsonp"
         $SourcePrefix = "https://api.bilibili.com/x/player/playurl?bvid"
@@ -61,7 +61,7 @@ function BiliDown {
             $ReDirectTest = Invoke-WebRequest -Method Head -Uri $NormalUrl -Headers $Headers
             if ($null -ne $ReDirectTest.RequestMessage.RequestUri -and $ReDirectTest.RequestMessage.RequestUri.ToString() -Match "bangumi" ) {
                 # Write-Host $ReDirectTest.BaseResponse.RequestMessage.RequestUri
-                $EPId = $ReDirectTest.BaseResponse.RequestMessage.RequestUri.ToString().Split('/')[-1].Substring(2)
+                $EPId = $ReDirectTest.BaseResponse.RequestMessage.RequestUri.ToString().Split("/")[-1].Substring(2)
                 $PGCSourceUrl = "https://api.bilibili.com/pgc/player/web/playurl?cid=$($CID)&qn=120&type=&otype=json&fourk=1&ep_id=$($EPId)&fnver=0&fnval=80"
                 $VideoData = (Invoke-WebRequest -Uri $PGCSourceUrl -Headers $Headers).Content | ConvertFrom-Json
                 $SourceFiles = $VideoData.result.dash
@@ -96,31 +96,31 @@ function BiliDown {
 function Main {
     $RankVideos = @()
     $ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
-    $RankNum = [Math]::Floor(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
+    $RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
 
     Get-ChildItem ".\ranking\list1\$($RankNum)_*.yml" | ForEach-Object {
         [string[]]$FileContent = Get-Content $_
-        $YamlContent = ''
+        $YamlContent = ""
         $FileContent | ForEach-Object {
             $YamlContent = $YamlContent + "`n" + $_
         }
         ConvertFrom-Yaml $YamlContent | ForEach-Object {
             $_ | ForEach-Object {
-                $RankVideos += "$($_.':name')"
+                $RankVideos += "$($_.":name")"
             }
         }
     }
 
     $ExistVideos = @()
-    Get-Item ".\ranking\list0\*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
-    $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
-    $ExtraVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
-    $ExtraVideos | ForEach-Object { Remove-Item ".\ranking\list0\$($_).mp4" }
-    $ExistVideos = @()
     Get-Item ".\ranking\list1\*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
     $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
     $ExtraVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
     $ExtraVideos | ForEach-Object { Remove-Item ".\ranking\list1\$($_).mp4" }
+    $ExistVideos = @()
+    Get-Item ".\ranking\list0\*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
+    $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
+    $ExtraVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
+    $ExtraVideos | ForEach-Object { Remove-Item ".\ranking\list0\$($_).mp4" }
 
     $Call = $function:BiliDown.ToString()
     $NeedVideos | ForEach-Object -Parallel {
