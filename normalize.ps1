@@ -1,7 +1,6 @@
 Import-Module powershell-yaml
 
 $RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
-
 function Normailze {
     param (
         [parameter(position = 1)]$FileName,
@@ -24,24 +23,28 @@ function Normailze {
     # $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i .\ranking\list0\$($FileName).mp4 -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 -c:v libx264 -c:a aac .\ranking\list1\$($FileName).mp4"
     Write-Host "$($FileName) Volume Normalizing......"
     Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -ArgumentList $VideoArg
-    Remove-Item $AudioInfo
 }
 
 function Main {
     Get-ChildItem ".\ranking\list1\$($RankNum)_*.yml" | ForEach-Object {
         [string[]]$FileContent = Get-Content $_
-        $YamlContent = ''
+        $YamlContent = ""
         $FileContent | ForEach-Object {
             $YamlContent = $YamlContent + "`n" + $_
         }
+        $ExistVideos = @()
+        Get-Item ".\ranking\list1\*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
         $Call = $function:Normailze.ToString()
         ConvertFrom-Yaml $YamlContent | ForEach-Object {
             $_ | ForEach-Object -Parallel {
                 $function:Normailze = $using:Call
-                Normailze $_.':name' $_.':offset' $_.':length'
+                if ($using:ExistVideos -notcontains $_.":name") {
+                    Normailze $_.":name" $_.":offset" $_.":length"
+                }
             } -ThrottleLimit 2
         }
     }
+    Remove-Item ".\ranking\list0\*.log"
 }
 
 Main
