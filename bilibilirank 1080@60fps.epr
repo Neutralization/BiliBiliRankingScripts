@@ -2,14 +2,14 @@
 <PremiereData Version="3">
 	<IngestPresetUserComments></IngestPresetUserComments>
 	<IngestMetadataPreset></IngestMetadataPreset>
-	<IngestMetadataEnabled>true</IngestMetadataEnabled>
+	<IngestMetadataEnabled>false</IngestMetadataEnabled>
 	<IngestNamingPreset></IngestNamingPreset>
-	<IngestNamingEnabled>true</IngestNamingEnabled>
+	<IngestNamingEnabled>false</IngestNamingEnabled>
 	<IngestTranscodeExporterModuleName></IngestTranscodeExporterModuleName>
 	<IngestTranscodePresetName></IngestTranscodePresetName>
 	<IngestTranscodePath></IngestTranscodePath>
 	<IngestTranscodeEnabled>false</IngestTranscodeEnabled>
-	<IngestCopyVerificationType>6357100</IngestCopyVerificationType>
+	<IngestCopyVerificationType>-1</IngestCopyVerificationType>
 	<IngestCopyPath></IngestCopyPath>
 	<IngestCopyEnabled>false</IngestCopyEnabled>
 	<IngestPreset>false</IngestPreset>
@@ -27,7 +27,7 @@
 		<CropType>0</CropType>
 		<CropRect>0,0,0,0</CropRect>
 		<CropState>false</CropState>
-		<TimeInterpolationType>2</TimeInterpolationType>
+		<TimeInterpolationType>0</TimeInterpolationType>
 	</StandardFilters>
 	<FolderDisplayPath></FolderDisplayPath>
 	<DoEmulation>false</DoEmulation>
@@ -852,7 +852,7 @@
 		<ParamType>2</ParamType>
 		<ParamValue>7</ParamValue>
 	</ExporterParam>
-	<ExporterParam ObjectID="43" ClassID="9f049ab7-d48f-43e9-a8ca-4d7f21233625" Version="1">
+	<ExporterParam ObjectID="43" ClassID="d0f6b8af-8ddb-4381-acf8-3e817480d07d" Version="1">
 		<ParamAuxType></ParamAuxType>
 		<ParamAuxValue></ParamAuxValue>
 		<ParamIdentifier>ADBEDolby_2</ParamIdentifier>
@@ -871,8 +871,8 @@
 		<ParamFlags>0</ParamFlags>
 		<ParamDontSerializeValue>false</ParamDontSerializeValue>
 		<ParamOrdinalValue>1</ParamOrdinalValue>
-		<ParamType>2</ParamType>
-		<ParamValue>1</ParamValue>
+		<ParamType>1</ParamType>
+		<ParamValue>true</ParamValue>
 	</ExporterParam>
 	<ExporterParam ObjectID="44" ClassID="9f049ab7-d48f-43e9-a8ca-4d7f21233625" Version="1">
 		<ParamAuxType></ParamAuxType>
@@ -1601,7 +1601,7 @@
 	<ExporterParam ObjectID="81" ClassID="d0f6b8af-8ddb-4381-acf8-3e817480d07d" Version="1">
 		<ParamAuxType></ParamAuxType>
 		<ParamAuxValue></ParamAuxValue>
-		<ParamArbData Encoding="base64" Checksum="2374864269">AAAAAA==</ParamArbData>
+		<ParamArbData Encoding="base64" Checksum="2710408589">AgAAAA==</ParamArbData>
 		<ParamIdentifier>ADBEVideoMatchSource</ParamIdentifier>
 		<ParamConstrainedListIsOptional>false</ParamConstrainedListIsOptional>
 		<IsFilePathString>false</IsFilePathString>
@@ -1737,7 +1737,7 @@
 		<ParamIdentifier>ADBEVideoAspect</ParamIdentifier>
 		<ParamConstrainedListIsOptional>false</ParamConstrainedListIsOptional>
 		<IsFilePathString>false</IsFilePathString>
-		<IsOptionalParamEnabled>false</IsOptionalParamEnabled>
+		<IsOptionalParamEnabled>true</IsOptionalParamEnabled>
 		<IsOptionalParam>false</IsOptionalParam>
 		<IsParamPairGroup>false</IsParamPairGroup>
 		<ParamIsPassword>false</ParamIsPassword>
@@ -1766,7 +1766,7 @@
 		<ParamIsMultiLine>false</ParamIsMultiLine>
 		<ParamIsVerticallyAligned>false</ParamIsVerticallyAligned>
 		<ParamIsHidden>true</ParamIsHidden>
-		<ParamIsDisabled>false</ParamIsDisabled>
+		<ParamIsDisabled>true</ParamIsDisabled>
 		<ParamIsIndependant>false</ParamIsIndependant>
 		<ParamIsSlider>false</ParamIsSlider>
 		<ParamFlags>0</ParamFlags>
@@ -1896,7 +1896,7 @@
 		<ParamDontSerializeValue>false</ParamDontSerializeValue>
 		<ParamOrdinalValue>1</ParamOrdinalValue>
 		<ParamType>2</ParamType>
-		<ParamValue>3</ParamValue>
+		<ParamValue>1</ParamValue>
 	</ExporterParam>
 	<ExporterParam ObjectID="95" ClassID="9f049ab7-d48f-43e9-a8ca-4d7f21233625" Version="1">
 		<ParamAuxType></ParamAuxType>
@@ -1940,7 +1940,7 @@
 		<ParamDontSerializeValue>false</ParamDontSerializeValue>
 		<ParamOrdinalValue>3</ParamOrdinalValue>
 		<ParamType>2</ParamType>
-		<ParamValue>51</ParamValue>
+		<ParamValue>50</ParamValue>
 	</ExporterParam>
 	<ExporterParam ObjectID="97" ClassID="d0f6b8af-8ddb-4381-acf8-3e817480d07d" Version="1">
 		<ParamAuxType></ParamAuxType>
@@ -2298,7 +2298,7 @@
 		<ParamDontSerializeValue>false</ParamDontSerializeValue>
 		<ParamOrdinalValue>3</ParamOrdinalValue>
 		<ParamType>3</ParamType>
-		<ParamValue>3.</ParamValue>
+		<ParamValue>10.</ParamValue>
 	</ExporterParam>
 	<ExporterParam ObjectID="115" ClassID="018cf63d-c58d-4d39-97df-36b6b2d6ef88" Version="1">
 		<ParamAuxType></ParamAuxType>
@@ -2320,7 +2320,7 @@
 		<ParamDontSerializeValue>false</ParamDontSerializeValue>
 		<ParamOrdinalValue>4</ParamOrdinalValue>
 		<ParamType>3</ParamType>
-		<ParamValue>3.</ParamValue>
+		<ParamValue>10.</ParamValue>
 	</ExporterParam>
 	<ExporterParam ObjectID="116" ClassID="9f049ab7-d48f-43e9-a8ca-4d7f21233625" Version="1">
 		<ParamAuxType></ParamAuxType>
@@ -2357,7 +2357,7 @@
 		<ParamIdentifier>ADBEMPEGKeyframeRate</ParamIdentifier>
 		<ParamConstrainedListIsOptional>false</ParamConstrainedListIsOptional>
 		<IsFilePathString>false</IsFilePathString>
-		<IsOptionalParamEnabled>false</IsOptionalParamEnabled>
+		<IsOptionalParamEnabled>true</IsOptionalParamEnabled>
 		<IsOptionalParam>true</IsOptionalParam>
 		<IsParamPairGroup>false</IsParamPairGroup>
 		<ParamIsPassword>false</ParamIsPassword>
@@ -4194,7 +4194,7 @@
 		<ParamDontSerializeValue>false</ParamDontSerializeValue>
 		<ParamOrdinalValue>0</ParamOrdinalValue>
 		<ParamType>2</ParamType>
-		<ParamValue>0</ParamValue>
+		<ParamValue>2</ParamValue>
 	</ExporterParam>
 	<ExporterParam ObjectID="212" ClassID="d0f6b8af-8ddb-4381-acf8-3e817480d07d" Version="1">
 		<ParamAuxType></ParamAuxType>
@@ -4260,7 +4260,7 @@
 		<ParamDontSerializeValue>false</ParamDontSerializeValue>
 		<ParamOrdinalValue>2</ParamOrdinalValue>
 		<ParamType>2</ParamType>
-		<ParamValue>0</ParamValue>
+		<ParamValue>2</ParamValue>
 	</ExporterParam>
 	<ExporterParam ObjectID="215" ClassID="a43ab77d-3a01-4173-b6ea-aeb9b4ae884b" Version="1">
 		<ParamAuxType></ParamAuxType>
@@ -4448,7 +4448,7 @@
 		<ParamIsPassword>false</ParamIsPassword>
 		<ParamIsMultiLine>false</ParamIsMultiLine>
 		<ParamIsVerticallyAligned>false</ParamIsVerticallyAligned>
-		<ParamIsHidden>true</ParamIsHidden>
+		<ParamIsHidden>false</ParamIsHidden>
 		<ParamIsDisabled>false</ParamIsDisabled>
 		<ParamIsIndependant>false</ParamIsIndependant>
 		<ParamIsSlider>false</ParamIsSlider>
@@ -4543,7 +4543,7 @@
 		<ParamIsPassword>false</ParamIsPassword>
 		<ParamIsMultiLine>false</ParamIsMultiLine>
 		<ParamIsVerticallyAligned>false</ParamIsVerticallyAligned>
-		<ParamIsHidden>true</ParamIsHidden>
+		<ParamIsHidden>false</ParamIsHidden>
 		<ParamIsDisabled>false</ParamIsDisabled>
 		<ParamIsIndependant>false</ParamIsIndependant>
 		<ParamIsSlider>false</ParamIsSlider>
@@ -4551,7 +4551,7 @@
 		<ParamDontSerializeValue>false</ParamDontSerializeValue>
 		<ParamOrdinalValue>13</ParamOrdinalValue>
 		<ParamType>2</ParamType>
-		<ParamValue>2</ParamValue>
+		<ParamValue>0</ParamValue>
 	</ExporterParam>
 	<ExporterParam ObjectID="229" ClassID="b93e10ab-6079-493d-a2b4-c7feb4a510b0" Version="1">
 		<ParamAuxType></ParamAuxType>
@@ -4651,7 +4651,6 @@
 		<Description>InternalSerialize</Description>
 	</FilterPreset>
 	<VideoFilterComponent ObjectID="235" ClassID="d10da199-beea-4dd1-b941-ed3a78766d50" Version="8">
-		<PremiereFilterPrivateData Encoding="base64" Checksum="1323097308">dG11bAMAAAD/////////////////////AAAAAP//////////AAAAAAAAAAD/////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcLuNRwAAAAAAAAAAAAAAAAAAAAAAAAAAAADHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAA=</PremiereFilterPrivateData>
 		<VideoFilterType>2</VideoFilterType>
 		<MatchName>AE.ADBE Lumetri</MatchName>
 		<Component Version="6">
@@ -6817,8 +6816,8 @@
 	</StandardFilterWrapperClipName>
 	<StandardFilterWrapperTimecode ObjectID="358" ClassID="50810324-4cbd-4897-9eff-e328663a83c9" Version="1">
 		<ReferencePixelAspectRatio>1.</ReferencePixelAspectRatio>
-		<ReferenceFrameHeight>720</ReferenceFrameHeight>
-		<ReferenceFrameWidth>1280</ReferenceFrameWidth>
+		<ReferenceFrameHeight>0</ReferenceFrameHeight>
+		<ReferenceFrameWidth>0</ReferenceFrameWidth>
 		<PosSizeStorageVersion>1</PosSizeStorageVersion>
 		<BaseStorageVersion>1</BaseStorageVersion>
 		<Offset>0</Offset>
@@ -6838,7 +6837,7 @@
 		<BaseStorageVersion>1</BaseStorageVersion>
 		<SkipSlates>false</SkipSlates>
 		<Mode>1</Mode>
-		<TargetDuration>342625248000000</TargetDuration>
+		<TargetDuration>0</TargetDuration>
 		<CarveRatio>1.</CarveRatio>
 		<UiInstance>0</UiInstance>
 		<Enabled>false</Enabled>
@@ -6862,7 +6861,7 @@
 		<BaseStorageVersion>1</BaseStorageVersion>
 		<ReleaseTime>200.</ReleaseTime>
 		<LookAheadTime>12.</LookAheadTime>
-		<TruePeakLevel>-1.</TruePeakLevel>
+		<TruePeakLevel>-2.</TruePeakLevel>
 		<TargetLoudness>-12.</TargetLoudness>
 		<LoudnessStandard>2</LoudnessStandard>
 		<UiInstance>0</UiInstance>
@@ -6997,7 +6996,7 @@
 		<ParamDontSerializeValue>false</ParamDontSerializeValue>
 		<ParamOrdinalValue>3</ParamOrdinalValue>
 		<ParamType>2</ParamType>
-		<ParamValue>0</ParamValue>
+		<ParamValue>1330660686</ParamValue>
 	</ExporterParam>
 	<ExporterParam ObjectID="369" ClassID="9f049ab7-d48f-43e9-a8ca-4d7f21233625" Version="1">
 		<ParamAuxType></ParamAuxType>
