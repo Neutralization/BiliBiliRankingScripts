@@ -208,17 +208,17 @@ def Single(args):
     UpTime = AllData[bid]["cdate"]
     Week = AllData[bid]["weekly_id"]
 
-    history = bool(str(Week) != str(WEEKS))
+    ishistory = bool(str(Week) != str(WEEKS))
     RankImg = (
         Image.open(HISTORYRANKIMG)
-        if history
+        if ishistory
         else Image.open(MAINRANKIMG)
         if rtype
         else Image.open(BANGUMIRANKIMG)
     )
     RankPaper = ImageDraw.Draw(RankImg)
 
-    if rtype and not history and AllData[bid]["changqi"]:
+    if rtype and not ishistory and AllData[bid]["changqi"]:
         LongMark = Image.open(LONGTIMEIMG)
         LongRegion = LongMark.crop((0, 0) + LongMark.size)
         RankImg.paste(LongRegion, (11, 11))
@@ -263,7 +263,7 @@ def Single(args):
     RankPaper.text((ScoreRank_X, 28), ScoreRank, C_FFFFFF, ScoreRank_F)
 
     Score_X = 1703 - Score_F.getsize(Score)[0] / 2
-    if history:
+    if ishistory:
         RankPaper.text((Score_X, 280), Score, C_FFFFFF, Score_F)
         RankPaper.text((1495, 400), f"#{Week}", C_FFFFFF, HisRank_F)
         RankImg.save(f"./ranking/list1/av{Aid}.png")
@@ -556,7 +556,7 @@ def Stat():
     AImg_3.save("./ranking/pic/stat_3.png")
 
 
-def Rank():
+def MainRank():
     LastRankNum = int(MRank[0]["rank_from"])
     RankDataM = [
         (k, True)
@@ -570,7 +570,7 @@ def Rank():
     list(map(Single, RankData))
 
 
-def Title():
+def Opening():
     MTitle_F = ImageFont.truetype(HYM2GJ, 52)
     MWeek_F = ImageFont.truetype(HYM2GJ, 128)
     MTitle = f"{MRank[0]['name']}"
@@ -624,9 +624,9 @@ def Top():
 
 
 def Main():
-    Title()
+    Opening()
     History()
-    Rank()
+    MainRank()
     for i in range(4):
         SubRank(i + 1)
     Stat()
