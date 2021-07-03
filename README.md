@@ -11,6 +11,9 @@
 -   [PowerShell](https://github.com/PowerShell/PowerShell) 使用 v7.1.2
     > 安装 [powershell-yaml](https://github.com/cloudbase/powershell-yaml) 模块  
     > Install-Module powershell-yaml
+-   [Python](https://github.com/PowerShell/PowerShell) 使用 v3.7.9
+    > 安装 [arrow](https://github.com/arrow-py/arrow) / [emoji](https://github.com/carpedm20/emoji) / [pillow](https://github.com/python-pillow/Pillow) / [pyyaml](https://github.com/yaml/pyyaml) / [requests](https://github.com/psf/requests) 模块  
+    > python -m pip install arrow emoji pillow pyyaml requests
 
 ## GetReady
 
@@ -36,16 +39,22 @@
 
 ## WorkFlow
 
-1. 由神秘的 bilibiliran 提供周刊所需数据的 yaml 格式文件
+1. 由神秘的 bilibiliran 提供周刊所需数据的 json 格式文件
 2. 制作排行版需要的相关图片，包括 STAFF 列表，开头结尾的 Free Talk，ED 使用的 BGM 信息，以及人工指定的 Pickup 栏目等
-3. 执行 `download.ps1` 下载周榜中使用到的所有视频原素材
-4. 选取周榜中所展示的视频片段，记录片段起始时间
-5. 执行 `normalize.ps1` 裁剪视频，并标准化音频音量
-6. 启动 After Effects, 执行脚本 `autobilibilirank.jsx` 自动导入素材生成周刊工程文件并渲染
-7. 执行 `rankdoor.ps1` 生成评论区传送门
+3. 执行 `movefile.ps1` 快速移动文件至工作目录（可选）
+4. 执行 `genyaml.py` 生成周刊各部分的 yaml 文件
+5. 执行 `generate.py` 生成周榜中使用到的所有图片素材
+6. 执行 `download.ps1` 下载周榜中使用到的所有视频素材
+7. 选取周榜中所展示的视频片段，在 yaml 文件中记录片段起始时间
+8. 执行 `normalize.ps1` 裁剪视频，并标准化音频音量
+9. 启动 After Effects, 执行脚本 `autobilibilirank.jsx` 自动导入素材生成周刊工程文件并渲染
+10. 执行 `rankdoor.ps1` 生成评论区传送门
 
 ## Todo
 
 -   [x] 使用 PowerShell 重写 `rankdoor.py` 功能
--   [ ] 调整 Artificial Idiot 算法自动化视频选段步骤
+-   [x] 自动生成 1080P 视频的图片素材
+-   [x] 正确渲染稿件标题中的 emoji 字符
 -   [ ] 视频渲染完成后自动投稿
+-   [ ] Adobe AfterEffects 版本兼容性测试
+-   [ ] ~~调整 Artificial Idiot 算法自动化视频选段步骤~~
