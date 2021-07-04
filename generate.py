@@ -18,6 +18,7 @@ FZY4K_GBK1_0 = "./footage/方正粗圆_GBK_[FZY4K_GBK1_0].TTF"
 HANNOTATESC_W5 = "./footage/华康手札体简W5_[HannotateSC-W5].TTF"
 STYUANTI_SC_BOLD = "./footage/华文圆体_Bold_[STYuanti_SC_Bold].TTF"
 MAINTITLEIMG = "./footage/MAINTITLEIMG.png"
+LONGIMG = "./footage/LONGIMG.png"
 HISTORYRECORDIMG = "./footage/HISTORYRECORDIMG.png"
 BANGUMIRANKIMG = "./footage/BANGUMIRANKIMG.png"
 HISTORYRANKIMG = "./footage/HISTORYRANKIMG.png"
@@ -584,6 +585,21 @@ def Opening():
     MImg.save("./ranking/1_op/title.png")
 
 
+def LongTerm():
+    LTitle_F = ImageFont.truetype(HYM2GJ, 216)
+    LongTerm_F = ImageFont.truetype(HANNOTATESC_W5, 45)
+    LastRankNum = int(MRank[0]["rank_from"])
+    LTitle = f"{LastRankNum}-21"
+    LongTerm_ = f"长期作品：{LastRankNum - 30}个" if LastRankNum - 30 > 0 else "长期作品：没有"
+    LImg = Image.open(LONGIMG)
+    LPaper = ImageDraw.Draw(LImg)
+    LTitle_X = 607 - LTitle_F.getsize(LTitle)[0] / 2
+    LongTerm__X = 607 - LongTerm_F.getsize(LongTerm_)[0] / 2
+    LPaper.text((LTitle_X, 415), LTitle, C_FFFFFF, LTitle_F)
+    LPaper.text((LongTerm__X, 681), LongTerm_, C_FFFFFF, LongTerm_F)
+    LImg.save("./ranking/pic/_1.png")
+
+
 def History():
     HUpTime_F = ImageFont.truetype(HANNOTATESC_W5, 44)
     HCount_F = ImageFont.truetype(HANNOTATESC_W5, 45)
@@ -625,6 +641,7 @@ def Top():
 
 def Main():
     Opening()
+    LongTerm()
     History()
     MainRank()
     for i in range(4):
