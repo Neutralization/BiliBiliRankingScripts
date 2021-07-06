@@ -4,8 +4,8 @@
 
 ## Requirements
 
--   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 使用 CC2019(v16.1.3) 或 CC2020(v17.7.0)
--   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) 使用 CC2019(v13.1.5) 或 CC2020(v14.9.0)
+-   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 支持 CS6/CC2014/CC2016/CC2019/2020/2021
+-   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) 支持 2019/2020/2021
 -   [FFMPEG](https://ffmpeg.org/) 使用 v4.3.2-2021-02-02
     > 添加 `ffmpeg.exe` 路径到系统 `$PATH` 变量
 -   [PowerShell](https://github.com/PowerShell/PowerShell) 使用 v7.1.2
@@ -55,6 +55,6 @@
 -   [x] 使用 PowerShell 重写 `rankdoor.py` 功能
 -   [x] 自动生成 1080P 视频的图片素材
 -   [x] 正确渲染稿件标题中的 emoji 字符
+-   [x] Adobe AfterEffects 版本兼容性测试
 -   [ ] 视频渲染完成后自动投稿
--   [ ] Adobe AfterEffects 版本兼容性测试
 -   [ ] ~~调整 Artificial Idiot 算法自动化视频选段步骤~~
