@@ -58,3 +58,8 @@
 -   [x] Adobe AfterEffects 版本兼容性测试
 -   [ ] 视频渲染完成后自动投稿
 -   [ ] ~~调整 Artificial Idiot 算法自动化视频选段步骤~~
+
+## Thanks
+
+-   [After Effects Scripting Guide](https://ae-scripting.docsforadobe.dev/introduction/overview/)
+-   [PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.1)
