@@ -63,3 +63,4 @@
 
 -   [After Effects Scripting Guide](https://ae-scripting.docsforadobe.dev/introduction/overview/)
 -   [PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.1)
+-   [Python 3.7.11 documentation](https://docs.python.org/3.7/)
