@@ -49,6 +49,7 @@
 8. 执行 `normalize.ps1` 裁剪视频，并标准化音频音量
 9. 启动 After Effects, 执行脚本 `autobilibilirank.jsx` 自动导入素材生成周刊工程文件并渲染
 10. 执行 `rankdoor.ps1` 生成评论区传送门
+11. 执行 `timestamp.py` 生成播放器分段章节
 
 ## Todo
 
