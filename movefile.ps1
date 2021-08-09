@@ -15,6 +15,10 @@ if (!(Test-Path -Path $Backup)) {
     Move-Item -Path "$($FromFolder)\$($RankNum)_*.yml" -Destination $Backup -Force
 }
 
+Expand-Archive -Path "$($FromFolder)\$($RankNum)json.zip" -DestinationPath "$($DistFolder)\..\" -Force
+python genyaml.py
+python generate.py
+
 Copy-Item -Path "$($Backup)\op_2.png" -Destination "$($DistFolder)\1_op\" -Force
 Copy-Item -Path "$($Backup)\start.png" -Destination "$($DistFolder)\1_op\" -Force
 Copy-Item -Path "$($Backup)\world.png" -Destination "$($DistFolder)\1_op\" -Force
@@ -22,7 +26,3 @@ Copy-Item -Path "$($Backup)\history_record.png" -Destination "$($DistFolder)\pic
 Copy-Item -Path "$($Backup)\over.png" -Destination "$($DistFolder)\pic\" -Force
 Copy-Item -Path "$($Backup)\rule_2.png" -Destination "$($DistFolder)\pic\" -Force
 Copy-Item -Path "$($Backup)\$($RankNum)_*.yml" -Destination "$($DistFolder)\list1\" -Force
-
-Expand-Archive -Path "$($FromFolder)\$($RankNum)json.zip" -DestinationPath "$($DistFolder)\..\" -Force
-python genyaml.py
-python generate.py
