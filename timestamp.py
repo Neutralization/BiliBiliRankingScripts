@@ -18,31 +18,31 @@ data = {
     11: "番剧",
     13: "4-10",
     15: "历史",
-    16: "3-1",
+    16: "1-3",
 }
 for p in (3, 5, 7, 9, 11, 13, 15, 16):
     yml = yaml.load(open(f".\\ranking\\list1\\{WEEKS}_{p}.yml"), Loader=yaml.FullLoader)
     data[p] = sum([int(x[":length"]) for x in yml]), len(yml), data[p]
 
-offset = 45
-print("00:00", "00:45", "OP")
-post = [{"from": 0, "to": 45, "content": "OP"}]
+offset = 41
+print("00:00", "00:41", "OP")
+post = [{"from": 0, "to": 41, "content": "OP"}]
 for p in (3, 5, 7, 9, 11, 13, 15, 16):
     gap = 0
     if p == 3:
-        gap = data[p][1] - 1
+        gap = data[p][1] - 1 + 4
     if p == 5:
         gap = data[p][1] - 1 + 4
     if p == 7:
         gap = data[p][1] - 1 + 49
     if p == 9:
-        gap = data[p][1] - 1
+        gap = data[p][1] + 1
     if p == 11:
-        gap = data[p][1] - 1 + 24
+        gap = data[p][1] + 24
     if p == 13:
-        gap = data[p][1] - 1 + 4
+        gap = data[p][1] + 4
     if p == 15:
-        gap = data[p][1] - 1 + 11
+        gap = data[p][1] + 11
     if p == 16:
         gap = data[p][1] - 1
     temp = offset + gap + data[p][0]
