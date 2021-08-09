@@ -2,7 +2,6 @@ app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 app.newProject();
 app.project.workingSpace = "Rec.709 Gamma 2.4";
 MasterComposition = app.project.items.addComp("bilibilirank", 1920, 1080, 1, 1800, 60);
-MasterComposition.openInViewer();
 StaticFolder = app.project.items.addFolder("StaticResource");
 WeeklyFolder = app.project.items.addFolder("WeeklyResource");
 
