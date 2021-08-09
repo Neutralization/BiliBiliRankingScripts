@@ -9,7 +9,7 @@ function Normailze {
     )
     $Target = "loudnorm=I=-12.0:LRA=+7.0:tp=-2.0"
     $Length = $Length + 5
-    $AudioArg = "-y -hide_banner -i .\ranking\list0\$($FileName).mp4 -af $($Target):print_format=json -f null -"
+    $AudioArg = "-y -hide_banner -ss $($Offset) -t $($Length) -i .\ranking\list0\$($FileName).mp4 -af $($Target):print_format=json -f null -"
     $AudioInfo = ".\ranking\list0\$($FileName).log"
     Write-Host "$($FileName) Audio Analyzing......"
     Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError $AudioInfo -ArgumentList $AudioArg
