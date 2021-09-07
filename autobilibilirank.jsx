@@ -1,7 +1,10 @@
+YUME = 1277009809;
+weeks = Math.round((Date.now() / 1000 - YUME) / 3600 / 24 / 7);
+
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 app.newProject();
 app.project.workingSpace = "Rec.709 Gamma 2.4";
-MasterComposition = app.project.items.addComp("bilibilirank", 1920, 1080, 1, 1800, 60);
+MasterComposition = app.project.items.addComp("bilibilirank_" + weeks, 1920, 1080, 1, 1800, 60);
 StaticFolder = app.project.items.addFolder("StaticResource");
 WeeklyFolder = app.project.items.addFolder("WeeklyResource");
 
@@ -14,8 +17,6 @@ regex = /- :rank: (\d+)\n  :name: (\w+)\n  :length: (\d+)\n  :offset: (\d+)(\n  
 subst = '$1: ["$2", $3, $4],';
 parts = [3, 5, 7, 9, 11, 13, 15, 16];
 RankDataList = [];
-YUME = 1277009809;
-weeks = Math.floor((Date.now() / 1000 - YUME) / 3600 / 24 / 7);
 // alert(weeks);
 for (n = 0; n < parts.length; n++) {
     file = new File(DirectoryPrefix + weeks + "_" + parts[n] + ".yml");
@@ -776,4 +777,4 @@ AddVideoProperty(EdCardLayer, 1, GlobalRankOffset + EDAudioLength - 1, 1, 2);
 MasterComposition.openInViewer();
 
 MasterComposition.duration = GlobalRankOffset + EDAudioLength + 0.1;
-app.project.save(File(".\\output_" + weeks + ".aep"));
+app.project.save(File(".\\bilibilirank_" + weeks + ".aep"));
