@@ -2,42 +2,46 @@
 
 涉及周刊哔哩哔哩排行榜制作相关的脚本
 
-## Requirements
+## 工作环境
 
 -   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 支持 CS6/CC2014/CC2016/CC2019/2020/2021
--   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) 支持 2019/2020/2021
--   [FFMPEG](https://ffmpeg.org/) 使用 v4.3.2-2021-02-02
-    > 添加 `ffmpeg.exe` 路径到系统 `$PATH` 变量
--   [PowerShell](https://github.com/PowerShell/PowerShell) 使用 v7.1.2
+-   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) 支持 CC2019/2020/2021
+-   [FFmpeg](https://ffmpeg.org/) 使用 v4.4.1
+    > 如果是 [scoop](https://scoop.sh/) 用户执行  
+    > scoop install ffmpeg  
+    > 其他方式需添加 `ffmpeg.exe` 路径到系统 `$PATH` 变量
+-   [PowerShell](https://github.com/PowerShell/PowerShell) 使用 v7.2.0
     > 安装 [powershell-yaml](https://github.com/cloudbase/powershell-yaml) 模块  
     > Install-Module powershell-yaml
--   [Python](https://github.com/PowerShell/PowerShell) 使用 v3.7.9
+-   [Python](https://www.python.org/) 使用 v3.9.8
     > 安装 [arrow](https://github.com/arrow-py/arrow) / [emoji](https://github.com/carpedm20/emoji) / [pillow](https://github.com/python-pillow/Pillow) / [pyyaml](https://github.com/yaml/pyyaml) / [requests](https://github.com/psf/requests) 模块  
     > python -m pip install arrow emoji pillow pyyaml requests
 
-## GetReady
+## 准备工作
 
 -   For Chrome
 
-1. 安装插件 [Get cookies.txt](https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid)
-2. 登录哔哩哔哩，页面右键菜单选择 `Get cookies.txt`
-3. 将导出的 `bilibili.com_cookies.txt` 放在脚本工作目录下
+1. 安装插件 [EditThisCookie](https://chrome.google.com/webstore/detail/fngmhnnpilhplaeedifhccceomclgfbg)
+2. 工具栏菜单单击 `EditThisCookie`，点击 `Options` 扳手图标
+3. 在 `Choose the preferred export format for cookies` 下拉菜单中选择 `Netscape HTTP Cookie File`
+4. 登录哔哩哔哩，工具栏菜单单击 `EditThisCookie`，点击 `Export Cookies`
+5. 在脚本工作目录下新建 `bilibili.com_cookies.txt` 并打开，粘贴复制的 Cookie 内容，保存文件
 
 -   For Firefox
 
-1. 安装插件 [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt)
-2. 登录哔哩哔哩，工具栏菜单单击 `Export cookies`，选择 `Current Site`
+1. 安装插件 [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/)
+2. 登录哔哩哔哩，工具栏菜单单击 `Export cookies`，选择 `all domains`
 3. 将导出的 `cookies.txt` 重命名为 `bilibili.com_cookies.txt` 放在脚本工作目录下
 
 -   For Microsoft Edge
 
-1. 安装插件 [Cookie Editor](https://microsoftedge.microsoft.com/addons/detail/cookie-editor/ajfboaconbpkglpfanbmlfgojgndmhmc)
+1. 安装插件 [Cookie Editor](https://microsoftedge.microsoft.com/addons/detail/ajfboaconbpkglpfanbmlfgojgndmhmc)
 2. 工具栏菜单单击 `Cookie Editor`，点击 `Options` 扳手图标
 3. 在 `Choose the preferred export format for cookies` 下拉菜单中选择 `Netscape HTTP Cookie File`
 4. 登录哔哩哔哩，工具栏菜单单击 `Cookie Editor`，点击 `Export` 扳手图标
 5. 在脚本工作目录下新建 `bilibili.com_cookies.txt` 并打开，粘贴复制的 Cookie 内容，保存文件
 
-## WorkFlow
+## 流程简述
 
 1. 由神秘的 bilibiliran 提供周刊所需数据的 json 格式文件
 2. 制作排行版需要的相关图片，包括 STAFF 列表，开头结尾的 Free Talk，ED 使用的 BGM 信息，以及人工指定的 Pickup 栏目等
@@ -57,11 +61,11 @@
 -   [x] 自动生成 1080P 视频的图片素材
 -   [x] 正确渲染稿件标题中的 emoji 字符
 -   [x] Adobe AfterEffects 版本兼容性测试
--   [ ] 视频渲染完成后自动投稿
+-   [ ] ~~视频渲染完成后自动投稿~~
 -   [ ] ~~调整 Artificial Idiot 算法自动化视频选段步骤~~
 
-## Thanks
+## 学习资料
 
 -   [After Effects Scripting Guide](https://ae-scripting.docsforadobe.dev/introduction/overview/)
--   [PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.1)
--   [Python 3.7.11 documentation](https://docs.python.org/3.7/)
+-   [PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.2)
+-   [Python 3.9.8 documentation](https://docs.python.org/3.9/)
