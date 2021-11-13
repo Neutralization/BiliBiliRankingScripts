@@ -17,6 +17,10 @@ HUAWENYUANTI_BOLD = "./footage/华文圆体粗体_[STYuanBold].TTF"
 FZY4K_GBK1_0 = "./footage/方正粗圆_GBK_[FZY4K_GBK1_0].TTF"
 HANNOTATESC_W5 = "./footage/华康手札体简W5_[HannotateSC-W5].TTF"
 STYUANTI_SC_BOLD = "./footage/华文圆体_Bold_[STYuanti_SC_Bold].TTF"
+SEGOE_UI = "./footage/Segoe_UI.ttf"
+SEGOE_UI_SYMBOL = "./footage/Segoe_UI_Symbol.ttf"
+SEGOE_UI_HISTORIC = "./footage/Segoe_UI_Historic.ttf"
+GOTHICA1 = "./footage/GothicA1-Regular.ttf"
 MAINTITLEIMG = "./footage/MAINTITLEIMG.png"
 LONGIMG = "./footage/LONGIMG.png"
 HISTORYRECORDIMG = "./footage/HISTORYRECORDIMG.png"
@@ -41,6 +45,14 @@ C_FEE2B8 = "#FEE2B8"
 C_F5E5DA = "#F5E5DA"
 C_BCA798 = "#BCA798"
 C_AC8164 = "#AC8164"
+# BV13E411L7Er | “ᴰᵒ ʸᵒᵘ ᴸⁱᵏᵉ ᴿᵃⁱⁿ” “ᴵ ᴾʳᵉᶠᵉʳ ʸᵒᵘ”
+MODIFIER_LETTER = r"[\u02B0-\u02FF\u0559\u081A\u0824\u0828\u10FC\u1D00-\u1DBF\u2070-\u209F\u2C7D\u2D6F\uA69C\uA69D\uA700-\uA721\uA770\uA788\uA789\uA78A\uA7F8\uA7F9\uA9E6\uAA70\uAB5C-\uAB5F\uAB69\uAB6A\uAB6B]"
+# BV1xV41167qm | 【𝟒𝐊 𝟔𝟎𝐅𝐏𝐒】这首《𝑭𝒂𝒍𝒍𝒊𝒏𝒈 𝑨𝒈𝒂𝒊𝒏》如今治愈了多少人！！! ℳ₯㎕-沉 沦
+SCRIPT_SIGN_SQUARE = r"[\u2100-\u214F\u20A0-\u20CF\u3300-\u33FF]"
+MATHEMATICAL_ALPHANUMERIC_SYMBOLS = r"[\U0001D400-\U0001D7FF]"
+# BV1eh411t7kf | ——𒆙——
+CUNEIFORM = r"[\U00012000-\U000123FF]"
+
 
 MRank = json.load(open(f"{WEEKS}_results.json", "r", encoding="utf-8"))
 BRank = json.load(open(f"{WEEKS}_results_bangumi.json", "r", encoding="utf-8"))
@@ -82,7 +94,7 @@ MRankData = {
         "yb": format(x["yb"], ","),
     }
     for x in MRank
-    if x["wid"] is not None
+    if x.get("info") is None
 }
 BRankData = {
     x["wid"]: {
@@ -116,7 +128,7 @@ BRankData = {
         "yb": format(x["yb"], ","),
     }
     for x in BRank
-    if x["wid"] is not None
+    if x.get("info") is None
 }
 GRankData = {
     x["wid"]: {
@@ -150,7 +162,7 @@ GRankData = {
         "yb": format(x["yb"], ","),
     }
     for x in GRank
-    if x["wid"] is not None
+    if x.get("info") is None
 }
 HRankData = {
     x["wid"]: {
@@ -178,8 +190,8 @@ AllData = {
 
 def Resource(bid, link, name):
     ext = link.split(".")[-1]
-    resp = requests.get(link)
     if not os.path.exists(f"./pic/{bid}_{name}.{ext}"):
+        resp = requests.get(link)
         with open(f"./pic/{bid}_{name}.{ext}", "wb") as f:
             f.write(resp.content)
     return f"./pic/{bid}_{name}.{ext}"
@@ -198,6 +210,10 @@ def Single(args):
     Score_F = ImageFont.truetype(STYUANTI_SC_BOLD, 52)
     ScoreRank_F = ImageFont.truetype(HYM2GJ, 150)
     Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54)
+    UnicodeA_F = ImageFont.truetype(SEGOE_UI, 54)
+    UnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 54)
+    UnicodeC_F = ImageFont.truetype(GOTHICA1, 54)
+    UnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 54)
     Part_F = BiDataRank_F
     Data_F = UpTime_F = Cata_F
     Aid = AllData[bid]["av"]
@@ -234,18 +250,68 @@ def Single(args):
     ShinkSize = 0
     Title_O = 31 if rtype else 167
     RegexTitle = re.sub(chr(65039), "", Title)
-    while (Title_F.getsize(RegexTitle)[0] + Title_O) > 1510:
+    while (Title_F.getsize(RegexTitle)[0] + Title_O) > 1440:
         ShinkSize += 1
         Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54 - ShinkSize)
         Emoji_F = ImageFont.truetype(EMOJIONE, 54 - ShinkSize)
-    RankPaper.text((Title_O, 979), RegexTitle, C_6D4B2B, Title_F)
+        UnicodeA_F = ImageFont.truetype(SEGOE_UI, 54 - ShinkSize)
+        UnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 54 - ShinkSize)
+        UnicodeC_F = ImageFont.truetype(GOTHICA1, 54 - ShinkSize)
+        UnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 54 - ShinkSize)
+    # RankPaper.text((Title_O, 979), RegexTitle, C_6D4B2B, Title_F)
 
-    for i in range(len(RegexTitle)):
+    # for i in range(len(RegexTitle)):
+    #     if RegexTitle[i] in emoji.UNICODE_EMOJI["en"]:
+    #         Square = Image.new("RGB", (54 - ShinkSize, 54 - ShinkSize), C_F5E5DA)
+    #         Title_X = Title_O + Title_F.getsize(RegexTitle[:i])[0]
+    #         RankImg.paste(Square, (Title_X, 979))
+    #         RankPaper.text((Title_X, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
+
+    i = 0
+    Title_Step = Title_O
+    while i < len(RegexTitle):
         if RegexTitle[i] in emoji.UNICODE_EMOJI["en"]:
-            Square = Image.new("RGB", (54 - ShinkSize, 54 - ShinkSize), C_F5E5DA)
-            Title_X = Title_O + Title_F.getsize(RegexTitle[:i])[0]
-            RankImg.paste(Square, (Title_X, 979))
-            RankPaper.text((Title_X, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
+            RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
+            Title_Step += Emoji_F.getsize(RegexTitle[i])[0]
+        elif re.match(CUNEIFORM, RegexTitle[i]) is not None:
+            RankPaper.text(
+                (Title_Step, 979),
+                RegexTitle[i],
+                C_6D4B2B,
+                UnicodeD_F,
+            )
+            Title_Step += UnicodeD_F.getsize(RegexTitle[i])[0]
+        elif re.match(SCRIPT_SIGN_SQUARE, RegexTitle[i]) is not None:
+            RankPaper.text(
+                (Title_Step, 979),
+                RegexTitle[i],
+                C_6D4B2B,
+                UnicodeC_F,
+            )
+            Title_Step += UnicodeC_F.getsize(RegexTitle[i])[0]
+        elif re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, RegexTitle[i]) is not None:
+            RankPaper.text(
+                (Title_Step, 979 - UnicodeB_F.getsize(RegexTitle[i])[1] * 0.15),
+                RegexTitle[i],
+                C_6D4B2B,
+                UnicodeB_F,
+            )
+            Title_Step += UnicodeB_F.getsize(RegexTitle[i])[0]
+        elif (
+            (re.match(MODIFIER_LETTER, RegexTitle[i]) is not None)
+            or (
+                i + 1 < len(RegexTitle)
+                and re.match(r"[0-9a-zA-Z\u4E00-\u9FA5]", RegexTitle[i + 1]) is None
+                and re.match(MODIFIER_LETTER, RegexTitle[i + 1]) is not None
+            )
+            or (re.match(MODIFIER_LETTER, RegexTitle[i - 1]) is not None)
+        ):
+            RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, UnicodeA_F)
+            Title_Step += UnicodeA_F.getsize(RegexTitle[i])[0]
+        else:
+            RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Title_F)
+            Title_Step += Title_F.getsize(RegexTitle[i])[0]
+        i += 1
 
     Author_X = 31 if rtype else 189
     AuthorName = Author if rtype else "投稿"
@@ -385,6 +451,10 @@ def SubRank(rtype):
             SScore_F = ImageFont.truetype(STYUANTI_SC_BOLD, 45)
             SScoreRank_F = ImageFont.truetype(HYM2GJ, 48)
             STitle_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 52)
+            SUnicodeA_F = ImageFont.truetype(SEGOE_UI, 52)
+            SUnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 52)
+            SUnicodeC_F = ImageFont.truetype(GOTHICA1, 52)
+            SUnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 52)
             SUpTime_F = ImageFont.truetype(STYUANTI_SC_BOLD, 37)
             k = LastRankNum + 4 * i + j + 1
             # SDanmuRank = SScoreRankData[k]["danmu_rank"]
@@ -420,18 +490,86 @@ def SubRank(rtype):
                 SShinkSize += 1
                 STitle_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 52 - SShinkSize)
                 SEmoji_F = ImageFont.truetype(EMOJIONE, 52 - SShinkSize)
-            STitle_X = 52 + j * 259
-            SPaper.text((443, STitle_X), SRegexTitle, C_6D4B2B, STitle_F)
-            for e in range(len(SRegexTitle)):
-                if SRegexTitle[e] in emoji.UNICODE_EMOJI["en"]:
-                    Square = Image.new(
-                        "RGB", (52 - SShinkSize, 52 - SShinkSize), C_F5E5DA
-                    )
-                    SEmoji_X = 443 + STitle_F.getsize(SRegexTitle[:e])[0]
-                    SImg.paste(Square, (SEmoji_X, STitle_X))
+                SUnicodeA_F = ImageFont.truetype(SEGOE_UI, 52 - SShinkSize)
+                SUnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 52 - SShinkSize)
+                SUnicodeC_F = ImageFont.truetype(GOTHICA1, 52 - SShinkSize)
+                SUnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 52 - SShinkSize)
+
+            STitle_Y = 52 + j * 259
+            STitle_X = 443
+            si = 0
+            STitle_Step = STitle_X
+            while si < len(SRegexTitle):
+                if SRegexTitle[si] in emoji.UNICODE_EMOJI["en"]:
                     SPaper.text(
-                        (SEmoji_X, STitle_X), SRegexTitle[e], C_6D4B2B, SEmoji_F
+                        (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, SEmoji_F
                     )
+                    STitle_Step += SEmoji_F.getsize(SRegexTitle[si])[0]
+                elif re.match(CUNEIFORM, SRegexTitle[si]) is not None:
+                    SPaper.text(
+                        (
+                            STitle_Step,
+                            STitle_Y - SUnicodeD_F.getsize(SRegexTitle[si])[1] * 0.15,
+                        ),
+                        SRegexTitle[si],
+                        C_6D4B2B,
+                        SUnicodeD_F,
+                    )
+                    STitle_Step += SUnicodeD_F.getsize(SRegexTitle[si])[0]
+                elif re.match(SCRIPT_SIGN_SQUARE, SRegexTitle[si]) is not None:
+                    SPaper.text(
+                        (STitle_Step, STitle_Y),
+                        SRegexTitle[si],
+                        C_6D4B2B,
+                        SUnicodeC_F,
+                    )
+                    STitle_Step += SUnicodeC_F.getsize(SRegexTitle[si])[0]
+                elif (
+                    re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, SRegexTitle[si])
+                    is not None
+                ):
+                    SPaper.text(
+                        (
+                            STitle_Step,
+                            STitle_Y - SUnicodeB_F.getsize(SRegexTitle[si])[1] * 0.15,
+                        ),
+                        SRegexTitle[si],
+                        C_6D4B2B,
+                        SUnicodeB_F,
+                    )
+                    STitle_Step += SUnicodeB_F.getsize(SRegexTitle[si])[0]
+                elif (
+                    (re.match(MODIFIER_LETTER, SRegexTitle[si]) is not None)
+                    or (
+                        si + 1 < len(SRegexTitle)
+                        and re.match(r"[0-9a-zA-Z\u4E00-\u9FA5]", SRegexTitle[si + 1])
+                        is None
+                        and re.match(MODIFIER_LETTER, SRegexTitle[si + 1]) is not None
+                    )
+                    or (re.match(MODIFIER_LETTER, SRegexTitle[si - 1]) is not None)
+                ):
+                    SPaper.text(
+                        (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, SUnicodeA_F
+                    )
+                    STitle_Step += SUnicodeA_F.getsize(SRegexTitle[si])[0]
+                else:
+                    SPaper.text(
+                        (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, STitle_F
+                    )
+                    STitle_Step += STitle_F.getsize(SRegexTitle[si])[0]
+                si += 1
+
+            # SPaper.text((443, STitle_Y), SRegexTitle, C_6D4B2B, STitle_F)
+            # for e in range(len(SRegexTitle)):
+            #     if SRegexTitle[e] in emoji.UNICODE_EMOJI["en"]:
+            #         Square = Image.new(
+            #             "RGB", (52 - SShinkSize, 52 - SShinkSize), C_F5E5DA
+            #         )
+            #         SEmoji_X = 443 + STitle_F.getsize(SRegexTitle[:e])[0]
+            #         SImg.paste(Square, (SEmoji_X, STitle_Y))
+            #         SPaper.text(
+            #             (SEmoji_X, STitle_Y), SRegexTitle[e], C_6D4B2B, SEmoji_F
+            #         )
             SBid_X = 549 - SBid_F.getsize(SBid)[0] / 2
             SPaper.text((SBid_X, 212 + j * 259), SBid, C_FFFFFF, SBid_F)
             SScore_X = 1706 - SScore_F.getsize(SScore)[0]
@@ -509,9 +647,11 @@ def Stat():
         AScore = format(SRankData[2][i + 7][1], ",")
         AScore_X = 1046 - AScore_F.getsize(AScore)[0]
         APaper_2.text((AScore_X, 221 + i * 120), AScore, C_6D4B2B, AScore_F)
-        ARank = str(SRankData[2][i + 7][2])
+        ARank = str(SRankData[2][i + 7][2]) if len(SRankData[2][i + 7]) > 2 else "--"
         APaper_2.text((1440, 221 + i * 120), ARank, C_AC8164, ARank_F)
-        if int(ARank) > i + 8:
+        if not ARank.isdigit():
+            AStatPin = Image.open(UPIMG)
+        elif int(ARank) > i + 8:
             AStatPin = Image.open(UPIMG)
         elif int(ARank) < i + 8:
             AStatPin = Image.open(DOWNIMG)
