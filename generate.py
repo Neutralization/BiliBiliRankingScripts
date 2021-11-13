@@ -625,9 +625,11 @@ def Stat():
         AScore = format(SRankData[2][i][1], ",")
         AScore_X = 1046 - AScore_F.getsize(AScore)[0]
         APaper_1.text((AScore_X, 221 + i * 120), AScore, C_6D4B2B, AScore_F)
-        ARank = str(SRankData[2][i][2])
+        ARank = str(SRankData[2][i][2]) if len(SRankData[2][i + 7]) > 2 else "--"
         APaper_1.text((1440, 221 + i * 120), ARank, C_AC8164, ARank_F)
-        if int(ARank) > i + 1:
+        if not ARank.isdigit():
+            AStatPin = Image.open(UPIMG)
+        elif int(ARank) > i + 1:
             AStatPin = Image.open(UPIMG)
         elif int(ARank) < i + 1:
             AStatPin = Image.open(DOWNIMG)
