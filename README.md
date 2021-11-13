@@ -6,6 +6,10 @@
 
 -   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 支持 CS6/CC2014/CC2016/CC2019/2020/2021
 -   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) 支持 CC2019/2020/2021
+-   [aria2c](https://aria2.github.io/) 使用 v1.36.0
+    > 如果是 [scoop](https://scoop.sh/) 用户执行  
+    > scoop install aria2  
+    > 其他方式需添加 `aria2c.exe` 路径到系统 `$PATH` 变量
 -   [FFmpeg](https://ffmpeg.org/) 使用 v4.4.1
     > 如果是 [scoop](https://scoop.sh/) 用户执行  
     > scoop install ffmpeg  
