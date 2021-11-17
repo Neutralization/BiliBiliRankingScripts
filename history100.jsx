@@ -72,7 +72,7 @@ for (n = 0; n < RankDataList.length; n++) {
         ResourceFile = new ImportOptions(File(FileFullPath));
         ResourceFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(ResourceFile);
-        FileItem.name = RankDataList[n][key][0] + "_";
+        FileItem.name = RankDataList[n][key][0] + "_" + (601 - key);
         FileItem.parentFolder = WeeklyFolder;
     }
 }
@@ -203,7 +203,7 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
             continue;
         }
         VideoFile = RankData[LastRank - i][0];
-        VideoMaskImage = RankData[LastRank - i][0] + "_";
+        VideoMaskImage = RankData[LastRank - i][0] + "_" + (601 - LastRank + i);
         VideoDuration = RankData[LastRank - i][1];
         TrueDuration = app.project.items[ResourceID[VideoFile]].duration;
         if (TrueDuration < VideoDuration) {
