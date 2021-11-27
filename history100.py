@@ -21,6 +21,7 @@ SEGOE_UI = "./footage/Segoe_UI.ttf"
 SEGOE_UI_SYMBOL = "./footage/Segoe_UI_Symbol.ttf"
 GOTHICA1 = "./footage/GothicA1-Regular.ttf"
 TOP100IMG = "./footage/TOP100.png"
+REDFM = "./footage/FM.png"
 C_6D4B2B = "#6D4B2B"
 C_FFFFFF = "#FFFFFF"
 C_EAAA7D = "#EAAA7D"
@@ -75,6 +76,7 @@ def Single(Avid, Week):
     UnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 54)
     UnicodeC_F = ImageFont.truetype(GOTHICA1, 54)
     Week_F = ImageFont.truetype(HYQIHEI_AZEJ, 41)
+    YearCount_F = ImageFont.truetype(HYQIHEI_AZEJ, 20)
     RankTime_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 38)
     UpTime_F = Cata_F
     AllData = GetInfo(Avid)
@@ -90,6 +92,18 @@ def Single(Avid, Week):
     RankTime = f"{RankDate.format('YYYY年M月')}第{ceil(int(RankDate.format('D'))/7)}周"
     RankImg = Image.open(TOP100IMG)
     RankPaper = ImageDraw.Draw(RankImg)
+
+    if int(RankDate.format("M")) == 6 and ceil(int(RankDate.format("D")) / 7) == 4:
+        FMImg = Image.open(REDFM)
+        FMRegion = FMImg.crop((0, 0) + FMImg.size)
+        FMCover = FMRegion.resize((326, 203), Image.ANTIALIAS)
+        RankImg.paste(FMCover, (1542, 707))
+        YearCount = int(RankDate.format("YYYY")) - 2009
+        FMImg_X = 1560
+        RankPaper.text(
+            (FMImg_X + 1, 830 + 1), f"The {YearCount}th year", C_000000, YearCount_F
+        )
+        RankPaper.text((FMImg_X, 830), f"The {YearCount}th year", C_FFFFFF, YearCount_F)
 
     ShinkSize = 0
     Title_O = 31
