@@ -3,6 +3,7 @@
 import json
 import os
 import re
+from unicodedata import normalize
 
 import arrow
 import emoji
@@ -249,7 +250,8 @@ def Single(args):
 
     ShinkSize = 0
     Title_O = 31 if rtype else 167
-    RegexTitle = re.sub(chr(65039), "", Title)
+    NFCTitle = normalize("NFC", Title)
+    RegexTitle = re.sub(chr(65039), "", NFCTitle)
     while (Title_F.getsize(RegexTitle)[0] + Title_O) > 1440:
         ShinkSize += 1
         Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54 - ShinkSize)
@@ -270,7 +272,10 @@ def Single(args):
     i = 0
     Title_Step = Title_O
     while i < len(RegexTitle):
-        if RegexTitle[i] in emoji.UNICODE_EMOJI["en"]:
+        if (
+            RegexTitle[i] in emoji.UNICODE_EMOJI["en"]
+            and re.match(r"[\u2640\u2642]", RegexTitle[i]) is None
+        ):
             RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
             Title_Step += Emoji_F.getsize(RegexTitle[i])[0]
         elif re.match(CUNEIFORM, RegexTitle[i]) is not None:
@@ -484,7 +489,8 @@ def SubRank(rtype):
             SPic = SCoverRegion.resize((336, 210), Image.ANTIALIAS)
             SImg.paste(SPic, (63, 48 + j * 259))
 
-            SRegexTitle = re.sub(chr(65039), "", STitle)
+            SNFCTitle = normalize("NFC", STitle)
+            SRegexTitle = re.sub(chr(65039), "", SNFCTitle)
             SShinkSize = 0
             while (STitle_F.getsize(SRegexTitle)[0] + 443) > 1890:
                 SShinkSize += 1
@@ -500,7 +506,10 @@ def SubRank(rtype):
             si = 0
             STitle_Step = STitle_X
             while si < len(SRegexTitle):
-                if SRegexTitle[si] in emoji.UNICODE_EMOJI["en"]:
+                if (
+                    SRegexTitle[si] in emoji.UNICODE_EMOJI["en"]
+                    and re.match(r"[\u2640\u2642]", SRegexTitle[i]) is None
+                ):
                     SPaper.text(
                         (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, SEmoji_F
                     )
