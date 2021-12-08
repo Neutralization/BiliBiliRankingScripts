@@ -17,11 +17,11 @@ function Normailze {
     $AudioData = Get-Content -Path $AudioInfo | Select-Object -Last 12 | ConvertFrom-Json
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
     # Nvidia CUDA
-    $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -vsync cfr -hwaccel_output_format cuda -c:v h264_cuvid -i .\ranking\list0\$($FileName).mp4 -vf scale='min(1920,iw):min(1080,ih)':force_original_aspect_ratio=decrease -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 -c:v h264_nvenc -c:a aac .\ranking\list1\$($FileName).mp4"
+    $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -vsync cfr -hwaccel_output_format cuda -c:v h264_cuvid -i .\ranking\list0\$($FileName).mp4 -vf scale='ceil(min(1920,iw)/2)*2':'ceil(min(1080,ih)/2)*2':force_original_aspect_ratio=decrease -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 -c:v h264_nvenc -c:a aac .\ranking\list1\$($FileName).mp4"
     # Intel Quick Sync
-    # $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -init_hw_device qsv=hw -filter_hw_device hw -hwaccel_output_format qsv -i .\ranking\list0\$($FileName).mp4 -vf scale='min(1920,iw):min(1080,ih)':force_original_aspect_ratio=decrease,hwupload=extra_hw_frames=64,format=qsv  -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 -c:v h264_qsv -c:a aac .\ranking\list1\$($FileName).mp4"
+    # $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -init_hw_device qsv=hw -filter_hw_device hw -hwaccel_output_format qsv -i .\ranking\list0\$($FileName).mp4 -vf scale='ceil(min(1920,iw)/2)*2':'ceil(min(1080,ih)/2)*2':force_original_aspect_ratio=decrease,hwupload=extra_hw_frames=64,format=qsv  -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 -c:v h264_qsv -c:a aac .\ranking\list1\$($FileName).mp4"
     # CPU
-    # $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i .\ranking\list0\$($FileName).mp4 -vf scale='min(1920,iw):min(1080,ih)':force_original_aspect_ratio=decrease -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 -c:v libx264 -c:a aac .\ranking\list1\$($FileName).mp4"
+    # $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i .\ranking\list0\$($FileName).mp4 -vf scale='ceil(min(1920,iw)/2)*2':'ceil(min(1080,ih)/2)*2':force_original_aspect_ratio=decrease -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 -c:v libx264 -c:a aac .\ranking\list1\$($FileName).mp4"
     Write-Host "$($FileName) Volume Normalizing......"
     Write-Host "ffmpeg.exe $($VideoArg)"
     Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -ArgumentList $VideoArg
