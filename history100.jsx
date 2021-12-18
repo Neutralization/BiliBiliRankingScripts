@@ -58,21 +58,21 @@ for (n = 0; n < RankDataList.length; n++) {
     // IMPORT VIDEO
     for (key in RankDataList[n]) {
         FileBaseName = RankDataList[n][key][0];
-        FileFullPath = DirectoryPrefix + FileBaseName + ".mp4";
+        FileFullPath = DirectoryPrefix + (601 - key) + "_" + FileBaseName + ".mp4";
         ResourceFile = new ImportOptions(File(FileFullPath));
         ResourceFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(ResourceFile);
-        FileItem.name = RankDataList[n][key][0];
+        FileItem.name = 601 - key + "_" + RankDataList[n][key][0];
         FileItem.parentFolder = WeeklyFolder;
     }
     // IMPORT IMAGE
     for (key in RankDataList[n]) {
         FileBaseName = RankDataList[n][key][0];
-        FileFullPath = DirectoryPrefix + FileBaseName + "_" + (601 - key) + ".png";
+        FileFullPath = DirectoryPrefix + (601 - key) + "_" + FileBaseName + ".png";
         ResourceFile = new ImportOptions(File(FileFullPath));
         ResourceFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(ResourceFile);
-        FileItem.name = RankDataList[n][key][0] + "_" + (601 - key);
+        FileItem.name = 601 - key + "_" + RankDataList[n][key][0] + "_";
         FileItem.parentFolder = WeeklyFolder;
     }
 }
@@ -202,8 +202,8 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
         if (!(LastRank - i in RankData)) {
             continue;
         }
-        VideoFile = RankData[LastRank - i][0];
-        VideoMaskImage = RankData[LastRank - i][0] + "_" + (601 - LastRank + i);
+        VideoFile = 601 - LastRank + i + "_" + RankData[LastRank - i][0];
+        VideoMaskImage = 601 - LastRank + i + "_" + RankData[LastRank - i][0] + "_";
         VideoDuration = RankData[LastRank - i][1];
         TrueDuration = app.project.items[ResourceID[VideoFile]].duration;
         if (TrueDuration < VideoDuration) {

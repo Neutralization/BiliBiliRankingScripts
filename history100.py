@@ -169,7 +169,7 @@ def Single(Avid, Week):
     RankPaper.text((Week_X, 782), f"#{Week}", C_FFFFFF, Week_F)
     RankTime_X = 1705 - RankTime_F.getsize(RankTime)[0] / 2
     RankPaper.text((RankTime_X, 926), RankTime, C_FFFFFF, RankTime_F)
-    RankImg.save(f"./ranking/list100/av{Aid}_{Week}.png")
+    RankImg.save(f"./ranking/list100/{Week}_av{Aid}.png")
 
 
 def Main():
