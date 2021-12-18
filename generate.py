@@ -3,7 +3,7 @@
 import json
 import os
 import re
-from unicodedata import normalize
+from unicodedata import combining, normalize
 
 import arrow
 import emoji
@@ -53,7 +53,11 @@ SCRIPT_SIGN_SQUARE = r"[\u2100-\u214F\u20A0-\u20CF\u3300-\u33FF]"
 MATHEMATICAL_ALPHANUMERIC_SYMBOLS = r"[\U0001D400-\U0001D7FF]"
 # BV1eh411t7kf | ——𒆙——
 CUNEIFORM = r"[\U00012000-\U000123FF]"
-
+# BV1U44y1E7Wm | ✥我҉͛̀̈̈̾̓̀͂̊͝的模҉̖̭̱͍̩͕͓̋̓͋̈̑͋̉͢͞ͅ样吓҈̎̍̅̒̎͂̈́̚͞.到你҈̛́̐̄́̃͗̓͒͒͊̿͛̒了？～❤✥
+COMBINING_CYRILLIC = r"[\u0483-\u0489]"
+DINGBATS = r"[\u2700-\u27BF]"
+# BV1iq4y1z7UK | 边境查车，毒贩扔出手榴弹！！！\b纪录疫情下的广西边境...
+CONTROL = r"[\u0000-\u0019\u007F-\u00A0]"
 
 MRank = json.load(open(f"{WEEKS}_results.json", "r", encoding="utf-8"))
 BRank = json.load(open(f"{WEEKS}_results_bangumi.json", "r", encoding="utf-8"))
@@ -251,7 +255,10 @@ def Single(args):
     ShinkSize = 0
     Title_O = 31 if rtype else 167
     NFCTitle = normalize("NFC", Title)
+    NFCTitle = "".join([c for c in NFCTitle if combining(c) == 0])
     RegexTitle = re.sub(chr(65039), "", NFCTitle)
+    RegexTitle = re.sub(COMBINING_CYRILLIC, "", RegexTitle)
+    RegexTitle = re.sub(CONTROL, "", RegexTitle)
     while (Title_F.getsize(RegexTitle)[0] + Title_O) > 1440:
         ShinkSize += 1
         Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54 - ShinkSize)
@@ -294,7 +301,10 @@ def Single(args):
                 UnicodeC_F,
             )
             Title_Step += UnicodeC_F.getsize(RegexTitle[i])[0]
-        elif re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, RegexTitle[i]) is not None:
+        elif (
+            re.match(DINGBATS, RegexTitle[i]) is not None
+            or re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, RegexTitle[i]) is not None
+        ):
             RankPaper.text(
                 (Title_Step, 979 - UnicodeB_F.getsize(RegexTitle[i])[1] * 0.15),
                 RegexTitle[i],
@@ -490,7 +500,10 @@ def SubRank(rtype):
             SImg.paste(SPic, (63, 48 + j * 259))
 
             SNFCTitle = normalize("NFC", STitle)
+            SNFCTitle = "".join([c for c in SNFCTitle if combining(c) == 0])
             SRegexTitle = re.sub(chr(65039), "", SNFCTitle)
+            SRegexTitle = re.sub(COMBINING_CYRILLIC, "", SRegexTitle)
+            SRegexTitle = re.sub(CONTROL, "", SRegexTitle)
             SShinkSize = 0
             while (STitle_F.getsize(SRegexTitle)[0] + 443) > 1890:
                 SShinkSize += 1
@@ -534,7 +547,8 @@ def SubRank(rtype):
                     )
                     STitle_Step += SUnicodeC_F.getsize(SRegexTitle[si])[0]
                 elif (
-                    re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, SRegexTitle[si])
+                    re.match(DINGBATS, SRegexTitle[si]) is not None
+                    or re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, SRegexTitle[si])
                     is not None
                 ):
                     SPaper.text(
