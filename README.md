@@ -4,8 +4,8 @@
 
 ## 工作环境
 
--   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 支持 CS6/CC2014/CC2016/CC2019/2020/2021
--   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) 支持 CC2019/2020/2021
+-   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 支持 CS6/CC2014/CC2016/CC2019/2020/2021/2022
+-   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) 支持 CC2019/2020/2021/2022
 -   [aria2c](https://aria2.github.io/) 使用 v1.36.0
     > 如果是 [scoop](https://scoop.sh/) 用户执行  
     > scoop install aria2  
@@ -65,11 +65,13 @@
 -   [x] 自动生成 1080P 视频的图片素材
 -   [x] 正确渲染稿件标题中的 emoji 字符
 -   [x] Adobe AfterEffects 版本兼容性测试
+-   [ ] 正确渲染稿件标题中的 Unicode 字符
 -   [ ] ~~视频渲染完成后自动投稿~~
 -   [ ] ~~调整 Artificial Idiot 算法自动化视频选段步骤~~
 
 ## 学习资料
 
--   [After Effects Scripting Guide](https://ae-scripting.docsforadobe.dev/introduction/overview/)
+-   [After Effects Scripting Guide](https://ae-scripting.docsforadobe.dev/)
 -   [PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.2)
--   [Python 3.9.8 documentation](https://docs.python.org/3.9/)
+-   [Python 3.9 documentation](https://docs.python.org/3.9/)
+-   [Chromium WebdriverIO documentation](https://webdriver.io/docs/api/chromium/#sendcommandandgetresult)
