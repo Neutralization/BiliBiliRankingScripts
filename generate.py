@@ -46,6 +46,8 @@ C_FEE2B8 = "#FEE2B8"
 C_F5E5DA = "#F5E5DA"
 C_BCA798 = "#BCA798"
 C_AC8164 = "#AC8164"
+C_818181 = "#818181"
+C_000000 = "#000000"
 # BV13E411L7Er | “ᴰᵒ ʸᵒᵘ ᴸⁱᵏᵉ ᴿᵃⁱⁿ” “ᴵ ᴾʳᵉᶠᵉʳ ʸᵒᵘ”
 MODIFIER_LETTER = r"[\u02B0-\u02FF\u0559\u081A\u0824\u0828\u10FC\u1D00-\u1DBF\u2070-\u209F\u2C7D\u2D6F\uA69C\uA69D\uA700-\uA721\uA770\uA788\uA789\uA78A\uA7F8\uA7F9\uA9E6\uAA70\uAB5C-\uAB5F\uAB69\uAB6A\uAB6B]"
 # BV1xV41167qm | 【𝟒𝐊 𝟔𝟎𝐅𝐏𝐒】这首《𝑭𝒂𝒍𝒍𝒊𝒏𝒈 𝑨𝒈𝒂𝒊𝒏》如今治愈了多少人！！! ℳ₯㎕-沉 沦
@@ -365,12 +367,18 @@ def Single(args):
     LastRank = AllData[bid]["last"]
     if str(LastRank) == "0":
         LastRank_X = 1703 - LastRank_F.getsize("新上榜")[0] / 2
-        RankPaper.text((LastRank_X, 184), "新上榜", C_FEE2B8, LastRank_F)
+        RankPaper.text((LastRank_X + 2, 184 + 2), "新上榜", C_000000, LastRank_F)
+        RankPaper.text((LastRank_X + 1, 184 + 1), "新上榜", C_818181, LastRank_F)
+        RankPaper.text((LastRank_X, 184), "新上榜", C_FFFFFF, LastRank_F)
     else:
         LastRank_X = 1703 - LastRank_F.getsize("上周")[0] / 2
         LastRank_X_ = 1703 + LastRank_F.getsize("上周")[0] / 2
-        RankPaper.text((LastRank_X, 184), "上周", C_FEE2B8, LastRank_F)
-        RankPaper.text((LastRank_X_, 184), LastRank, C_FEE2B8, LastRank_F)
+        RankPaper.text((LastRank_X + 2, 184 + 2), "上周", C_000000, LastRank_F)
+        RankPaper.text((LastRank_X_ + 2, 184 + 2), LastRank, C_000000, LastRank_F)
+        RankPaper.text((LastRank_X + 1, 184 + 1), "上周", C_818181, LastRank_F)
+        RankPaper.text((LastRank_X_ + 1, 184 + 1), LastRank, C_818181, LastRank_F)
+        RankPaper.text((LastRank_X, 184), "上周", C_FFFFFF, LastRank_F)
+        RankPaper.text((LastRank_X_, 184), LastRank, C_FFFFFF, LastRank_F)
         if int(ScoreRank) < int(LastRank):
             StatPin = Image.open(UPIMG)
         elif int(ScoreRank) > int(LastRank):
