@@ -4,22 +4,20 @@
 
 ## 工作环境
 
--   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 支持 CS6/CC2014/CC2016/CC2019/2020/2021/2022
--   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) 支持 CC2019/2020/2021/2022
--   [aria2c](https://aria2.github.io/) 使用 v1.36.0
+-   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 支持 CS6/CC2014/2016/2019/2020/2021/2022
+-   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html)
+-   [aria2c](https://aria2.github.io/)
+-   [FFmpeg](https://ffmpeg.org/)
+-   [chromedriver](https://chromedriver.chromium.org/)
     > 如果是 [scoop](https://scoop.sh/) 用户执行  
-    > scoop install aria2  
-    > 其他方式需添加 `aria2c.exe` 路径到系统 `$PATH` 变量
--   [FFmpeg](https://ffmpeg.org/) 使用 v4.4.1
-    > 如果是 [scoop](https://scoop.sh/) 用户执行  
-    > scoop install ffmpeg  
-    > 其他方式需添加 `ffmpeg.exe` 路径到系统 `$PATH` 变量
--   [PowerShell](https://github.com/PowerShell/PowerShell) 使用 v7.2.0
-    > 安装 [powershell-yaml](https://github.com/cloudbase/powershell-yaml) 模块  
-    > Install-Module powershell-yaml
+    > scoop install aria2 ffmpeg chromedriver  
+    > 其他方式需添加 `aria2c.exe` `ffmpeg.exe` `chromedriver.exe` 路径到系统 `$PATH` 变量
+-   [PowerShell](https://docs.microsoft.com/zh-cn/powershell/) 使用 v7.2.0
+    > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块  
+    > Install-Module -Name powershell-yaml
 -   [Python](https://www.python.org/) 使用 v3.9.8
-    > 安装 [arrow](https://github.com/arrow-py/arrow) / [emoji](https://github.com/carpedm20/emoji) / [pillow](https://github.com/python-pillow/Pillow) / [pyyaml](https://github.com/yaml/pyyaml) / [requests](https://github.com/psf/requests) 模块  
-    > python -m pip install arrow emoji pillow pyyaml requests
+    > 安装 [arrow](https://pypi.org/project/arrow/) / [emoji](https://pypi.org/project/emoji/) / [Pillow](https://pypi.org/project/Pillow/) / [PyYAML](https://pypi.org/project/PyYAML/) / [requests](https://pypi.org/project/requests/) / [selenium](https://pypi.org/project/selenium/) 模块  
+    > python -m pip install arrow emoji pillow pyyaml requests selenium
 
 ## 准备工作
 
@@ -72,6 +70,6 @@
 ## 学习资料
 
 -   [After Effects Scripting Guide](https://ae-scripting.docsforadobe.dev/)
--   [PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/scripting/overview?view=powershell-7.2)
+-   [PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/scripting/overview)
 -   [Python 3.9 documentation](https://docs.python.org/3.9/)
--   [Chromium WebdriverIO documentation](https://webdriver.io/docs/api/chromium/#sendcommandandgetresult)
+-   [Chromium WebdriverIO documentation](https://webdriver.io/docs/api/chromium/)
