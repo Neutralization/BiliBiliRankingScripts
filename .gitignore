@@ -1,0 +1,15 @@
+banner/
+footage/
+pic/
+public/
+ranking/
+z_fm/
+*.aep
+*.jpg
+*.js
+*.json
+*.mp4
+*.png
+*.psd
+*.txt
+*.zip
