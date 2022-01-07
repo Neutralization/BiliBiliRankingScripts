@@ -529,7 +529,7 @@ def SubRank(rtype):
             while si < len(SRegexTitle):
                 if (
                     SRegexTitle[si] in emoji.UNICODE_EMOJI["en"]
-                    and re.match(r"[\u2640\u2642]", SRegexTitle[i]) is None
+                    and re.match(r"[\u2640\u2642]", SRegexTitle[si]) is None
                 ):
                     SPaper.text(
                         (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, SEmoji_F
