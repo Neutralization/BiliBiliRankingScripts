@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+from os.path import abspath
 from time import sleep
 
 from selenium.webdriver import Chrome
@@ -20,7 +21,7 @@ data = json.dumps(
     }
 )
 response = browser.command_executor._request("POST", url, data)
-browser.get("D:/Documents/bilibiliweek/unicode.html")
+browser.get(f'file://{abspath("unicode.html")}')
 sleep(1)
 browser.save_screenshot("unicode_text.png")
 browser.quit()
