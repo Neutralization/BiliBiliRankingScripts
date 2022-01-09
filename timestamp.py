@@ -3,12 +3,10 @@
 import http.cookiejar
 import json
 
-import arrow
 import requests
 import yaml
 
-YUME = 1277009809
-WEEKS = round((int(arrow.now("Asia/Shanghai").timestamp()) - YUME) / 3600 / 24 / 7)
+from constant import WEEKS
 
 data = {
     3: "Pickup",

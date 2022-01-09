@@ -2,11 +2,9 @@
 
 import json
 
-import arrow
 from yaml import dump
 
-YUME = 1277009809
-WEEKS = round((int(arrow.now("Asia/Shanghai").timestamp()) - YUME) / 3600 / 24 / 7)
+from constant import WEEKS
 
 
 def MakeYaml(file, max, min, part):

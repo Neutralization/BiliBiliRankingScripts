@@ -1,39 +1,20 @@
 # -*- coding: utf-8 -*-
 
 import re
+from math import ceil
 
 import arrow
 import emoji
 import requests
-from math import ceil
 from PIL import Image, ImageDraw, ImageFont
 from yaml import BaseLoader
 from yaml import load as yload
 
-YUME = 1277009809
-EMOJIONE = "./footage/EmojiOneColor.OTF"
-HYM2GJ = "./footage/汉仪黑咪体简_[HYm2gj].TTF"
-HUAWENYUANTI_BOLD = "./footage/华文圆体粗体_[STYuanBold].TTF"
-HANNOTATESC_W5 = "./footage/华康手札体简W5_[HannotateSC-W5].TTF"
-STYUANTI_SC_BOLD = "./footage/华文圆体_Bold_[STYuanti_SC_Bold].TTF"
-HYQIHEI_AZEJ = "./footage/汉仪旗黑-105简_[HYQiHei_AZEJ].TTF"
-SEGOE_UI = "./footage/Segoe_UI.ttf"
-SEGOE_UI_SYMBOL = "./footage/Segoe_UI_Symbol.ttf"
-GOTHICA1 = "./footage/GothicA1-Regular.ttf"
-TOP100IMG = "./footage/TOP100.png"
-REDFM = "./footage/FM.png"
-C_6D4B2B = "#6D4B2B"
-C_FFFFFF = "#FFFFFF"
-C_EAAA7D = "#EAAA7D"
-C_FEE2B8 = "#FEE2B8"
-C_F5E5DA = "#F5E5DA"
-C_BCA798 = "#BCA798"
-C_AC8164 = "#AC8164"
-C_000000 = "#000000"
-MODIFIER_LETTER = r"[\u02B0-\u02FF\u0559\u081A\u0824\u0828\u10FC\u1D00-\u1DBF\u2070-\u209F\u2C7D\u2D6F\uA69C\uA69D\uA700-\uA721\uA770\uA788\uA789\uA78A\uA7F8\uA7F9\uA9E6\uAA70\uAB5C-\uAB5F\uAB69\uAB6A\uAB6B]"
-SCRIPT_SIGN_SQUARE = r"[\u2100-\u214F\u20A0-\u20CF\u3300-\u33FF]"
-MATHEMATICAL_ALPHANUMERIC_SYMBOLS = r"[\U0001D400-\U0001D7FF]"
-CUNEIFORM = r"[\U00012000-\U000123FF]"
+from constant import (C_000000, C_6D4B2B, C_FFFFFF, EMOJIONE, GOTHICA1,
+                      HANNOTATESC_W5, HUAWENYUANTI_BOLD, HYQIHEI_AZEJ,
+                      MATHEMATICAL_ALPHANUMERIC_SYMBOLS, MODIFIER_LETTER,
+                      REDFM, SCRIPT_SIGN_SQUARE, SEGOE_UI, SEGOE_UI_SYMBOL,
+                      STYUANTI_SC_BOLD, TOP100IMG, YUME)
 
 LOST_INFO = {
     "42": {
