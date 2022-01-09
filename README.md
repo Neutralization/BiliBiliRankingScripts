@@ -4,20 +4,25 @@
 
 ## 工作环境
 
--   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html) 支持 CS6/CC2014/2016/2019/2020/2021/2022
+-   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html)  
+    Windows 支持 CS6/CC2014/2016/2019/2020/2021/2022 （已测试）  
+    macOS 支持 CC2021 （已测试）
 -   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html)
 -   [aria2c](https://aria2.github.io/)
 -   [FFmpeg](https://ffmpeg.org/)
 -   [chromedriver](https://chromedriver.chromium.org/)
-    > 如果是 [scoop](https://scoop.sh/) 用户执行  
+    > Windows 使用 [scoop](https://scoop.sh/) 执行  
     > scoop install aria2 ffmpeg chromedriver  
-    > 其他方式需添加 `aria2c.exe` `ffmpeg.exe` `chromedriver.exe` 路径到系统 `$PATH` 变量
+    > macOS 使用 [brew](https://brew.sh/) 执行  
+    > brew install aria2 ffmpeg chromedriver  
+    > 其他方式需添加 `aria2c` `ffmpeg` `chromedriver` 路径到系统 `$PATH` 变量
 -   [PowerShell](https://docs.microsoft.com/zh-cn/powershell/) 使用 v7.2.0
     > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块  
     > Install-Module -Name powershell-yaml
 -   [Python](https://www.python.org/) 使用 v3.9.8
     > 安装 [arrow](https://pypi.org/project/arrow/) / [emoji](https://pypi.org/project/emoji/) / [Pillow](https://pypi.org/project/Pillow/) / [PyYAML](https://pypi.org/project/PyYAML/) / [requests](https://pypi.org/project/requests/) / [selenium](https://pypi.org/project/selenium/) 模块  
-    > python -m pip install arrow emoji pillow pyyaml requests selenium
+    > python -m pip install arrow emoji pillow pyyaml requests selenium  
+    > 或者 python -m pip install -r requirements.txt
 
 ## 准备工作
 
@@ -49,13 +54,15 @@
 2. 制作排行版需要的相关图片，包括 STAFF 列表，开头结尾的 Free Talk，ED 使用的 BGM 信息，以及人工指定的 Pickup 栏目等
 3. 执行 `movefile.ps1` 快速移动文件至工作目录（可选）
 4. 执行 `genyaml.py` 生成周刊各部分的 yaml 文件
-5. 执行 `generate.py` 生成周榜中使用到的所有图片素材
-6. 执行 `download.ps1` 下载周榜中使用到的所有视频素材
-7. 选取周榜中所展示的视频片段，在 yaml 文件中记录片段起始时间
-8. 执行 `normalize.ps1` 裁剪视频，并标准化音频音量
-9. 启动 After Effects, 执行脚本 `autobilibilirank.jsx` 自动导入素材生成周刊工程文件并渲染
-10. 执行 `rankdoor.ps1` 生成评论区传送门
-11. 执行 `timestamp.py` 生成播放器分段章节
+5. 执行 `original_title.py` 更新 json 中的视频标题
+6. 执行 `generate.py` 生成周榜中使用到的所有图片素材
+7. 执行 `pickup.py` 生成 Pickup 视频的图片素材
+8. 执行 `download.ps1` 下载周榜中使用到的所有视频素材
+9. 选取周榜中所展示的视频片段，在 yaml 文件中记录片段起始时间
+10. 执行 `normalize.ps1` 裁剪视频，并标准化音频音量
+11. 启动 After Effects, 执行脚本 `autobilibilirank.jsx` 自动导入素材生成周刊工程文件并渲染
+12. 执行 `rankdoor.ps1` 生成评论区传送门
+13. 执行 `timestamp.py` 生成播放器分段章节
 
 ## Todo
 
