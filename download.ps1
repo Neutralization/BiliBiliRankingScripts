@@ -8,7 +8,7 @@ function BiliDown {
         [parameter(position = 2)]$Part = ""
     )
     $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-    $Cookie = Get-Content -Path ".\bilibili.com_cookies.txt"
+    $Cookie = Get-Content -Path "./bilibili.com_cookies.txt"
     $CookieString = ""
     $Cookie | ForEach-Object {
         if (!$_.StartsWith("#") -and $_.StartsWith(".bilibili.com")) {
@@ -71,28 +71,28 @@ function BiliDown {
                 $SourceFiles = $VideoData.data.dash
             }
             try {
-                # Invoke-WebRequest -Uri $SourceFiles.audio[0].baseUrl -WebSession $Session -Headers $Headers -OutFile ".\ranking\list0\$($CID)_a.m4s"
+                # Invoke-WebRequest -Uri $SourceFiles.audio[0].baseUrl -WebSession $Session -Headers $Headers -OutFile "./ranking/list0/$($CID)_a.m4s"
                 # Write-Host $SourceFiles.audio[0].baseUrl
-                $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide --disable-ipv6 ""$($SourceFiles.audio[0].baseUrl)"" --header=""User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0"" --header=""Referer: https://www.bilibili.com"" --out .\ranking\list0\$($CID)_a.m4s"
+                $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide --disable-ipv6 ""$($SourceFiles.audio[0].baseUrl)"" --header=""User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0"" --header=""Referer: https://www.bilibili.com"" --out ./ranking/list0/$($CID)_a.m4s"
                 # Write-Host $aria2cArgs
-                Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -RedirectStandardError ".\ranking\list0\$($CID)_.log" -ArgumentList $aria2cArgs
+                Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -RedirectStandardError "./ranking/list0/$($CID)_.log" -ArgumentList $aria2cArgs
                 
-                # Invoke-WebRequest -Uri $SourceFiles.video[0].baseUrl -WebSession $Session -Headers $Headers -OutFile ".\ranking\list0\$($CID)_v.m4s"
-                $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide --disable-ipv6 ""$($SourceFiles.video[0].baseUrl)"" --header=""User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0"" --header=""Referer: https://www.bilibili.com"" --out .\ranking\list0\$($CID)_v.m4s"
+                # Invoke-WebRequest -Uri $SourceFiles.video[0].baseUrl -WebSession $Session -Headers $Headers -OutFile "./ranking/list0/$($CID)_v.m4s"
+                $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide --disable-ipv6 ""$($SourceFiles.video[0].baseUrl)"" --header=""User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0"" --header=""Referer: https://www.bilibili.com"" --out ./ranking/list0/$($CID)_v.m4s"
                 # Write-Host $aria2cArgs
-                Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -RedirectStandardError ".\ranking\list0\$($CID)_.log" -ArgumentList $aria2cArgs
+                Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -RedirectStandardError "./ranking/list0/$($CID)_.log" -ArgumentList $aria2cArgs
                 if ($CIDIndex -EQ "0") {
                     $Filename = $BID
                 }
                 else {
                     $Filename = "$($BID)_$($CIDIndex)"
                 }
-                $ffmpegArgs = "-y -hide_banner -i .\ranking\list0\$($CID)_a.m4s -i .\ranking\list0\$($CID)_v.m4s -c copy .\ranking\list0\$($Filename).mp4"
-                Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError ".\ranking\list0\$($CID)_.log" -ArgumentList $ffmpegArgs
-                Remove-Item ".\ranking\list0\$($CID)_*.*"
+                $ffmpegArgs = "-y -hide_banner -i ./ranking/list0/$($CID)_a.m4s -i ./ranking/list0/$($CID)_v.m4s -c copy ./ranking/list0/$($Filename).mp4"
+                Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -RedirectStandardError "./ranking/list0/$($CID)_.log" -ArgumentList $ffmpegArgs
+                Remove-Item "./ranking/list0/$($CID)_*.*"
             }
             catch {
-                New-Item -Path ".\ranking\list0\" -Name "$($BID).txt" -ItemType "file" -Value "" -Force
+                New-Item -Path "./ranking/list0/" -Name "$($BID).txt" -ItemType "file" -Value "" -Force
             }
         }
         $OID = $_
@@ -107,7 +107,7 @@ function Main {
     $ThreadNums = 5
     $RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
 
-    Get-ChildItem ".\ranking\list1\$($RankNum)_*.yml" | ForEach-Object {
+    Get-ChildItem "./ranking/list1/$($RankNum)_*.yml" | ForEach-Object {
         [string[]]$FileContent = Get-Content $_
         $YamlContent = ""
         $FileContent | ForEach-Object {
@@ -121,15 +121,15 @@ function Main {
     }
 
     $ExistVideos = @()
-    Get-Item ".\ranking\list1\*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
+    Get-Item "./ranking/list1/*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
     $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
     $ExtraVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
-    $ExtraVideos | ForEach-Object { Remove-Item ".\ranking\list1\$($_).mp4" }
+    $ExtraVideos | ForEach-Object { Remove-Item "./ranking/list1/$($_).mp4" }
     $ExistVideos = @()
-    Get-Item ".\ranking\list0\*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
+    Get-Item "./ranking/list0/*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
     $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
     $ExtraVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
-    $ExtraVideos | ForEach-Object { Remove-Item ".\ranking\list0\$($_).mp4" }
+    $ExtraVideos | ForEach-Object { Remove-Item "./ranking/list0/$($_).mp4" }
 
     # $NeedVideos = @('av633397825')
 

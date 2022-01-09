@@ -6,7 +6,7 @@ function AddFavourite {
         [parameter(position = 2)]$AVID
     )
     $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-    $Cookie = Get-Content -Path ".\bilibili.com_cookies.txt"
+    $Cookie = Get-Content -Path "./bilibili.com_cookies.txt"
     $CookieString = ""
     $Cookie | ForEach-Object {
         if (!$_.StartsWith('#') -and $_.StartsWith('.bilibili.com')) {
@@ -37,7 +37,7 @@ $FIDList.data.list | ForEach-Object {
     $FIDData[$_.title] = $_.id
 }
 
-Get-Content .\MAD_rank1.csv | ForEach-Object {
+Get-Content -Path "./MAD_rank1.csv" | ForEach-Object {
     AddFavourite $FIDData['MAD周刊一位'] $_
     Start-Sleep -Seconds 2
 }
