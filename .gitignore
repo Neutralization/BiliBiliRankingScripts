@@ -1,4 +1,6 @@
 *_AME/
+.vscode/
+__pycache__/
 Adobe*/
 banner/
 footage/
