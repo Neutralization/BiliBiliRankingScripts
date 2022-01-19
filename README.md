@@ -61,12 +61,12 @@
 9. 选取周榜中所展示的视频片段，在 yaml 文件中记录片段起始时间
 10. 执行 `normalize.ps1` 裁剪视频，并标准化音频音量
 11. 启动 After Effects, 执行脚本 `autobilibilirank.jsx` 自动导入素材生成周刊工程文件并渲染
-12. 执行 `rankdoor.ps1` 生成评论区传送门
+12. ~~执行 `rankdoor.ps1` 生成评论区传送门~~
 13. 执行 `timestamp.py` 生成播放器分段章节
 
 ## Todo
 
--   [x] 使用 PowerShell 重写 `rankdoor.py` 功能
+-   [x] ~~使用 PowerShell 重写 `rankdoor.py` 功能~~
 -   [x] 自动生成 1080P 视频的图片素材
 -   [x] 正确渲染稿件标题中的 emoji 字符
 -   [x] Adobe AfterEffects 版本兼容性测试
@@ -77,6 +77,8 @@
 ## 学习资料
 
 -   [After Effects Scripting Guide](https://ae-scripting.docsforadobe.dev/)
+-   [After Effects Expression Reference](https://ae-expressions.docsforadobe.dev/)
+-   [After Effects Plugin Match Names List](https://fendrafx.com/utility/after-effects-plugin-match-names-list/)
 -   [PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/scripting/overview)
 -   [Python 3.9 documentation](https://docs.python.org/3.9/)
 -   [Chromium WebdriverIO documentation](https://webdriver.io/docs/api/chromium/)
