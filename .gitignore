@@ -6,7 +6,7 @@ banner/
 footage/
 pic/
 public/
-pyenv/
+venv/
 ranking/
 z_fm/
 *.aep
