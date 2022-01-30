@@ -4,6 +4,7 @@ weeks = Math.round((Date.now() / 1000 - YUME) / 3600 / 24 / 7);
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 app.newProject();
 app.project.workingSpace = "Rec.709 Gamma 2.4";
+app.project.bitsPerChannel = 8;
 MasterComposition = app.project.items.addComp("bilibilirank_" + weeks, 1920, 1080, 1, 1800, 60);
 StaticFolder = app.project.items.addFolder("StaticResource");
 WeeklyFolder = app.project.items.addFolder("WeeklyResource");
