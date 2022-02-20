@@ -1,37 +1,28 @@
-YUME = 1277009809;
-weeks = Math.round((Date.now() / 1000 - YUME) / 3600 / 24 / 7);
-
-app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
-app.newProject();
-app.project.workingSpace = "Rec.709 Gamma 2.4";
-app.project.bitsPerChannel = 8;
-MasterComposition = app.project.items.addComp("bilibilirank_" + weeks, 1920, 1080, 1, 1800, 60);
-StaticFolder = app.project.items.addFolder("StaticResource");
-WeeklyFolder = app.project.items.addFolder("WeeklyResource");
-
-NormalRankSize = [1440, 810];
-VideoSize = [1920, 1080];
-DirectoryPrefix = "./ranking/list1/";
-LostFile = "404_tv";
 // @include "json2.js"
-regex = /- :rank: (\d+)\n  :name: (\w+)\n  :length: (\d+)\n  :offset: (\d+)(\n  :short: \d+)?(\n  :no_pause: true)?/gm;
-subst = '$1: ["$2", $3, $4],';
-parts = [3, 5, 7, 9, 11, 13, 15, 16];
+YUME = 1277009809;
+WEEK_NUM = Math.round((Date.now() / 1000 - YUME) / 3600 / 24 / 7);
+
+CompSize = [1920, 1080];
+CompFPS = 60;
+RankSize = [1440, 810];
+Prefix = "./ranking/list1/";
+NotFound = "404_tv";
+Regex = /- :rank: (\d+)\n  :name: (\w+)\n  :length: (\d+)\n  :offset: (\d+)(\n  :short: \d+)?(\n  :no_pause: true)?/gm;
+Subst = '$1: ["$2", $3, $4],';
+Parts = [3, 5, 7, 9, 11, 13, 15, 16];
 RankDataList = [];
-// alert(weeks);
-for (n = 0; n < parts.length; n++) {
-    file = new File(DirectoryPrefix + weeks + "_" + parts[n] + ".yml");
+for (n = 0; n < Parts.length; n++) {
+    file = new File(Prefix + WEEK_NUM + "_" + Parts[n] + ".yml");
     file.open("r");
-    ymlstring = file.read();
+    content = file.read();
     file.close();
-    RankList = ymlstring.replace(regex, subst).replace("'", '"').replace("---", "{") + "}";
-    // alert(RankList);
+    RankList = content.replace(Regex, Subst).replace("'", '"').replace("---", "{") + "}";
     RankDataList[RankDataList.length] = JSON.parse(RankList);
 }
-lostfile = new File("LostFile.json");
-lostfile.open("r");
-content = lostfile.read();
-lostfile.close();
+file = new File("LostFile.json");
+file.open("r");
+content = file.read();
+file.close();
 LostVideos = JSON.parse(content)["name"];
 
 PickupData = RankDataList[0];
@@ -43,7 +34,16 @@ RankData_13 = RankDataList[5];
 RankData_15 = RankDataList[6];
 RankData_16 = RankDataList[7];
 
-StaticResource = {
+app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
+app.newProject();
+app.project.workingSpace = "Rec.709 Gamma 2.4";
+app.project.bitsPerChannel = 8;
+FinalComp = app.project.items.addComp("周刊哔哩哔哩排行榜#" + WEEK_NUM, CompSize[0], CompSize[1], 1, 1800, CompFPS);
+
+StaticFolder = app.project.items.addFolder("StaticFootage");
+WeeklyFolder = app.project.items.addFolder("WeeklyFootage");
+
+StaticFootage = {
     // IMAGE
     "0_black": "./public/black.png",
     "0_blank_1": "./public/blank.png",
@@ -133,10 +133,10 @@ StaticResource = {
     "404_tv": "./tv_x264.mp4",
 };
 
-for (key in StaticResource) {
-    ResourceFile = new ImportOptions(File(StaticResource[key]));
-    ResourceFile.ImportAs = ImportAsType.FOOTAGE;
-    FileItem = app.project.importFile(ResourceFile);
+for (key in StaticFootage) {
+    FootageFile = new ImportOptions(File(StaticFootage[key]));
+    FootageFile.ImportAs = ImportAsType.FOOTAGE;
+    FileItem = app.project.importFile(FootageFile);
     FileItem.name = key;
     FileItem.parentFolder = StaticFolder;
 }
@@ -145,10 +145,10 @@ for (n = 0; n < RankDataList.length; n++) {
     // IMPORT VIDEO
     for (key in RankDataList[n]) {
         FileBaseName = RankDataList[n][key][0];
-        FileFullPath = DirectoryPrefix + FileBaseName + ".mp4";
-        ResourceFile = new ImportOptions(File(FileFullPath));
-        ResourceFile.ImportAs = ImportAsType.FOOTAGE;
-        FileItem = app.project.importFile(ResourceFile);
+        FileFullPath = Prefix + FileBaseName + ".mp4";
+        FootageFile = new ImportOptions(File(FileFullPath));
+        FootageFile.ImportAs = ImportAsType.FOOTAGE;
+        FileItem = app.project.importFile(FootageFile);
         FileItem.name = RankDataList[n][key][0];
         FileItem.parentFolder = WeeklyFolder;
     }
@@ -156,17 +156,17 @@ for (n = 0; n < RankDataList.length; n++) {
     for (key in RankDataList[n]) {
         FileBaseName = RankDataList[n][key][0];
         if (n == 7) {
-            FileFullPath = DirectoryPrefix + FileBaseName + "_.png";
-            ResourceFile = new ImportOptions(File(FileFullPath));
-            ResourceFile.ImportAs = ImportAsType.FOOTAGE;
-            FileItem = app.project.importFile(ResourceFile);
+            FileFullPath = Prefix + FileBaseName + "_.png";
+            FootageFile = new ImportOptions(File(FileFullPath));
+            FootageFile.ImportAs = ImportAsType.FOOTAGE;
+            FileItem = app.project.importFile(FootageFile);
             FileItem.name = RankDataList[n][key][0] + "_m";
             FileItem.parentFolder = WeeklyFolder;
         }
-        FileFullPath = DirectoryPrefix + FileBaseName + ".png";
-        ResourceFile = new ImportOptions(File(FileFullPath));
-        ResourceFile.ImportAs = ImportAsType.FOOTAGE;
-        FileItem = app.project.importFile(ResourceFile);
+        FileFullPath = Prefix + FileBaseName + ".png";
+        FootageFile = new ImportOptions(File(FileFullPath));
+        FootageFile.ImportAs = ImportAsType.FOOTAGE;
+        FileItem = app.project.importFile(FootageFile);
         FileItem.name = RankDataList[n][key][0] + "_";
         FileItem.parentFolder = WeeklyFolder;
     }
@@ -306,7 +306,7 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
         }
         VideoOffset = RankData[LastRank - i][2];
         VideoOffset = 0;
-        NewVideoLayer = AddLayer(MasterComposition, VideoFile, VideoDuration, GlobalOffset - VideoOffset);
+        NewVideoLayer = AddLayer(FinalComp, VideoFile, VideoDuration, GlobalOffset - VideoOffset);
         NewVideoLayer.inPoint = GlobalOffset;
         NewVideoLayer.outPoint = GlobalOffset + VideoDuration;
         NewVideoLayer.inPoint = NewVideoLayer.outPoint - VideoDuration;
@@ -317,19 +317,19 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
         }
         AddAudioProperty(NewVideoLayer, 1, NewVideoLayer.inPoint, 0.6, 1);
         AddAudioProperty(NewVideoLayer, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
-        VideoItemSize = NewVideoLayer.sourceRectAtTime(NewVideoLayer.inPoint, false);
-        if (VideoItemSize.width / VideoItemSize.height >= 16 / 9) {
+        OrigSize = NewVideoLayer.sourceRectAtTime(NewVideoLayer.inPoint, false);
+        if (OrigSize.width / OrigSize.height >= 16 / 9) {
             NewVideoLayer.property("Scale").setValue([
-                (NormalRankSize[0] / VideoItemSize.width) * 100,
-                (NormalRankSize[0] / VideoItemSize.width) * 100,
+                (RankSize[0] / OrigSize.width) * 100,
+                (RankSize[0] / OrigSize.width) * 100,
             ]);
         } else {
             NewVideoLayer.property("Scale").setValue([
-                (NormalRankSize[1] / VideoItemSize.height) * 100,
-                (NormalRankSize[1] / VideoItemSize.height) * 100,
+                (RankSize[1] / OrigSize.height) * 100,
+                (RankSize[1] / OrigSize.height) * 100,
             ]);
         }
-        NewVideoLayer.property("Position").setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
+        NewVideoLayer.property("Position").setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
         NewVideoLayer.comment = LastRank - i + "-" + VideoFile;
         writeLn(NewVideoLayer.comment); // DEBUG
 
@@ -339,10 +339,10 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
         }
         if (CheckLost == true) {
             VideoOffset = 0;
-            LostVideoLayer = AddLayer(MasterComposition, LostFile, VideoDuration, GlobalOffset);
+            LostVideoLayer = AddLayer(FinalComp, NotFound, VideoDuration, GlobalOffset);
             LostVideoLayer.inPoint = GlobalOffset;
             LostVideoLayer.outPoint = GlobalOffset + VideoDuration;
-            LostTextLayer = MasterComposition.layers.addText("视频已失效");
+            LostTextLayer = FinalComp.layers.addText("视频已失效");
             LostTextDocument = LostTextLayer.property("Source Text").value;
             LostTextDocument.resetCharStyle();
             LostTextDocument.fontSize = 48;
@@ -360,24 +360,24 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
             }
             AddAudioProperty(LostVideoLayer, 1, LostVideoLayer.inPoint, 0.6, 1);
             AddAudioProperty(LostVideoLayer, 1, LostVideoLayer.outPoint - 0.6, 0.6, 2);
-            VideoItemSize = LostVideoLayer.sourceRectAtTime(LostVideoLayer.inPoint, false);
-            if (VideoItemSize.width / VideoItemSize.height >= 16 / 9) {
+            OrigSize = LostVideoLayer.sourceRectAtTime(LostVideoLayer.inPoint, false);
+            if (OrigSize.width / OrigSize.height >= 16 / 9) {
                 LostVideoLayer.property("Scale").setValue([
-                    (NormalRankSize[0] / VideoItemSize.width) * 100,
-                    (NormalRankSize[0] / VideoItemSize.width) * 100,
+                    (RankSize[0] / OrigSize.width) * 100,
+                    (RankSize[0] / OrigSize.width) * 100,
                 ]);
             } else {
                 LostVideoLayer.property("Scale").setValue([
-                    (NormalRankSize[1] / VideoItemSize.height) * 100,
-                    (NormalRankSize[1] / VideoItemSize.height) * 100,
+                    (RankSize[1] / OrigSize.height) * 100,
+                    (RankSize[1] / OrigSize.height) * 100,
                 ]);
             }
-            LostVideoLayer.property("Position").setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
+            LostVideoLayer.property("Position").setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
         }
-        NewVideoLayer_mask = AddLayer(MasterComposition, VideoMaskImage, VideoDuration, GlobalOffset);
+        NewVideoLayer_mask = AddLayer(FinalComp, VideoMaskImage, VideoDuration, GlobalOffset);
         if (NeedSpace && LastRank - i > FirstRank) {
-            ChangeLayer = AddLayer(MasterComposition, "0_change", 1, GlobalOffset + VideoDuration);
-            ChangeAudioLayer = AddLayer(MasterComposition, "0_change_audio", 1, GlobalOffset + VideoDuration);
+            ChangeLayer = AddLayer(FinalComp, "0_change", 1, GlobalOffset + VideoDuration);
+            ChangeAudioLayer = AddLayer(FinalComp, "0_change_audio", 1, GlobalOffset + VideoDuration);
             GlobalOffset = GlobalOffset + VideoDuration + 1;
         } else if (LastRank - i > FirstRank) {
             GlobalOffset = GlobalOffset + VideoDuration;
@@ -395,51 +395,51 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
 }
 
 // Part 1
-AudioLayer_1 = AddLayer(MasterComposition, "01_audio", 40.5, 0);
+AudioLayer_1 = AddLayer(FinalComp, "01_audio", 40.5, 0);
 AddAudioProperty(AudioLayer_1, 1, 38.2, 2.3, 2);
 
-BlankLayer_1 = AddLayer(MasterComposition, "0_blank_1", 44.5, 0);
+BlankLayer_1 = AddLayer(FinalComp, "0_blank_1", 44.5, 0);
 
-TitleLayer_1 = AddLayer(MasterComposition, "01_title", 4.5, 0);
+TitleLayer_1 = AddLayer(FinalComp, "01_title", 4.5, 0);
 AddVideoProperty(TitleLayer_1, 1, 0, 0.6, 1);
 AddVideoProperty(TitleLayer_1, 1, 3.9, 0.6, 2);
 
-WarnLayer_1 = AddLayer(MasterComposition, "01_warn_1", 2.3, 4.7);
+WarnLayer_1 = AddLayer(FinalComp, "01_warn_1", 2.3, 4.7);
 AddVideoProperty(WarnLayer_1, 2, 4.7, 0.3, 1);
 
-WarnLayer_2 = AddLayer(MasterComposition, "01_warn_2", 2.3, 7);
+WarnLayer_2 = AddLayer(FinalComp, "01_warn_2", 2.3, 7);
 AddVideoProperty(WarnLayer_2, 2, 9, 0.3, 2);
 
-WorldLayer = AddLayer(MasterComposition, "01_world", 4.5, 9.5);
+WorldLayer = AddLayer(FinalComp, "01_world", 4.5, 9.5);
 AddVideoProperty(WorldLayer, 1, 9.5, 0.3, 1);
 AddVideoProperty(WorldLayer, 1, 13.7, 0.3, 2);
 
-StartLayer = AddLayer(MasterComposition, "01_start", 4.5, 14.3);
+StartLayer = AddLayer(FinalComp, "01_start", 4.5, 14.3);
 AddVideoProperty(StartLayer, 2, 14.3, 0.3, 1);
 AddVideoProperty(StartLayer, 1, 18.5, 0.3, 2);
 
-OpeningLayer = AddLayer(MasterComposition, "01_op", 4.8, 19);
+OpeningLayer = AddLayer(FinalComp, "01_op", 4.8, 19);
 AddVideoProperty(OpeningLayer, 1, 19, 0.5, 1);
 AddVideoProperty(OpeningLayer, 1, 23.3, 0.5, 2);
 
-RuleLayer_1 = AddLayer(MasterComposition, "01_rule_1", 4.3, 24);
+RuleLayer_1 = AddLayer(FinalComp, "01_rule_1", 4.3, 24);
 AddVideoProperty(RuleLayer_1, 2, 24, 0.6, 1);
 
-RuleLayer_2 = AddLayer(MasterComposition, "01_rule_2", 4.2, 28.3);
-RuleLayer_3 = AddLayer(MasterComposition, "01_rule_3", 4, 32.5);
-RuleLayer_4 = AddLayer(MasterComposition, "01_rule_4", 4, 36.5);
+RuleLayer_2 = AddLayer(FinalComp, "01_rule_2", 4.2, 28.3);
+RuleLayer_3 = AddLayer(FinalComp, "01_rule_3", 4, 32.5);
+RuleLayer_4 = AddLayer(FinalComp, "01_rule_4", 4, 36.5);
 AddVideoProperty(RuleLayer_4, 2, 39.8, 0.7, 2);
 
-BGMLayer = AddLayer(MasterComposition, "01_bgm", 5.5, 0.5);
+BGMLayer = AddLayer(FinalComp, "01_bgm", 5.5, 0.5);
 AddVideoProperty(BGMLayer, 2, 0, 2, 1);
 AddVideoProperty(BGMLayer, 2, 4, 2, 2);
 
 // Part 2
-AudioLayer_2 = AddLayer(MasterComposition, "02_audio", 4, 40.5);
+AudioLayer_2 = AddLayer(FinalComp, "02_audio", 4, 40.5);
 AddAudioProperty(AudioLayer_2, 1, 40.5, 1, 1);
 AddAudioProperty(AudioLayer_2, 1, 43.5, 1, 2);
 
-NextLayer_2 = AddLayer(MasterComposition, "02_next", 4, 40.5);
+NextLayer_2 = AddLayer(FinalComp, "02_next", 4, 40.5);
 AddVideoProperty(NextLayer_2, 2, 40.5, 1, 1);
 
 GlobalRankOffset = 44.5;
@@ -448,12 +448,12 @@ GlobalRankOffset = 44.5;
 GlobalRankOffset = AddRankPart(PickupData, 1, false, true, GlobalRankOffset);
 
 // Part 4
-BlankLayer_4 = AddLayer(MasterComposition, "0_blank_1", 4, GlobalRankOffset);
+BlankLayer_4 = AddLayer(FinalComp, "0_blank_1", 4, GlobalRankOffset);
 
-NextLayerAudio_4 = AddLayer(MasterComposition, "0_next", 4, GlobalRankOffset);
+NextLayerAudio_4 = AddLayer(FinalComp, "0_next", 4, GlobalRankOffset);
 AddAudioProperty(NextLayerAudio_4, 1, GlobalRankOffset + 3, 1, 2);
 
-NextLayer_4 = AddLayer(MasterComposition, "04_next", 4, GlobalRankOffset);
+NextLayer_4 = AddLayer(FinalComp, "04_next", 4, GlobalRankOffset);
 AddVideoProperty(NextLayer_4, 2, GlobalRankOffset, 1, 1);
 
 GlobalRankOffset = GlobalRankOffset + 4;
@@ -463,35 +463,35 @@ GlobalRankOffset = GlobalRankOffset + 4;
 GlobalRankOffset = AddRankPart(RankData_5, 21, true, false, GlobalRankOffset);
 
 // Part 6 (tv & bangumi)
-BlankLayer_6 = AddLayer(MasterComposition, "0_blank_2", 49.1, GlobalRankOffset);
+BlankLayer_6 = AddLayer(FinalComp, "0_blank_2", 49.1, GlobalRankOffset);
 
-AudioLayer_6 = AddLayer(MasterComposition, "06_audio", 49.1, GlobalRankOffset - 30);
+AudioLayer_6 = AddLayer(FinalComp, "06_audio", 49.1, GlobalRankOffset - 30);
 AudioLayer_6.inPoint = GlobalRankOffset;
 AudioLayer_6.outPoint = GlobalRankOffset + 49.1;
 AddAudioProperty(AudioLayer_6, 1, AudioLayer_6.inPoint, 1.8, 1);
 AddAudioProperty(AudioLayer_6, 1, AudioLayer_6.outPoint - 3.2, 3.2, 2);
 
-FilmLayer = AddLayer(MasterComposition, "06_film", 3.73, GlobalRankOffset);
+FilmLayer = AddLayer(FinalComp, "06_film", 3.73, GlobalRankOffset);
 AddVideoProperty(FilmLayer, 2, GlobalRankOffset, 0.5, 1);
 AddVideoProperty(FilmLayer, 2, GlobalRankOffset + 3.23, 0.5, 2);
 
-RankLayer_6_1 = AddLayer(MasterComposition, "06_tv_001", 7.6, GlobalRankOffset + 4);
+RankLayer_6_1 = AddLayer(FinalComp, "06_tv_001", 7.6, GlobalRankOffset + 4);
 AddVideoProperty(RankLayer_6_1, 2, GlobalRankOffset + 4, 0.5, 1);
-RankLayer_6_2 = AddLayer(MasterComposition, "06_tv_002", 7, GlobalRankOffset + 11.6);
-RankLayer_6_3 = AddLayer(MasterComposition, "06_tv_003", 7, GlobalRankOffset + 18.6);
+RankLayer_6_2 = AddLayer(FinalComp, "06_tv_002", 7, GlobalRankOffset + 11.6);
+RankLayer_6_3 = AddLayer(FinalComp, "06_tv_003", 7, GlobalRankOffset + 18.6);
 AddVideoProperty(RankLayer_6_3, 2, GlobalRankOffset + 25, 0.6, 2);
 
-RankLayer_6_cn_sub = AddLayer(MasterComposition, "06_cn_sub", 3.6, GlobalRankOffset + 26);
+RankLayer_6_cn_sub = AddLayer(FinalComp, "06_cn_sub", 3.6, GlobalRankOffset + 26);
 AddVideoProperty(RankLayer_6_cn_sub, 2, GlobalRankOffset + 26, 0.5, 1);
 AddVideoProperty(RankLayer_6_cn_sub, 2, GlobalRankOffset + 29.1, 0.5, 2);
 
-RankLayer_6_bgm_4 = AddLayer(MasterComposition, "06_bgm_004", 7.5, GlobalRankOffset + 30);
+RankLayer_6_bgm_4 = AddLayer(FinalComp, "06_bgm_004", 7.5, GlobalRankOffset + 30);
 AddVideoProperty(RankLayer_6_bgm_4, 2, GlobalRankOffset + 30, 0.5, 1);
 
-RankLayer_6_bgm_5 = AddLayer(MasterComposition, "06_bgm_005", 8.4, GlobalRankOffset + 37.5);
+RankLayer_6_bgm_5 = AddLayer(FinalComp, "06_bgm_005", 8.4, GlobalRankOffset + 37.5);
 AddVideoProperty(RankLayer_6_bgm_5, 2, GlobalRankOffset + 44.5, 0.5, 2);
 
-RankLayer_6_cn_main = AddLayer(MasterComposition, "06_cn_main", 3.7, GlobalRankOffset + 45.4);
+RankLayer_6_cn_main = AddLayer(FinalComp, "06_cn_main", 3.7, GlobalRankOffset + 45.4);
 AddVideoProperty(RankLayer_6_cn_main, 2, GlobalRankOffset + 45.4, 0.6, 1);
 
 GlobalRankOffset = GlobalRankOffset + 49.1;
@@ -500,12 +500,12 @@ GlobalRankOffset = GlobalRankOffset + 49.1;
 GlobalRankOffset = AddRankPart(RankData_7, 1, false, false, GlobalRankOffset);
 
 // Part 8
-BlankLayer_8 = AddLayer(MasterComposition, "0_blank_1", 4, GlobalRankOffset);
+BlankLayer_8 = AddLayer(FinalComp, "0_blank_1", 4, GlobalRankOffset);
 
-NextLayerAudio_8 = AddLayer(MasterComposition, "0_next", 4, GlobalRankOffset);
+NextLayerAudio_8 = AddLayer(FinalComp, "0_next", 4, GlobalRankOffset);
 AddAudioProperty(NextLayerAudio_8, 1, GlobalRankOffset + 3, 1, 2);
 
-NextLayer_8 = AddLayer(MasterComposition, "08_next", 4, GlobalRankOffset);
+NextLayer_8 = AddLayer(FinalComp, "08_next", 4, GlobalRankOffset);
 AddVideoProperty(NextLayer_8, 2, GlobalRankOffset, 1, 1);
 
 GlobalRankOffset = GlobalRankOffset + 4;
@@ -514,25 +514,25 @@ GlobalRankOffset = GlobalRankOffset + 4;
 GlobalRankOffset = AddRankPart(RankData_9, 11, true, false, GlobalRankOffset);
 
 // Part 10 (bangumi)
-BlankLayer_10 = AddLayer(MasterComposition, "0_blank_2", 33, GlobalRankOffset);
+BlankLayer_10 = AddLayer(FinalComp, "0_blank_2", 33, GlobalRankOffset);
 
-AudioLayer_10 = AddLayer(MasterComposition, "10_audio", 33, GlobalRankOffset - 4.3);
+AudioLayer_10 = AddLayer(FinalComp, "10_audio", 33, GlobalRankOffset - 4.3);
 AudioLayer_10.inPoint = GlobalRankOffset;
 AudioLayer_10.outPoint = GlobalRankOffset + 33;
 AddAudioProperty(AudioLayer_10, 1, AudioLayer_10.inPoint, 1.73, 1);
 AddAudioProperty(AudioLayer_10, 1, AudioLayer_10.outPoint - 3, 3, 2);
 
-BangumiLayer = AddLayer(MasterComposition, "10_bangumi", 5, GlobalRankOffset);
+BangumiLayer = AddLayer(FinalComp, "10_bangumi", 5, GlobalRankOffset);
 AddVideoProperty(BangumiLayer, 2, GlobalRankOffset, 0.5, 1);
 AddVideoProperty(BangumiLayer, 2, GlobalRankOffset + 4.5, 0.5, 2);
 
-BangumiLayer_1 = AddLayer(MasterComposition, "10_bgm_001", 7, GlobalRankOffset + 5.3);
+BangumiLayer_1 = AddLayer(FinalComp, "10_bgm_001", 7, GlobalRankOffset + 5.3);
 AddVideoProperty(BangumiLayer_1, 2, GlobalRankOffset + 5.3, 0.5, 1);
-BangumiLayer_2 = AddLayer(MasterComposition, "10_bgm_002", 7, GlobalRankOffset + 12.3);
-BangumiLayer_3 = AddLayer(MasterComposition, "10_bgm_003", 7, GlobalRankOffset + 19.3);
+BangumiLayer_2 = AddLayer(FinalComp, "10_bgm_002", 7, GlobalRankOffset + 12.3);
+BangumiLayer_3 = AddLayer(FinalComp, "10_bgm_003", 7, GlobalRankOffset + 19.3);
 AddVideoProperty(BangumiLayer_3, 2, GlobalRankOffset + 25.8, 0.5, 2);
 
-BangumiTopLayer = AddLayer(MasterComposition, "10_bgm_main", 6.4, GlobalRankOffset + 26.6);
+BangumiTopLayer = AddLayer(FinalComp, "10_bgm_main", 6.4, GlobalRankOffset + 26.6);
 AddVideoProperty(BangumiTopLayer, 1, GlobalRankOffset + 26.6, 1, 1);
 
 GlobalRankOffset = GlobalRankOffset + 33;
@@ -541,12 +541,12 @@ GlobalRankOffset = GlobalRankOffset + 33;
 GlobalRankOffset = AddRankPart(RankData_11, 1, false, false, GlobalRankOffset);
 
 // Part 12
-BlankLayer_12 = AddLayer(MasterComposition, "0_blank_1", 4, GlobalRankOffset);
+BlankLayer_12 = AddLayer(FinalComp, "0_blank_1", 4, GlobalRankOffset);
 
-NextLayerAudio_12 = AddLayer(MasterComposition, "0_next", 4, GlobalRankOffset);
+NextLayerAudio_12 = AddLayer(FinalComp, "0_next", 4, GlobalRankOffset);
 AddAudioProperty(NextLayerAudio_12, 1, GlobalRankOffset + 3, 1, 2);
 
-NextLayer_12 = AddLayer(MasterComposition, "12_next", 4, GlobalRankOffset);
+NextLayer_12 = AddLayer(FinalComp, "12_next", 4, GlobalRankOffset);
 AddVideoProperty(NextLayer_12, 2, GlobalRankOffset, 1, 1);
 
 GlobalRankOffset = GlobalRankOffset + 4;
@@ -555,18 +555,18 @@ GlobalRankOffset = GlobalRankOffset + 4;
 GlobalRankOffset = AddRankPart(RankData_13, 4, true, false, GlobalRankOffset);
 
 // Part 14
-BlankLayer_14 = AddLayer(MasterComposition, "0_blank_2", 14.4, GlobalRankOffset);
+BlankLayer_14 = AddLayer(FinalComp, "0_blank_2", 14.4, GlobalRankOffset);
 
-AudioLayer_14 = AddLayer(MasterComposition, "14_audio", 14.4, GlobalRankOffset);
+AudioLayer_14 = AddLayer(FinalComp, "14_audio", 14.4, GlobalRankOffset);
 AudioLayer_14.inPoint = GlobalRankOffset;
 AudioLayer_14.outPoint = GlobalRankOffset + 14.4;
 AddAudioProperty(AudioLayer_14, 1, AudioLayer_14.outPoint - 1, 1, 2);
 
-RecordLayer = AddLayer(MasterComposition, "14_record", 7.2, GlobalRankOffset + 0.2);
+RecordLayer = AddLayer(FinalComp, "14_record", 7.2, GlobalRankOffset + 0.2);
 AddVideoProperty(RecordLayer, 1, GlobalRankOffset + 0.2, 0.5, 1);
 AddVideoProperty(RecordLayer, 1, GlobalRankOffset + 6.9, 0.5, 2);
 
-HistoryLayer = AddLayer(MasterComposition, "14_history", 6.5, GlobalRankOffset + 7.9);
+HistoryLayer = AddLayer(FinalComp, "14_history", 6.5, GlobalRankOffset + 7.9);
 AddVideoProperty(HistoryLayer, 1, GlobalRankOffset + 7.9, 0.5, 1);
 
 GlobalRankOffset = GlobalRankOffset + 14.4;
@@ -596,7 +596,7 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
     }
     VideoOffset = RankData_16[LastRank - i][2];
     VideoOffset = 0;
-    NewVideoLayer = AddLayer(MasterComposition, VideoFile, VideoDuration, GlobalOffset - VideoOffset);
+    NewVideoLayer = AddLayer(FinalComp, VideoFile, VideoDuration, GlobalOffset - VideoOffset);
     NewVideoLayer.inPoint = GlobalOffset;
     NewVideoLayer.outPoint = GlobalOffset + VideoDuration;
     NewVideoLayer.inPoint = NewVideoLayer.outPoint - VideoDuration;
@@ -604,24 +604,24 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
     AddVideoProperty(NewVideoLayer, 1, NewVideoLayer.outPoint - 3, 3, 2);
     AddAudioProperty(NewVideoLayer, 1, NewVideoLayer.inPoint, 1, 1);
     AddAudioProperty(NewVideoLayer, 1, NewVideoLayer.outPoint - 3, 3, 2);
-    VideoItemSize = NewVideoLayer.sourceRectAtTime(NewVideoLayer.inPoint, false);
-    if (VideoItemSize.width / VideoItemSize.height >= 16 / 9) {
+    OrigSize = NewVideoLayer.sourceRectAtTime(NewVideoLayer.inPoint, false);
+    if (OrigSize.width / OrigSize.height >= 16 / 9) {
         NewVideoLayer.property("Scale").setValue([
-            (VideoSize[0] / VideoItemSize.width) * 100,
-            (VideoSize[0] / VideoItemSize.width) * 100,
+            (CompSize[0] / OrigSize.width) * 100,
+            (CompSize[0] / OrigSize.width) * 100,
         ]);
     } else {
         NewVideoLayer.property("Scale").setValue([
-            (VideoSize[1] / VideoItemSize.height) * 100,
-            (VideoSize[1] / VideoItemSize.height) * 100,
+            (CompSize[1] / OrigSize.height) * 100,
+            (CompSize[1] / OrigSize.height) * 100,
         ]);
     }
-    NewVideoLayer.property("Position").setValue([VideoSize[0] / 2, VideoSize[1] / 2]);
+    NewVideoLayer.property("Position").setValue([CompSize[0] / 2, CompSize[1] / 2]);
     NewVideoLayer.comment = LastRank - i + "-" + VideoFile;
     writeLn(NewVideoLayer.comment); // DEBUG
-    LogoLayer = AddLayer(MasterComposition, "16_logo", VideoDuration + 0.6, GlobalOffset);
-    LogoLayer.property("Scale").setValue([(VideoSize[0] / 640) * 100, (VideoSize[1] / 384) * 100]);
-    LogoLayer.property("Position").setValue([VideoSize[0] / 2, VideoSize[1] / 2]);
+    LogoLayer = AddLayer(FinalComp, "16_logo", VideoDuration + 0.6, GlobalOffset);
+    LogoLayer.property("Scale").setValue([(CompSize[0] / 640) * 100, (CompSize[1] / 384) * 100]);
+    LogoLayer.property("Position").setValue([CompSize[0] / 2, CompSize[1] / 2]);
 
     CheckLost = false;
     for (lost in LostVideos) {
@@ -629,10 +629,10 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
     }
     if (CheckLost == true) {
         VideoOffset = 0;
-        LostVideoLayer = AddLayer(MasterComposition, LostFile, VideoDuration, GlobalOffset);
+        LostVideoLayer = AddLayer(FinalComp, NotFound, VideoDuration, GlobalOffset);
         LostVideoLayer.inPoint = GlobalOffset;
         LostVideoLayer.outPoint = GlobalOffset + VideoDuration;
-        LostTextLayer = MasterComposition.layers.addText("视频已失效");
+        LostTextLayer = FinalComp.layers.addText("视频已失效");
         LostTextDocument = LostTextLayer.property("Source Text").value;
         LostTextDocument.resetCharStyle();
         LostTextDocument.fontSize = 48;
@@ -648,45 +648,45 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
         AddVideoProperty(LostTextLayer, 1, LostTextLayer.outPoint - 0.6, 0.6, 2);
         AddAudioProperty(LostVideoLayer, 1, LostVideoLayer.inPoint, 0.6, 1);
         AddAudioProperty(LostVideoLayer, 1, LostVideoLayer.outPoint - 0.6, 0.6, 2);
-        VideoItemSize = LostVideoLayer.sourceRectAtTime(LostVideoLayer.inPoint, false);
-        if (VideoItemSize.width / VideoItemSize.height >= 16 / 9) {
+        OrigSize = LostVideoLayer.sourceRectAtTime(LostVideoLayer.inPoint, false);
+        if (OrigSize.width / OrigSize.height >= 16 / 9) {
             LostVideoLayer.property("Scale").setValue([
-                (VideoSize[0] / VideoItemSize.width) * 100,
-                (VideoSize[0] / VideoItemSize.width) * 100,
+                (CompSize[0] / OrigSize.width) * 100,
+                (CompSize[0] / OrigSize.width) * 100,
             ]);
         } else {
             LostVideoLayer.property("Scale").setValue([
-                (VideoSize[1] / VideoItemSize.height) * 100,
-                (VideoSize[1] / VideoItemSize.height) * 100,
+                (CompSize[1] / OrigSize.height) * 100,
+                (CompSize[1] / OrigSize.height) * 100,
             ]);
         }
-        LostVideoLayer.property("Position").setValue([VideoSize[0] / 2, VideoSize[1] / 2]);
+        LostVideoLayer.property("Position").setValue([CompSize[0] / 2, CompSize[1] / 2]);
     }
     // 12 seconds
-    BlackLayer = AddLayer(MasterComposition, "0_black", 12, GlobalOffset - VideoOffset);
-    NewVideoLayer_small = AddLayer(MasterComposition, VideoFile, 12, GlobalOffset - VideoOffset);
+    BlackLayer = AddLayer(FinalComp, "0_black", 12, GlobalOffset - VideoOffset);
+    NewVideoLayer_small = AddLayer(FinalComp, VideoFile, 12, GlobalOffset - VideoOffset);
     NewVideoLayer_small.audioEnabled = false;
     NewVideoLayer_small.inPoint = NewVideoLayer.inPoint;
     NewVideoLayer_small.outPoint = NewVideoLayer.inPoint + 12;
-    VideoItemSize = NewVideoLayer_small.sourceRectAtTime(NewVideoLayer_small.inPoint, false);
-    if (VideoItemSize.width / VideoItemSize.height >= 16 / 9) {
+    OrigSize = NewVideoLayer_small.sourceRectAtTime(NewVideoLayer_small.inPoint, false);
+    if (OrigSize.width / OrigSize.height >= 16 / 9) {
         NewVideoLayer_small.property("Scale").setValue([
-            (NormalRankSize[0] / VideoItemSize.width) * 100,
-            (NormalRankSize[0] / VideoItemSize.width) * 100,
+            (RankSize[0] / OrigSize.width) * 100,
+            (RankSize[0] / OrigSize.width) * 100,
         ]);
     } else {
         NewVideoLayer_small.property("Scale").setValue([
-            (NormalRankSize[1] / VideoItemSize.height) * 100,
-            (NormalRankSize[1] / VideoItemSize.height) * 100,
+            (RankSize[1] / OrigSize.height) * 100,
+            (RankSize[1] / OrigSize.height) * 100,
         ]);
     }
-    NewVideoLayer_small.property("Position").setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
+    NewVideoLayer_small.property("Position").setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
     if (CheckLost == true) {
         VideoOffset = 0;
-        LostVideoLayer_small = AddLayer(MasterComposition, LostFile, VideoDuration, GlobalOffset);
+        LostVideoLayer_small = AddLayer(FinalComp, NotFound, VideoDuration, GlobalOffset);
         LostVideoLayer_small.inPoint = GlobalOffset;
         LostVideoLayer_small.outPoint = LostVideoLayer_small.inPoint + 12;
-        LostTextLayer_small = MasterComposition.layers.addText("视频已失效");
+        LostTextLayer_small = FinalComp.layers.addText("视频已失效");
         LostTextDocument = LostTextLayer.property("Source Text").value;
         LostTextDocument.resetCharStyle();
         LostTextDocument.fontSize = 48;
@@ -700,82 +700,82 @@ for (i = 0; LastRank - i >= FirstRank; i++) {
         LostTextLayer_small.property("Source Text").setValue(LostTextDocument);
         AddAudioProperty(LostVideoLayer_small, 1, LostVideoLayer_small.inPoint, 0.6, 1);
         AddAudioProperty(LostVideoLayer_small, 1, LostVideoLayer_small.outPoint - 0.6, 0.6, 2);
-        VideoItemSize = LostVideoLayer_small.sourceRectAtTime(LostVideoLayer_small.inPoint, false);
-        if (VideoItemSize.width / VideoItemSize.height >= 16 / 9) {
+        OrigSize = LostVideoLayer_small.sourceRectAtTime(LostVideoLayer_small.inPoint, false);
+        if (OrigSize.width / OrigSize.height >= 16 / 9) {
             LostVideoLayer_small.property("Scale").setValue([
-                (NormalRankSize[0] / VideoItemSize.width) * 100,
-                (NormalRankSize[0] / VideoItemSize.width) * 100,
+                (RankSize[0] / OrigSize.width) * 100,
+                (RankSize[0] / OrigSize.width) * 100,
             ]);
         } else {
             LostVideoLayer_small.property("Scale").setValue([
-                (NormalRankSize[1] / VideoItemSize.height) * 100,
-                (NormalRankSize[1] / VideoItemSize.height) * 100,
+                (RankSize[1] / OrigSize.height) * 100,
+                (RankSize[1] / OrigSize.height) * 100,
             ]);
         }
-        LostVideoLayer_small.property("Position").setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
+        LostVideoLayer_small.property("Position").setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
     }
-    AddLayer(MasterComposition, "0_blank_1", 5, GlobalOffset);
-    AddLayer(MasterComposition, VideoMaskImage, 7, GlobalOffset + 5);
-    TopRankLayer = AddLayer(MasterComposition, TopImage, 5, GlobalOffset);
+    AddLayer(FinalComp, "0_blank_1", 5, GlobalOffset);
+    AddLayer(FinalComp, VideoMaskImage, 7, GlobalOffset + 5);
+    TopRankLayer = AddLayer(FinalComp, TopImage, 5, GlobalOffset);
     AddVideoProperty(TopRankLayer, 1, GlobalOffset, 1, 1);
     GlobalOffset = GlobalOffset + VideoDuration + 0.6;
 }
 GlobalRankOffset = GlobalOffset;
 
 // Part 17
-BlankLayer_17 = AddLayer(MasterComposition, "0_blank_3", 25, GlobalRankOffset);
+BlankLayer_17 = AddLayer(FinalComp, "0_blank_3", 25, GlobalRankOffset);
 AddVideoProperty(BlankLayer_17, 1, GlobalRankOffset + 24.5, 0.5, 2);
 
-bilibili_layer = AddLayer(MasterComposition, "17_audio", 25, GlobalRankOffset);
+bilibili_layer = AddLayer(FinalComp, "17_audio", 25, GlobalRankOffset);
 bilibili_layer.inPoint = GlobalRankOffset;
 bilibili_layer.outPoint = GlobalRankOffset + 25;
 AddAudioProperty(bilibili_layer, 1, bilibili_layer.outPoint - 3, 3, 2);
 
-stat_1_layer = AddLayer(MasterComposition, "17_stat_1", 7.33, GlobalRankOffset + 0.8);
+stat_1_layer = AddLayer(FinalComp, "17_stat_1", 7.33, GlobalRankOffset + 0.8);
 AddVideoProperty(stat_1_layer, 2, GlobalRankOffset + 0.8, 0.6, 1);
-stat_2_layer = AddLayer(MasterComposition, "17_stat_2", 5.27, GlobalRankOffset + 8.13);
-stat_3_layer = AddLayer(MasterComposition, "17_stat_3", 5.8, GlobalRankOffset + 13.4);
+stat_2_layer = AddLayer(FinalComp, "17_stat_2", 5.27, GlobalRankOffset + 8.13);
+stat_3_layer = AddLayer(FinalComp, "17_stat_3", 5.8, GlobalRankOffset + 13.4);
 AddVideoProperty(stat_3_layer, 2, GlobalRankOffset + 18.6, 0.6, 2);
 
-over_layer = AddLayer(MasterComposition, "17_over", 5.5, GlobalRankOffset + 19.5);
+over_layer = AddLayer(FinalComp, "17_over", 5.5, GlobalRankOffset + 19.5);
 AddVideoProperty(over_layer, 2, GlobalRankOffset + 19.5, 0.5, 1);
 AddVideoProperty(over_layer, 2, GlobalRankOffset + 24.5, 0.5, 2);
 
 GlobalRankOffset = GlobalRankOffset + 25;
 
 // Part 18 (30+ to 150 +)
-AudioLayer_18 = AddLayer(MasterComposition, "18_audio", null, GlobalRankOffset);
+AudioLayer_18 = AddLayer(FinalComp, "18_audio", null, GlobalRankOffset);
 EDAudioLength = app.project.items[ResourceID["18_audio"]].duration;
 AudioLayer_18.inPoint = GlobalRankOffset;
 AudioLayer_18.outPoint = GlobalRankOffset + EDAudioLength;
-BlankLayer_18 = AddLayer(MasterComposition, "0_blank_1", 5, GlobalRankOffset + 1);
-BlankLayer_18 = AddLayer(MasterComposition, "0_blank_2", EDAudioLength - 9, GlobalRankOffset + 9);
+BlankLayer_18 = AddLayer(FinalComp, "0_blank_1", 5, GlobalRankOffset + 1);
+BlankLayer_18 = AddLayer(FinalComp, "0_blank_2", EDAudioLength - 9, GlobalRankOffset + 9);
 AddVideoProperty(BlankLayer_18, 1, GlobalRankOffset + EDAudioLength - 1, 1, 2);
 AddAudioProperty(AudioLayer_18, 1, GlobalRankOffset, 0.6, 1);
 AddAudioProperty(AudioLayer_18, 1, GlobalRankOffset + EDAudioLength - 1, 1, 2);
 
 SubRankLength = (EDAudioLength - 19.5) / 30;
 for (i = 1; i < 30; i++) {
-    AddLayer(MasterComposition, i, SubRankLength, GlobalRankOffset + 9 + (i - 1) * SubRankLength);
+    AddLayer(FinalComp, i, SubRankLength, GlobalRankOffset + 9 + (i - 1) * SubRankLength);
 }
-LastRankCardLayer = AddLayer(MasterComposition, i, SubRankLength, GlobalRankOffset + 9 + SubRankLength * 29);
+LastRankCardLayer = AddLayer(FinalComp, i, SubRankLength, GlobalRankOffset + 9 + SubRankLength * 29);
 AddVideoProperty(LastRankCardLayer, 1, GlobalRankOffset + 9 + SubRankLength * 30 - 0.6, 0.6, 2);
 
-StaffLayer = AddLayer(MasterComposition, "18_staff", 4.6, GlobalRankOffset);
+StaffLayer = AddLayer(FinalComp, "18_staff", 4.6, GlobalRankOffset);
 AddVideoProperty(StaffLayer, 1, GlobalRankOffset, 0.6, 1);
 AddVideoProperty(StaffLayer, 1, GlobalRankOffset + 4, 0.6, 2);
-NextLayer_18 = AddLayer(MasterComposition, "18_next", 5.9, GlobalRankOffset + 4);
+NextLayer_18 = AddLayer(FinalComp, "18_next", 5.9, GlobalRankOffset + 4);
 AddVideoProperty(NextLayer_18, 1, GlobalRankOffset + 4, 0.6, 1);
 AddVideoProperty(NextLayer_18, 1, GlobalRankOffset + 9.3, 0.6, 2);
 
-AddrLayer = AddLayer(MasterComposition, "18_addr", 5, GlobalRankOffset + EDAudioLength - 10);
+AddrLayer = AddLayer(FinalComp, "18_addr", 5, GlobalRankOffset + EDAudioLength - 10);
 AddVideoProperty(AddrLayer, 1, GlobalRankOffset + EDAudioLength - 10, 0.6, 1);
 AddVideoProperty(AddrLayer, 1, GlobalRankOffset + EDAudioLength - 5.6, 0.6, 2);
-EdCardLayer = AddLayer(MasterComposition, "18_ed", 5, GlobalRankOffset + EDAudioLength - 5);
+EdCardLayer = AddLayer(FinalComp, "18_ed", 5, GlobalRankOffset + EDAudioLength - 5);
 AddVideoProperty(EdCardLayer, 1, GlobalRankOffset + EDAudioLength - 5, 0.6, 1);
 AddVideoProperty(EdCardLayer, 1, GlobalRankOffset + EDAudioLength - 1, 1, 2);
 
-MasterComposition.openInViewer();
+FinalComp.openInViewer();
 
-MasterComposition.duration = GlobalRankOffset + EDAudioLength + 0.1;
-app.project.save(File("./bilibilirank_" + weeks + ".aep"));
+FinalComp.duration = GlobalRankOffset + EDAudioLength + 0.1;
+app.project.save(File("./bilibilirank_" + WEEK_NUM + ".aep"));
