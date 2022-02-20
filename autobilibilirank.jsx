@@ -208,21 +208,21 @@ function AddAudioProperty(Target, Ptype, Duration, Offset, Direction) {
             // fade in
             for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
                 NewProperty.setValueAtTime(t, [
-                    (Math.sqrt(1 - Math.pow(1 - (t - Offset) / Duration, 2)) - 1) * 192,
-                    (Math.sqrt(1 - Math.pow(1 - (t - Offset) / Duration, 2)) - 1) * 192,
+                    (Math.sqrt(1 - Math.pow(1 - (t - Offset) / Duration, 2)) - 1) * 50,
+                    (Math.sqrt(1 - Math.pow(1 - (t - Offset) / Duration, 2)) - 1) * 50,
                 ]);
             }
-            NewProperty.setValueAtTime(Offset, [-192, -192]);
+            NewProperty.setValueAtTime(Offset, [-Infinity, -Infinity]);
         }
         if (Direction == 2) {
             // fade out
             for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
                 NewProperty.setValueAtTime(t, [
-                    (Math.sqrt(1 - Math.pow((t - Offset) / Duration, 2)) - 1) * 192,
-                    (Math.sqrt(1 - Math.pow((t - Offset) / Duration, 2)) - 1) * 192,
+                    (Math.sqrt(1 - Math.pow((t - Offset) / Duration, 2)) - 1) * 50,
+                    (Math.sqrt(1 - Math.pow((t - Offset) / Duration, 2)) - 1) * 50,
                 ]);
             }
-            NewProperty.setValueAtTime(Offset + Duration, [-192, -192]);
+            NewProperty.setValueAtTime(Offset + Duration, [-Infinity, -Infinity]);
         }
     }
     if (Ptype == 2) {
@@ -231,21 +231,21 @@ function AddAudioProperty(Target, Ptype, Duration, Offset, Direction) {
             // fade in
             for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
                 NewProperty.setValueAtTime(t, [
-                    ((Math.cos((Math.PI * (t - Offset)) / Duration) + 1) / 2) * -192,
-                    ((Math.cos((Math.PI * (t - Offset)) / Duration) + 1) / 2) * -192,
+                    ((Math.cos((Math.PI * (t - Offset)) / Duration) + 1) / 2) * -50,
+                    ((Math.cos((Math.PI * (t - Offset)) / Duration) + 1) / 2) * -50,
                 ]);
             }
-            NewProperty.setValueAtTime(Offset, [-192, -192]);
+            NewProperty.setValueAtTime(Offset, [-Infinity, -Infinity]);
         }
         if (Direction == 2) {
             // fade out
             for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
                 NewProperty.setValueAtTime(t, [
-                    ((Math.cos((Math.PI * (t - Offset)) / Duration + Math.PI) + 1) / 2) * -192,
-                    ((Math.cos((Math.PI * (t - Offset)) / Duration + Math.PI) + 1) / 2) * -192,
+                    ((Math.cos((Math.PI * (t - Offset)) / Duration + Math.PI) + 1) / 2) * -50,
+                    ((Math.cos((Math.PI * (t - Offset)) / Duration + Math.PI) + 1) / 2) * -50,
                 ]);
             }
-            NewProperty.setValueAtTime(Offset + Duration, [-192, -192]);
+            NewProperty.setValueAtTime(Offset + Duration, [-Infinity, -Infinity]);
         }
     }
     return NewProperty;
@@ -344,9 +344,12 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
         } else if (AddProperty) {
             AddVideoProperty(NewVideoLayer, 1, 0.6, NewVideoLayer.inPoint, 1);
             AddVideoProperty(NewVideoLayer, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
+            AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.inPoint, 1);
+            AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.outPoint - 1, 2);
+        } else {
+            AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.inPoint, 1);
+            AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.outPoint - 1, 2);
         }
-        AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.inPoint, 1);
-        AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.outPoint - 1, 2);
         OrigSize = NewVideoLayer.sourceRectAtTime(NewVideoLayer.inPoint, false);
         if (OrigSize.width / OrigSize.height >= 16 / 9) {
             NewVideoLayer.property("Scale").setValue([
