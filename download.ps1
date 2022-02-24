@@ -1,5 +1,7 @@
-Import-Module powershell-yaml
-
+param (
+    [string]$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7),
+    [array]$Part = @("*")
+)
 $ProgressPreference = "SilentlyContinue"
 
 function BiliDown {
@@ -72,14 +74,11 @@ function BiliDown {
             }
             try {
                 # Invoke-WebRequest -Uri $SourceFiles.audio[0].baseUrl -WebSession $Session -Headers $Headers -OutFile "./ranking/list0/$($CID)_a.m4s"
-                # Write-Host $SourceFiles.audio[0].baseUrl
                 $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide --disable-ipv6 ""$($SourceFiles.audio[0].baseUrl)"" --header=""User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0"" --header=""Referer: https://www.bilibili.com"" --out ./ranking/list0/$($CID)_a.m4s"
-                # Write-Host $aria2cArgs
                 Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -RedirectStandardError "./ranking/list0/$($CID)_.log" -ArgumentList $aria2cArgs
                 
                 # Invoke-WebRequest -Uri $SourceFiles.video[0].baseUrl -WebSession $Session -Headers $Headers -OutFile "./ranking/list0/$($CID)_v.m4s"
                 $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide --disable-ipv6 ""$($SourceFiles.video[0].baseUrl)"" --header=""User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0"" --header=""Referer: https://www.bilibili.com"" --out ./ranking/list0/$($CID)_v.m4s"
-                # Write-Host $aria2cArgs
                 Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -RedirectStandardError "./ranking/list0/$($CID)_.log" -ArgumentList $aria2cArgs
                 if ($CIDIndex -EQ "0") {
                     $Filename = $BID
@@ -102,39 +101,43 @@ function BiliDown {
 }
 
 function Main {
+    Import-Module powershell-yaml
+    $Files = @()
+    $LocalVideos = @()
     $RankVideos = @()
     $ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
-    $ThreadNums = 5
-    $RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
-
-    Get-ChildItem "./ranking/list1/$($RankNum)_*.yml" | ForEach-Object {
-        [string[]]$FileContent = Get-Content $_
-        $YamlContent = ""
-        $FileContent | ForEach-Object {
-            $YamlContent = $YamlContent + "`n" + $_
+    if ($Part.Contains("*")) {
+        $Files = Get-Content -Raw "./ranking/list1/$($RankNum)_*.yml"
+        Get-ChildItem "./ranking/list0/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
+    }
+    else {
+        $Part | ForEach-Object {
+            $Files += Get-Content -Raw "./ranking/list1/$($RankNum)_$($_).yml"
         }
-        ConvertFrom-Yaml $YamlContent | ForEach-Object {
+    }
+    $Files | ForEach-Object {
+        ConvertFrom-Yaml $_ | ForEach-Object {
             $_ | ForEach-Object {
-                $RankVideos += "$($_.":name")"
+                $RankVideos += $_.":name"
             }
         }
     }
-
-    $ExistVideos = @()
-    Get-Item "./ranking/list1/*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
-    $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
-    $ExtraVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
-    $ExtraVideos | ForEach-Object { Remove-Item "./ranking/list1/$($_).mp4" }
-    $ExistVideos = @()
-    Get-Item "./ranking/list0/*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
-    $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
-    $ExtraVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
-    $ExtraVideos | ForEach-Object { Remove-Item "./ranking/list0/$($_).mp4" }
-
-    # $NeedVideos = @('av633397825')
-
+    $NewVideos = $RankVideos | Where-Object { $LocalVideos -notcontains $_ }
+    $OldVideos = $LocalVideos | Where-Object { $RankVideos -notcontains $_ }
+    $RankVideos | Where-Object { $LocalVideos -contains $_ } | ForEach-Object {
+        Write-Host "$($_) Already Downloaded." -ForegroundColor Yellow
+    }
+    Add-Type -AssemblyName Microsoft.VisualBasic
+    $OldVideos | ForEach-Object {
+        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
+            (Resolve-Path "./ranking/list0/$($_).mp4"), "OnlyErrorDialogs", "SendToRecycleBin")
+    }
+    Get-ChildItem "./ranking/list0/*.*" -Exclude "*.mp4" | ForEach-Object {
+        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
+            "$($_)", "OnlyErrorDialogs", "SendToRecycleBin")
+    }
     $Call = $function:BiliDown.ToString()
-    $NeedVideos | ForEach-Object -Parallel {
+    $NewVideos | ForEach-Object -Parallel {
         $function:BiliDown = $using:Call
         BiliDown $_
     } -ThrottleLimit $ThreadNums

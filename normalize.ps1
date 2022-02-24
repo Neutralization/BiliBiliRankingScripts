@@ -1,7 +1,8 @@
 param (
     [string]$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7),
-    [array]$part = "*"
+    [array]$Part = @("*")
 )
+$ProgressPreference = "SilentlyContinue"
 
 function Normailze {
     param (
@@ -33,31 +34,44 @@ function Normailze {
 }
 
 function Main {
-    Import-Module powershell-yaml 
-    $part | ForEach-Object {
-        $p = $_
-        Get-ChildItem "./ranking/list1/$($RankNum)_$($p).yml" | ForEach-Object {
-            [string[]]$FileContent = Get-Content $_
-            $YamlContent = ""
-            $FileContent | ForEach-Object {
-                $YamlContent = $YamlContent + "`n" + $_
-            }
-            $ExistVideos = @()
-            if ($p -eq '*') {
-                Get-Item "./ranking/list1/*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
-            }
-            $Call = $function:Normailze.ToString()
-            ConvertFrom-Yaml $YamlContent | ForEach-Object {
-                $_ | ForEach-Object -Parallel {
-                    $function:Normailze = $using:Call
-                    if ($using:ExistVideos -notcontains $_.":name") {
-                        Normailze $_.":name" $_.":offset" $_.":length"
-                    }
-                } -ThrottleLimit 1
+    Import-Module powershell-yaml
+    $Files = @()
+    $LocalVideos = @()
+    $RankVideos = @()
+    if ($Part.Contains("*")) {
+        $Files = Get-Content -Raw "./ranking/list1/$($RankNum)_*.yml"
+        Get-ChildItem "./ranking/list1/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
+    }
+    else {
+        $Part | ForEach-Object {
+            $Files += Get-Content -Raw "./ranking/list1/$($RankNum)_$($_).yml"
+        }
+    }
+    $Files | ForEach-Object {
+        ConvertFrom-Yaml $_ | ForEach-Object {
+            $_ | ForEach-Object {
+                $RankVideos += @{n = $_.":name"; o = $_.":offset"; l = $_.":length" }
             }
         }
     }
-    Remove-Item "./ranking/list0/*.log"
+    $RankVideos | ForEach-Object {
+        if ($Part.Contains("*")) {
+            if ($LocalVideos -notcontains $_.n) {
+                Normailze $_.n $_.o $_.l
+            }
+            else {
+                Write-Host "$($_.n) Already Normalized." -ForegroundColor Yellow
+            }
+        }
+        else {
+            Normailze $_.n $_.o $_.l
+        }
+    }
+    Add-Type -AssemblyName Microsoft.VisualBasic
+    Get-ChildItem "./ranking/list0/*.log" | ForEach-Object {
+        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
+            "$($_)", "OnlyErrorDialogs", "SendToRecycleBin")
+    }
 }
 
 Main
