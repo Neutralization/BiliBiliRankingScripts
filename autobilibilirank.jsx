@@ -279,23 +279,21 @@ function AddVideoProperty(Target, Ptype, Duration, Offset, Direction) {
         if (Direction == 1) {
             // fade in
             // Transition Completion
-            NewProperty.property(1).setValueAtTime(Offset, 100);
-            NewProperty.property(1).setValueAtTime(Offset + Duration, 0);
+            NewProperty.property("ADBE Linear Wipe-0001").setValueAtTime(Offset, 100);
+            NewProperty.property("ADBE Linear Wipe-0001").setValueAtTime(Offset + Duration, 0);
             // Transition Angle
-            NewProperty.property(2).setValueAtTime(Offset, 315);
-            NewProperty.property(2).setValueAtTime(Offset + Duration, 315);
+            NewProperty.property("ADBE Linear Wipe-0002").setValueAtTime(Offset, 315);
+            NewProperty.property("ADBE Linear Wipe-0002").setValueAtTime(Offset + Duration, 315);
             // Feather
-            NewProperty.property(3).setValueAtTime(Offset, 50);
-            NewProperty.property(3).setValueAtTime(Offset + Duration, 50);
+            NewProperty.property("ADBE Linear Wipe-0003").setValue(50);
         }
         if (Direction == 2) {
             // fade out
-            NewProperty.property(1).setValueAtTime(Offset, 0);
-            NewProperty.property(1).setValueAtTime(Offset + Duration, 100);
-            NewProperty.property(2).setValueAtTime(Offset, 135);
-            NewProperty.property(2).setValueAtTime(Offset + Duration, 135);
-            NewProperty.property(3).setValueAtTime(Offset, 50);
-            NewProperty.property(3).setValueAtTime(Offset + Duration, 50);
+            NewProperty.property("ADBE Linear Wipe-0001").setValueAtTime(Offset, 0);
+            NewProperty.property("ADBE Linear Wipe-0001").setValueAtTime(Offset + Duration, 100);
+            NewProperty.property("ADBE Linear Wipe-0002").setValueAtTime(Offset, 135);
+            NewProperty.property("ADBE Linear Wipe-0002").setValueAtTime(Offset + Duration, 135);
+            NewProperty.property("ADBE Linear Wipe-0003").setValue(50);
         }
     }
     return NewProperty;
