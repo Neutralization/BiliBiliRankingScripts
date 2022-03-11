@@ -1,5 +1,5 @@
 aiohttp==3.8.1
-arrow==1.2.1
+arrow==1.2.2
 emoji==1.6.1
 Pillow==9.0.1
 PyYAML==6.0
