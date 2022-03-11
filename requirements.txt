@@ -4,4 +4,4 @@ emoji==1.6.1
 Pillow==9.0.1
 PyYAML==6.0
 requests==2.27.1
-selenium==4.1.0
+selenium==4.1.3
