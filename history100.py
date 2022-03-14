@@ -10,11 +10,25 @@ from PIL import Image, ImageDraw, ImageFont
 from yaml import BaseLoader
 from yaml import load as yload
 
-from constant import (C_000000, C_6D4B2B, C_FFFFFF, EMOJIONE, GOTHICA1,
-                      HANNOTATESC_W5, HUAWENYUANTI_BOLD, HYQIHEI_AZEJ,
-                      MATHEMATICAL_ALPHANUMERIC_SYMBOLS, MODIFIER_LETTER,
-                      REDFM, SCRIPT_SIGN_SQUARE, SEGOE_UI, SEGOE_UI_SYMBOL,
-                      STYUANTI_SC_BOLD, TOP100IMG, YUME)
+from constant import (
+    C_000000,
+    C_6D4B2B,
+    C_FFFFFF,
+    EMOJIONE,
+    GOTHICA1,
+    HANNOTATESC_W5,
+    HUAWENYUANTI_BOLD,
+    HYQIHEI_AZEJ,
+    MATHEMATICAL_ALPHANUMERIC_SYMBOLS,
+    MODIFIER_LETTER,
+    REDFM,
+    SCRIPT_SIGN_SQUARE,
+    SEGOE_UI,
+    SEGOE_UI_SYMBOL,
+    STYUANTI_SC_BOLD,
+    TOP100IMG,
+    YUME,
+)
 
 LOST_INFO = {
     "42": {
