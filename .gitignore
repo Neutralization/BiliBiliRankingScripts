@@ -4,6 +4,7 @@ __pycache__/
 Adobe*/
 banner/
 footage/
+node_modules/
 pic/
 public/
 venv/
