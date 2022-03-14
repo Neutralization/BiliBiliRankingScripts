@@ -9,8 +9,8 @@ function AddFavourite {
         [parameter(position = 2)]$AVID
     )
     $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-    $Cookie = Get-Content -Path "./cookies.txt"
-    $CookieString = ""
+    $Cookie = Get-Content -Path './cookies.txt'
+    $CookieString = ''
     $Cookie | ForEach-Object {
         if (!$_.StartsWith('#') -and $_.StartsWith('.bilibili.com')) {
             $Single = $_.Split("`t")
@@ -23,18 +23,18 @@ function AddFavourite {
         }
     }
     $Headers = @{}
-    $Headers.Add("Cookie", $CookieString)
-    $Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0")
-    $Headers.Add("Referer", "https://www.bilibili.com")
+    $Headers.Add('Cookie', $CookieString)
+    $Headers.Add('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:65.0) Gecko/20100101 Firefox/65.0')
+    $Headers.Add('Referer', 'https://www.bilibili.com')
 
-    $CSRF = $Session.Cookies.GetCookies("https://www.bilibili.com")["bili_jct"].Value
-    $Params = @{rid = $AVID; type = 2; add_media_ids = $FID; del_media_ids = ""; jsonp = "jsonp"; csrf = $CSRF; platform = "web"}
-    $Result = (Invoke-WebRequest -Uri "https://api.bilibili.com/x/v3/fav/resource/deal" -Method "POST" -Headers $Headers -Body $Params).Content | ConvertFrom-Json
+    $CSRF = $Session.Cookies.GetCookies('https://www.bilibili.com')['bili_jct'].Value
+    $Params = @{rid = $AVID; type = 2; add_media_ids = $FID; del_media_ids = ''; jsonp = 'jsonp'; csrf = $CSRF; platform = 'web' }
+    $Result = (Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v3/fav/resource/deal' -Method 'POST' -Headers $Headers -Body $Params).Content | ConvertFrom-Json
     Write-Host $Result
 }
 
 $FIDData = @{}
-$FIDList = (Invoke-WebRequest -Uri "https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=398300398&jsonp=jsonp" -Headers $Headers).Content | ConvertFrom-Json
+$FIDList = (Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=398300398&jsonp=jsonp' -Headers $Headers).Content | ConvertFrom-Json
 $FIDList.data.list | ForEach-Object {
     $FIDData[$_.title] = $_.id
 }
@@ -51,13 +51,13 @@ $Parts | ForEach-Object {
 $Files | ForEach-Object {
     ConvertFrom-Yaml $_ | ForEach-Object {
         $_ | ForEach-Object {
-            $RankVideos += $_. ":name"
+            $RankVideos += $_. ':name'
         }
     }
 }
 AddFavourite $FIDData['周刊历代一位'] $RankVideos[2].Substring(2)
 Start-Sleep -Seconds 1
-$RankVideos[-($RankVideos.Length-3)..-1] | ForEach-Object {
+$RankVideos[ - ($RankVideos.Length - 3)..-1] | ForEach-Object {
     AddFavourite $FIDData['周刊往期pickup'] $_.Substring(2)
     Start-Sleep -Seconds 1
 }
