@@ -82,7 +82,6 @@ function BiliDown {
                 }
                 $ffmpegArgs = "-y -hide_banner -i ./ranking/list0/$($CID)_a.m4s -i ./ranking/list0/$($CID)_v.m4s -c copy ./ranking/list0/$($Filename).mp4"
                 Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -RedirectStandardError "./ranking/list0/$($CID)_.log" -ArgumentList $ffmpegArgs
-                Remove-Item "./ranking/list0/$($CID)_*.*"
             } catch {
                 New-Item -Path './ranking/list0/' -Name "$($BID).txt" -ItemType 'file' -Value '' -Force
             }
@@ -91,6 +90,9 @@ function BiliDown {
         $SourceUrl = "$($SourcePrefix)=$($VID)&cid=$($OID.cid)&qn=120&fnver=0&fourk=1&fnval=80&otype=json&type="
         DownWithFFMPEG $OID.cid $CIDs.IndexOf($OID)
     }
+    $CIDs | ForEach-Object {
+        Remove-Item "./ranking/list0/$($_.cid)_*.*"
+    }
 }
 
 function Main {
@@ -98,7 +100,8 @@ function Main {
     $Files = @()
     $LocalVideos = @()
     $RankVideos = @()
-    $ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+    # $ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
+    $ThreadNums = 5
     if ($Part.Contains('*')) {
         $Files = Get-Content -Raw "./ranking/list1/$($RankNum)_*.yml"
         Get-ChildItem './ranking/list0/*.mp4' | ForEach-Object { $LocalVideos += $_.BaseName }
