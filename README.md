@@ -60,6 +60,7 @@
 11. 启动 After Effects, 执行脚本 `autobilibilirank.jsx` 自动导入素材生成周刊工程文件并渲染
 12. ~~执行 `rankdoor.ps1` 生成评论区传送门~~
 13. 执行 `timestamp.py` 生成播放器分段章节
+14. 执行 `favorite.ps1` 添加视频到收藏夹
 
 ## Todo
 
