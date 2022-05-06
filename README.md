@@ -6,7 +6,7 @@
 
 -   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html)  
     Windows 支持 CS6/CC2014/2016/2019/2020/2021/2022 （已测试）  
-    macOS 支持 CC2021 （已测试）
+    ~~macOS 支持 CC2021 （已测试）~~
 -   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html)
 -   [aria2c](https://aria2.github.io/)
 -   [FFmpeg](https://ffmpeg.org/)
