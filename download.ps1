@@ -101,7 +101,7 @@ function Main {
     $LocalVideos = @()
     $RankVideos = @()
     # $ThreadNums = (Get-CimInstance Win32_ComputerSystem).NumberOfLogicalProcessors
-    $ThreadNums = 5
+    $ThreadNums = 2
     if ($Part.Contains('*')) {
         $Files = Get-Content -Raw "./ranking/list1/$($RankNum)_*.yml"
         Get-ChildItem './ranking/list0/*.mp4' | ForEach-Object { $LocalVideos += $_.BaseName }
