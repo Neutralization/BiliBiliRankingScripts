@@ -27,10 +27,17 @@ function Normailze {
     Write-Host "ffmpeg -ss $($Offset) -t $($Length) -i $($FileName).mp4" -ForegroundColor Green
     if ($Nvdia) {
         # Nvidia CUDA
-        $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -vsync cfr -hwaccel_output_format cuda -c:v h264_cuvid -i ./ranking/list0/$($FileName).mp4 -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 -c:v h264_nvenc -c:a aac ./ranking/list1/$($FileName).mp4"
+        $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -vsync cfr "`
+            + "-hwaccel_output_format cuda -c:v h264_cuvid -i ./ranking/list0/$($FileName).mp4 "`
+            + "-vf scale='ceil(min(1920,iw)/2)*2':'ceil(min(1080,ih)/2)*2':force_original_aspect_ratio=decrease "`
+            + "-af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 "`
+            + "-c:v h264_nvenc -c:a aac ./ranking/list1/$($FileName).mp4"
     } else {
         # CPU
-        $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i ./ranking/list0/$($FileName).mp4 -af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 -c:v libx264 -c:a aac ./ranking/list1/$($FileName).mp4"
+        $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i ./ranking/list0/$($FileName).mp4 "`
+            + "-vf scale='ceil(min(1920,iw)/2)*2':'ceil(min(1080,ih)/2)*2':force_original_aspect_ratio=decrease "`
+            + "-af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 "`
+            + "-c:v libx264 -c:a aac ./ranking/list1/$($FileName).mp4"
     }
     Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $VideoArg
     Write-Host "$($FileName) Finish!" -ForegroundColor White
