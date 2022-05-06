@@ -6,15 +6,12 @@
 
 -   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html)
     Windows 支持 ~~CS6/CC2014/2016/2019/~~ 2020/2021/2022 （已测试）
-    ~~macOS 支持 CC2021 （已测试）~~
 -   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html)
 -   [aria2c](https://aria2.github.io/)
 -   [FFmpeg](https://ffmpeg.org/)
 -   [chromedriver](https://chromedriver.chromium.org/)
     > Windows 使用 [scoop](https://scoop.sh/) 执行  
     > scoop install aria2 ffmpeg chromedriver  
-    > macOS 使用 [brew](https://brew.sh/) 执行  
-    > brew install aria2 ffmpeg chromedriver  
     > 其他方式需添加 `aria2c` `ffmpeg` `chromedriver` 路径到系统 `$PATH` 变量
 -   [PowerShell](https://docs.microsoft.com/zh-cn/powershell/) 使用 v7.2.0
     > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块  
