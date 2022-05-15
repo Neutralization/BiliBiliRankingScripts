@@ -83,12 +83,47 @@ print(
 )
 print(session.cookies._cookies[".bilibili.com"]["/"]["bili_jct"].value)
 
-data = {
+stampdata = {
     "aid": aid,
     "cid": cid,
     "type": "2",
     "cards": json.dumps(post),
     "csrf": session.cookies._cookies[".bilibili.com"]["/"]["bili_jct"].value,
 }
-response = session.post("https://member.bilibili.com/x/web/card/submit", data=data)
+response = session.post("https://member.bilibili.com/x/web/card/submit", data=stampdata)
+print(json.loads(response.content))
+
+topdata = {
+    "aid": aid,
+    "reason": "",
+    "jsonp": "jsonp",
+    "csrf": session.cookies._cookies[".bilibili.com"]["/"]["bili_jct"].value,
+}
+response = session.post("https://api.bilibili.com/x/space/top/arc/set", data=topdata)
+print(json.loads(response.content))
+
+response = session.get(
+    "https://api.bilibili.com/x/space/masterpiece?vmid=398300398&jsonp=jsonp"
+)
+result = json.loads(response.content)
+masterpiece = [x["aid"] for x in result["data"] if "周刊哔哩哔哩排行榜" in x["title"]]
+print(masterpiece)
+canceldata = {
+    "aid": masterpiece[0],
+    "jsonp": "jsonp",
+    "csrf": session.cookies._cookies[".bilibili.com"]["/"]["bili_jct"].value,
+}
+response = session.post(
+    "https://api.bilibili.com/x/space/masterpiece/cancel", data=canceldata
+)
+print(json.loads(response.content))
+adddata = {
+    "aid": aid,
+    "reason": "",
+    "jsonp": "jsonp",
+    "csrf": session.cookies._cookies[".bilibili.com"]["/"]["bili_jct"].value,
+}
+response = session.post(
+    "https://api.bilibili.com/x/space/masterpiece/add", data=adddata
+)
 print(json.loads(response.content))
