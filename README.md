@@ -20,6 +20,7 @@
     > 安装 [arrow](https://pypi.org/project/arrow/) / [emoji](https://pypi.org/project/emoji/) / [Pillow](https://pypi.org/project/Pillow/) / [PyYAML](https://pypi.org/project/PyYAML/) / [requests](https://pypi.org/project/requests/) / [selenium](https://pypi.org/project/selenium/) 模块  
     > python -m pip install arrow emoji pillow pyyaml requests selenium  
     > 或者 python -m pip install -r requirements.txt
+-   [json2.js](https://github.com/douglascrockford/JSON-js)
 
 ## 准备工作
 
