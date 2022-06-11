@@ -244,7 +244,7 @@ def Single(args):
         CoverFile = Resource(bid, Cover, "cover")
         IconMark = Image.open(CoverFile)
         IconRegion = IconMark.crop((0, 0) + IconMark.size)
-        IconCover = IconRegion.resize((115, 115), Image.ANTIALIAS)
+        IconCover = IconRegion.resize((115, 115), Image.Resampling.LANCZOS)
         RankImg.paste(IconCover, (19, 929))
 
     ShinkSize = 0
@@ -379,7 +379,7 @@ def Single(args):
         elif int(ScoreRank) == int(LastRank):
             StatPin = Image.open(DRAWIMG)
         PinRegion = StatPin.crop((0, 0) + StatPin.size)
-        PinCover = PinRegion.resize((45, 45), Image.BILINEAR)
+        PinCover = PinRegion.resize((45, 45), Image.Resampling.BILINEAR)
         Pin_X = 1655 - int(LastRank_F.getsize("上周")[0] / 2)
         RankImg.paste(PinCover, (Pin_X, 190), mask=PinCover)
     RankPaper.text((1535, 545), Click, C_FFFFFF, Data_F)
@@ -497,7 +497,7 @@ def SubRank(rtype):
             SCoverFile = Resource(SBid, SCover, "pic")
             SCoverMark = Image.open(SCoverFile)
             SCoverRegion = SCoverMark.crop((0, 0) + SCoverMark.size)
-            SPic = SCoverRegion.resize((336, 210), Image.ANTIALIAS)
+            SPic = SCoverRegion.resize((336, 210), Image.Resampling.LANCZOS)
             SImg.paste(SPic, (63, 48 + j * 259))
 
             SNFCTitle = normalize("NFC", STitle)
@@ -661,7 +661,7 @@ def Stat():
             AStatPin = Image.open(DRAWIMG)
 
         APinRegion = AStatPin.crop((0, 0) + AStatPin.size)
-        APinCover = APinRegion.resize((45, 45), Image.ANTIALIAS)
+        APinCover = APinRegion.resize((45, 45), Image.Resampling.LANCZOS)
         AImg_1.paste(APinCover, (1500, 222 + i * 120), mask=APinCover)
     AImg_1.save("./ranking/pic/stat_1.png")
     for i in range(7):
@@ -684,7 +684,7 @@ def Stat():
         elif int(ARank) == i + 8:
             AStatPin = Image.open(DRAWIMG)
         APinRegion = AStatPin.crop((0, 0) + AStatPin.size)
-        APinCover = APinRegion.resize((45, 45), Image.ANTIALIAS)
+        APinCover = APinRegion.resize((45, 45), Image.Resampling.LANCZOS)
         AImg_2.paste(APinCover, (1500, 222 + i * 120), mask=APinCover)
     AImg_2.save("./ranking/pic/stat_2.png")
     AClick = format(SRankData[3][0]["click"], ",")
@@ -717,7 +717,7 @@ def Stat():
         elif int(SRankData[3][0][d]) == int(SRankData[3][1][d]):
             AStatPin = Image.open(DRAWIMG)
         APinRegion = AStatPin.crop((0, 0) + AStatPin.size)
-        APinCover = APinRegion.resize((45, 45), Image.ANTIALIAS)
+        APinCover = APinRegion.resize((45, 45), Image.Resampling.LANCZOS)
         a_i = ["click", "comment", "stow", "danmu", "yb"].index(d)
         AImg_3.paste(APinCover, (1503, 309 + a_i * 134), mask=APinCover)
     AImg_3.save("./ranking/pic/stat_3.png")
