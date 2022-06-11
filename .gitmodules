@@ -1,0 +1,3 @@
+[submodule "json2"]
+	path = json2
+	url = https://github.com/douglascrockford/JSON-js

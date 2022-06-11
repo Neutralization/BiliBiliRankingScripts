@@ -1,24 +1,24 @@
-*_AME/
-.vscode/
-__pycache__/
-Adobe*/
+# 素材
 banner/
 footage/
-node_modules/
 pic/
 public/
-venv/
 ranking/
 z_fm/
-*.aep
-*.csv
-*.jpg
-*.js
-*.json
-*.md
-*.mp4
-*.png
-*.psd
-*.txt
-*.yml
-*.zip
+
+# 缓存
+*_AME/
+Adobe*/
+
+# 数据
+/*.csv
+/*.json
+/*.txt
+/*.xlsx
+
+# 工程
+/*.aep
+/*.jpg
+/*.mp4
+/*.png
+/*.psd
