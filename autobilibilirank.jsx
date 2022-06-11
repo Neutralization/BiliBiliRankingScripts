@@ -1,4 +1,4 @@
-// @include 'json2.js';
+// @include 'json2/json2.js';
 YUME = 1277009809;
 WEEK_NUM = Math.round((Date.now() / 1000 - YUME) / 3600 / 24 / 7);
 
