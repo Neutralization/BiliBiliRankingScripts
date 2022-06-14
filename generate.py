@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import csv
 import json
 import os
 import re
@@ -9,50 +10,19 @@ import arrow
 import emoji
 import requests
 from PIL import Image, ImageDraw, ImageFont
+from yaml import dump
 
-from constant import (
-    BANGUMIRANKIMG,
-    C_000000,
-    C_6D4B2B,
-    C_818181,
-    C_AC8164,
-    C_BCA798,
-    C_EAAA7D,
-    C_FFFFFF,
-    COMBINING_CYRILLIC,
-    CONTROL,
-    CUNEIFORM,
-    DINGBATS,
-    DOWNIMG,
-    DRAWIMG,
-    EMOJIONE,
-    FZY4K_GBK1_0,
-    GOTHICA1,
-    HANNOTATESC_W5,
-    HISTORYRANKIMG,
-    HISTORYRECORDIMG,
-    HUAWENYUANTI_BOLD,
-    HYM2GJ,
-    LONGIMG,
-    LONGTIMEIMG,
-    MAINRANKIMG,
-    MAINTITLEIMG,
-    MATHEMATICAL_ALPHANUMERIC_SYMBOLS,
-    MODIFIER_LETTER,
-    SCRIPT_SIGN_SQUARE,
-    SEGOE_UI,
-    SEGOE_UI_HISTORIC,
-    SEGOE_UI_SYMBOL,
-    STATONEIMG,
-    STATTHREEIMG,
-    STATTWOIMG,
-    STYUANTI_SC_BOLD,
-    SUBBANGUMIRANKIMG,
-    SUBRANKIMG,
-    TOPIMG,
-    UPIMG,
-    WEEKS,
-)
+from constant import (BANGUMIRANKIMG, C_000000, C_6D4B2B, C_818181, C_AC8164,
+                      C_BCA798, C_EAAA7D, C_FFFFFF, COMBINING_CYRILLIC,
+                      CONTROL, CUNEIFORM, DINGBATS, DOWNIMG, DRAWIMG, EMOJIONE,
+                      FZY4K_GBK1_0, GOTHICA1, HANNOTATESC_W5, HISTORYRANKIMG,
+                      HISTORYRECORDIMG, HUAWENYUANTI_BOLD, HYM2GJ, LONGIMG,
+                      LONGTIMEIMG, MAINRANKIMG, MAINTITLEIMG,
+                      MATHEMATICAL_ALPHANUMERIC_SYMBOLS, MODIFIER_LETTER,
+                      SCRIPT_SIGN_SQUARE, SEGOE_UI, SEGOE_UI_HISTORIC,
+                      SEGOE_UI_SYMBOL, STATONEIMG, STATTHREEIMG, STATTWOIMG,
+                      STYUANTI_SC_BOLD, SUBBANGUMIRANKIMG, SUBRANKIMG, TOPIMG,
+                      UPIMG, WEEKS)
 
 MRank = json.load(open(f"{WEEKS}_results.json", "r", encoding="utf-8"))
 BRank = json.load(open(f"{WEEKS}_results_bangumi.json", "r", encoding="utf-8"))
@@ -805,7 +775,68 @@ def Top():
         TImg.save(f"./ranking/list1/av{Bid}_.png")
 
 
+def MakeYaml(file, max, min, part):
+    content = json.load(open(f"./{WEEKS}_{file}.json", "r", encoding="utf-8"))
+    rankfrom = content[0].get("rank_from")
+    yamlcontent = []
+    doorcontent = []
+    for x in content:
+        if x.get("info") is None and x.get("sp_type_id") != 2:
+            rank = x["score_rank"] if x.get("score_rank") else x["rank"]
+            name = f'av{x["wid"]}'
+            length = 20
+            if part in (7, 11, 15):
+                length = 15
+            if part == 16:
+                length = 30
+            if x.get("changqi"):
+                length -= 10
+            if rankfrom <= max:
+                max = rankfrom
+            if rank <= max and rank >= min:
+                yamlcontent += [
+                    {
+                        ":rank": rank,
+                        ":name": name,
+                        ":length": length,
+                        ":offset": 0,
+                    }
+                ]
+                doorcontent += [
+                    (
+                        rank,
+                        f'BV{x["bv"][2:]}',
+                        x["name"],
+                    )
+                ]
+
+    # print(dump(yamlcontent[::-1], sort_keys=False))
+    with open(f"./ranking/list1/{WEEKS}_{part}.yml", "w") as f:
+        f.write(f"---\n{dump(yamlcontent[::-1],sort_keys=False)}")
+
+    with open(f"./{WEEKS}_rankdoor.csv", "a", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f)
+        writer.writerow(
+            [
+                {
+                    "results": "主榜",
+                    "results_history": "历史",
+                    "guoman_bangumi": "国创",
+                    "results_bangumi": "番剧",
+                }.get(file)
+            ]
+        )
+        writer.writerows(sorted(doorcontent, reverse=True))
+
+
 def Main():
+    MakeYaml("results", 99, 21, 5)
+    MakeYaml("results", 20, 11, 9)
+    MakeYaml("results", 10, 4, 13)
+    MakeYaml("results", 3, 1, 16)
+    MakeYaml("results_history", 5, 1, 15)
+    MakeYaml("guoman_bangumi", 3, 1, 7)
+    MakeYaml("results_bangumi", 10, 1, 11)
     Opening()
     LongTerm()
     History()
