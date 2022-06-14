@@ -51,7 +51,7 @@
 1. 由神秘的 bilibiliran 提供周刊所需数据的 json 格式文件
 2. 制作排行版需要的相关图片，包括 STAFF 列表，开头结尾的 Free Talk，ED 使用的 BGM 信息，以及人工指定的 Pickup 栏目等
 3. 执行 `movefile.ps1` 快速移动文件至工作目录（可选）
-4. 执行 `genyaml.py` 生成周刊各部分的 yaml 文件
+4. ~~执行 `genyaml.py` 生成周刊各部分的 yaml 文件~~
 5. 执行 `original_title.py` 更新 json 中的视频标题
 6. 执行 `generate.py` 生成周榜中使用到的所有图片素材
 7. 执行 `pickup.py` 生成 Pickup 视频的图片素材
