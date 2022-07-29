@@ -264,14 +264,6 @@ def Single(args):
         UnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 54 - ShinkSize)
         UnicodeC_F = ImageFont.truetype(GOTHICA1, 54 - ShinkSize)
         UnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 54 - ShinkSize)
-    # RankPaper.text((Title_O, 979), RegexTitle, C_6D4B2B, Title_F)
-
-    # for i in range(len(RegexTitle)):
-    #     if RegexTitle[i] in emoji.UNICODE_EMOJI["en"]:
-    #         Square = Image.new("RGB", (54 - ShinkSize, 54 - ShinkSize), C_F5E5DA)
-    #         Title_X = Title_O + Title_F.getsize(RegexTitle[:i])[0]
-    #         RankImg.paste(Square, (Title_X, 979))
-    #         RankPaper.text((Title_X, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
 
     i = 0
     Title_Step = Title_O
@@ -475,7 +467,6 @@ def SubRank(rtype):
             SUnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 52)
             SUpTime_F = ImageFont.truetype(STYUANTI_SC_BOLD, 37)
             k = LastRankNum + 4 * i + j + 1
-            # SDanmuRank = SScoreRankData[k]["danmu_rank"]
             SBid = SScoreRankData[k]["bv"]
             SClick = SScoreRankData[k]["clicks"]
             SClickRank = SScoreRankData[k]["clicks_rank"]
@@ -585,17 +576,6 @@ def SubRank(rtype):
                     STitle_Step += STitle_F.getsize(SRegexTitle[si])[0]
                 si += 1
 
-            # SPaper.text((443, STitle_Y), SRegexTitle, C_6D4B2B, STitle_F)
-            # for e in range(len(SRegexTitle)):
-            #     if SRegexTitle[e] in emoji.UNICODE_EMOJI["en"]:
-            #         Square = Image.new(
-            #             "RGB", (52 - SShinkSize, 52 - SShinkSize), C_F5E5DA
-            #         )
-            #         SEmoji_X = 443 + STitle_F.getsize(SRegexTitle[:e])[0]
-            #         SImg.paste(Square, (SEmoji_X, STitle_Y))
-            #         SPaper.text(
-            #             (SEmoji_X, STitle_Y), SRegexTitle[e], C_6D4B2B, SEmoji_F
-            #         )
             SBid_X = 549 - SBid_F.getsize(SBid)[0] / 2
             SPaper.text((SBid_X, 212 + j * 259), SBid, C_FFFFFF, SBid_F)
             SScore_X = 1706 - SScore_F.getsize(SScore)[0]
@@ -613,9 +593,6 @@ def SubRank(rtype):
                 )
                 SPaper.text((1748, 138 + j * 259), SStowRank, C_BCA798, SBiDataRank_F)
                 SPaper.text((1390, 138 + j * 259), SCoinRank, C_BCA798, SBiDataRank_F)
-            # SPaper.text(
-            #     (1390, 138 + j * 259), SDanmuRank, C_BCA798, SBiDataRank_F
-            # )
             SScoreRank_X = 1856 - SScoreRank_F.getsize(SScoreRank)[0] / 2
             SPaper.text(
                 (SScoreRank_X, 214 + j * 259), SScoreRank, C_FFFFFF, SScoreRank_F
