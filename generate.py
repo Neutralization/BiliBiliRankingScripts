@@ -277,7 +277,7 @@ def Single(args):
     Title_Step = Title_O
     while i < len(RegexTitle):
         if (
-            RegexTitle[i] in emoji.UNICODE_EMOJI["en"]
+            emoji.is_emoji(RegexTitle[i])
             and re.match(r"[\u2640\u2642]", RegexTitle[i]) is None
         ):
             RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
@@ -523,7 +523,7 @@ def SubRank(rtype):
             STitle_Step = STitle_X
             while si < len(SRegexTitle):
                 if (
-                    SRegexTitle[si] in emoji.UNICODE_EMOJI["en"]
+                    emoji.is_emoji(SRegexTitle[si])
                     and re.match(r"[\u2640\u2642]", SRegexTitle[si]) is None
                 ):
                     SPaper.text(
