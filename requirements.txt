@@ -1,6 +1,6 @@
 aiohttp==3.8.1
 arrow==1.2.2
-emoji==1.7.0
+emoji==2.0.0
 Pillow==9.2.0
 PyYAML==6.0
 requests==2.28.0
