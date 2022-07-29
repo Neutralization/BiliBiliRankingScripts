@@ -3,5 +3,5 @@ arrow==1.2.2
 emoji==2.0.0
 Pillow==9.2.0
 PyYAML==6.0
-requests==2.28.0
+requests==2.28.1
 selenium==4.3.0
