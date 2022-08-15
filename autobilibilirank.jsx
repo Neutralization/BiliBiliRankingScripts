@@ -8,7 +8,7 @@ RankSize = [1440, 810];
 Prefix = './ranking/list1/';
 Regex =
     /- :rank: (\d+)\n {2}:name: (\w+)\n {2}:length: (\d+)\n {2}:offset: (\d+)(\n {2}:short: \d+)?(\n {2}:no_pause: true)?/gm;
-Subst = '$1: ["$2", $3, $4],';
+Subst = '"$1": ["$2", $3, $4],';
 Parts = [3, 5, 7, 9, 11, 13, 15, 16];
 file = new File('LostFile.json');
 file.open('r');
@@ -22,6 +22,7 @@ for (n = 0; n < Parts.length; n++) {
     content = file.read();
     file.close();
     RankList = content.replace(Regex, Subst).replace('\'', '"').replace('---', '{') + '}';
+    RankList = RankList.replace(',\n}', '\n}')
     RankDataList[RankDataList.length] = JSON.parse(RankList);
 }
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
