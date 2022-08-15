@@ -5,7 +5,7 @@
 ## 工作环境
 
 -   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html)
-    > Windows支持 CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/CC2019/CC2020/CC2021/CC2022
+    > Windows支持 CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/2019/2020/2021/2022
     > After Effects 17.0(CC2020) 开始才支持表达式的`Text Style`。
 -   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html)
 -   [aria2c](https://aria2.github.io/)
