@@ -67,6 +67,8 @@ function Main {
         if ($Part.Contains('*')) {
             if ($LocalVideos -notcontains $_.n) {
                 Normailze $_.n $_.o $_.l
+            } elseif ((Get-Item "./ranking/list1/$($_.n).mp4").length -eq 0) {
+                Normailze $_.n $_.o $_.l
             } else {
                 Write-Host "$($_.n) Already Normalized." -ForegroundColor Yellow
             }
