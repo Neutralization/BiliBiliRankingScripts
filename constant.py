@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import arrow
+from math import floor
 
 YUME = 1277009809
-WEEKS = round((int(arrow.now("Asia/Shanghai").timestamp()) - YUME) / 3600 / 24 / 7)
+WEEKS = floor(
+    (int(arrow.now("Asia/Shanghai").timestamp()) - YUME + 133009) / 3600 / 24 / 7
+)
 EMOJIONE = "./footage/EmojiOneColor.otf"
 FZY4K_GBK1_0 = "./footage/方正粗圆_GBK_[FZY4K_GBK1_0].ttf"
 GOTHICA1 = "./footage/GothicA1-Regular.ttf"
