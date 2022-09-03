@@ -1,6 +1,6 @@
 // @include 'json2/json2.js';
 YUME = 1277009809;
-WEEK_NUM = Math.round((Date.now() / 1000 - YUME) / 3600 / 24 / 7);
+WEEK_NUM = Math.floor((Date.now() / 1000 - YUME + 133009) / 3600 / 24 / 7);
 
 CompFPS = 60;
 CompSize = [1920, 1080];
