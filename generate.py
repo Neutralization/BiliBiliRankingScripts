@@ -256,7 +256,7 @@ def Single(args):
     RegexTitle = re.sub(chr(65039), "", NFCTitle)
     RegexTitle = re.sub(COMBINING_CYRILLIC, "", RegexTitle)
     RegexTitle = re.sub(CONTROL, "", RegexTitle)
-    while (Title_F.getsize(RegexTitle)[0] + Title_O) > 1440:
+    while (Title_F.getlength(RegexTitle) + Title_O) > 1440:
         ShinkSize += 1
         Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54 - ShinkSize)
         Emoji_F = ImageFont.truetype(EMOJIONE, 54 - ShinkSize)
@@ -273,7 +273,7 @@ def Single(args):
             and re.match(r"[\u2640\u2642]", RegexTitle[i]) is None
         ):
             RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
-            Title_Step += Emoji_F.getsize(RegexTitle[i])[0]
+            Title_Step += Emoji_F.getlength(RegexTitle[i])
         elif re.match(CUNEIFORM, RegexTitle[i]) is not None:
             RankPaper.text(
                 (Title_Step, 979),
@@ -281,7 +281,7 @@ def Single(args):
                 C_6D4B2B,
                 UnicodeD_F,
             )
-            Title_Step += UnicodeD_F.getsize(RegexTitle[i])[0]
+            Title_Step += UnicodeD_F.getlength(RegexTitle[i])
         elif re.match(SCRIPT_SIGN_SQUARE, RegexTitle[i]) is not None:
             RankPaper.text(
                 (Title_Step, 979),
@@ -289,18 +289,18 @@ def Single(args):
                 C_6D4B2B,
                 UnicodeC_F,
             )
-            Title_Step += UnicodeC_F.getsize(RegexTitle[i])[0]
+            Title_Step += UnicodeC_F.getlength(RegexTitle[i])
         elif (
             re.match(DINGBATS, RegexTitle[i]) is not None
             or re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, RegexTitle[i]) is not None
         ):
             RankPaper.text(
-                (Title_Step, 979 - UnicodeB_F.getsize(RegexTitle[i])[1] * 0.15),
+                (Title_Step, 979 - UnicodeB_F.getbbox(RegexTitle[i])[-1] * 0.15),
                 RegexTitle[i],
                 C_6D4B2B,
                 UnicodeB_F,
             )
-            Title_Step += UnicodeB_F.getsize(RegexTitle[i])[0]
+            Title_Step += UnicodeB_F.getlength(RegexTitle[i])
         elif (
             (re.match(MODIFIER_LETTER, RegexTitle[i]) is not None)
             or (
@@ -311,29 +311,29 @@ def Single(args):
             or (re.match(MODIFIER_LETTER, RegexTitle[i - 1]) is not None)
         ):
             RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, UnicodeA_F)
-            Title_Step += UnicodeA_F.getsize(RegexTitle[i])[0]
+            Title_Step += UnicodeA_F.getlength(RegexTitle[i])
         else:
             RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Title_F)
-            Title_Step += Title_F.getsize(RegexTitle[i])[0]
+            Title_Step += Title_F.getlength(RegexTitle[i])
         i += 1
 
     Author_X = 31 if rtype else 189
     AuthorName = Author if rtype else "投稿"
     RankPaper.text((Author_X, 927), AuthorName, C_6D4B2B, Author_F)
-    Bid_X = 195 - Bid_F.getsize(Bid)[0] / 2
+    Bid_X = 195 - Bid_F.getlength(Bid) / 2
     RankPaper.text((Bid_X, 847), Bid, C_FFFFFF, Bid_F)
 
     if rtype:
         Cata = AllData[bid]["wtype"]
-        Cata_X = 580 - Cata_F.getsize(Cata)[0] / 2
+        Cata_X = 580 - Cata_F.getlength(Cata) / 2
         RankPaper.text((Cata_X, 849), Cata, C_6D4B2B, Cata_F)
     UpTime_O = 933 if rtype else 754
-    UpTime_X = UpTime_O - UpTime_F.getsize(UpTime)[0] / 2
+    UpTime_X = UpTime_O - UpTime_F.getlength(UpTime) / 2
     RankPaper.text((UpTime_X, 850), UpTime, C_6D4B2B, UpTime_F)
-    ScoreRank_X = 1703 - ScoreRank_F.getsize(ScoreRank)[0] / 2
+    ScoreRank_X = 1703 - ScoreRank_F.getlength(ScoreRank) / 2
     RankPaper.text((ScoreRank_X, 28), ScoreRank, C_FFFFFF, ScoreRank_F)
 
-    Score_X = 1703 - Score_F.getsize(Score)[0] / 2
+    Score_X = 1703 - Score_F.getlength(Score) / 2
     if ishistory:
         RankPaper.text((Score_X, 280), Score, C_FFFFFF, Score_F)
         RankPaper.text((1495, 400), f"#{Week}", C_FFFFFF, HisRank_F)
@@ -353,13 +353,13 @@ def Single(args):
     StowRank = AllData[bid]["stows_rank"]
     LastRank = AllData[bid]["last"]
     if str(LastRank) == "0":
-        LastRank_X = 1703 - LastRank_F.getsize("新上榜")[0] / 2
+        LastRank_X = 1703 - LastRank_F.getlength("新上榜") / 2
         RankPaper.text((LastRank_X + 2, 184 + 2), "新上榜", C_000000, LastRank_F)
         RankPaper.text((LastRank_X + 1, 184 + 1), "新上榜", C_818181, LastRank_F)
         RankPaper.text((LastRank_X, 184), "新上榜", C_FFFFFF, LastRank_F)
     else:
-        LastRank_X = 1703 - LastRank_F.getsize("上周")[0] / 2
-        LastRank_X_ = 1703 + LastRank_F.getsize("上周")[0] / 2
+        LastRank_X = 1703 - LastRank_F.getlength("上周") / 2
+        LastRank_X_ = 1703 + LastRank_F.getlength("上周") / 2
         RankPaper.text((LastRank_X + 2, 184 + 2), "上周", C_000000, LastRank_F)
         RankPaper.text((LastRank_X_ + 2, 184 + 2), LastRank, C_000000, LastRank_F)
         RankPaper.text((LastRank_X + 1, 184 + 1), "上周", C_818181, LastRank_F)
@@ -374,7 +374,7 @@ def Single(args):
             StatPin = Image.open(DRAWIMG)
         PinRegion = StatPin.crop((0, 0) + StatPin.size)
         PinCover = PinRegion.resize((45, 45), Image.Resampling.BILINEAR)
-        Pin_X = 1655 - int(LastRank_F.getsize("上周")[0] / 2)
+        Pin_X = 1655 - int(LastRank_F.getlength("上周") / 2)
         RankImg.paste(PinCover, (Pin_X, 190), mask=PinCover)
     RankPaper.text((1535, 545), Click, C_FFFFFF, Data_F)
     RankPaper.text((1535, 689), Comment, C_FFFFFF, Data_F)
@@ -382,7 +382,7 @@ def Single(args):
     if rtype:
         Part = AllData[bid]["part"]
         if int(Part) > 1:
-            Part_X = 1833 - Part_F.getsize(Part)[0] / 2
+            Part_X = 1833 - Part_F.getlength(Part) / 2
             RankPaper.text((Part_X, 552), f"{Part}P", C_EAAA7D, Part_F)
         RankPaper.text((1535, 833), Stow, C_FFFFFF, Data_F)
         RankPaper.text((1535, 977), Coin, C_FFFFFF, Data_F)
@@ -499,7 +499,7 @@ def SubRank(rtype):
             SRegexTitle = re.sub(COMBINING_CYRILLIC, "", SRegexTitle)
             SRegexTitle = re.sub(CONTROL, "", SRegexTitle)
             SShinkSize = 0
-            while (STitle_F.getsize(SRegexTitle)[0] + 443) > 1890:
+            while (STitle_F.getlength(SRegexTitle) + 443) > 1890:
                 SShinkSize += 1
                 STitle_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 52 - SShinkSize)
                 SEmoji_F = ImageFont.truetype(EMOJIONE, 52 - SShinkSize)
@@ -520,18 +520,18 @@ def SubRank(rtype):
                     SPaper.text(
                         (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, SEmoji_F
                     )
-                    STitle_Step += SEmoji_F.getsize(SRegexTitle[si])[0]
+                    STitle_Step += SEmoji_F.getlength(SRegexTitle[si])
                 elif re.match(CUNEIFORM, SRegexTitle[si]) is not None:
                     SPaper.text(
                         (
                             STitle_Step,
-                            STitle_Y - SUnicodeD_F.getsize(SRegexTitle[si])[1] * 0.15,
+                            STitle_Y - SUnicodeD_F.getbbox(SRegexTitle[si])[-1] * 0.15,
                         ),
                         SRegexTitle[si],
                         C_6D4B2B,
                         SUnicodeD_F,
                     )
-                    STitle_Step += SUnicodeD_F.getsize(SRegexTitle[si])[0]
+                    STitle_Step += SUnicodeD_F.getlength(SRegexTitle[si])
                 elif re.match(SCRIPT_SIGN_SQUARE, SRegexTitle[si]) is not None:
                     SPaper.text(
                         (STitle_Step, STitle_Y),
@@ -539,7 +539,7 @@ def SubRank(rtype):
                         C_6D4B2B,
                         SUnicodeC_F,
                     )
-                    STitle_Step += SUnicodeC_F.getsize(SRegexTitle[si])[0]
+                    STitle_Step += SUnicodeC_F.getlength(SRegexTitle[si])
                 elif (
                     re.match(DINGBATS, SRegexTitle[si]) is not None
                     or re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, SRegexTitle[si])
@@ -548,13 +548,13 @@ def SubRank(rtype):
                     SPaper.text(
                         (
                             STitle_Step,
-                            STitle_Y - SUnicodeB_F.getsize(SRegexTitle[si])[1] * 0.15,
+                            STitle_Y - SUnicodeB_F.getbbox(SRegexTitle[si])[-1] * 0.15,
                         ),
                         SRegexTitle[si],
                         C_6D4B2B,
                         SUnicodeB_F,
                     )
-                    STitle_Step += SUnicodeB_F.getsize(SRegexTitle[si])[0]
+                    STitle_Step += SUnicodeB_F.getlength(SRegexTitle[si])
                 elif (
                     (re.match(MODIFIER_LETTER, SRegexTitle[si]) is not None)
                     or (
@@ -568,17 +568,17 @@ def SubRank(rtype):
                     SPaper.text(
                         (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, SUnicodeA_F
                     )
-                    STitle_Step += SUnicodeA_F.getsize(SRegexTitle[si])[0]
+                    STitle_Step += SUnicodeA_F.getlength(SRegexTitle[si])
                 else:
                     SPaper.text(
                         (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, STitle_F
                     )
-                    STitle_Step += STitle_F.getsize(SRegexTitle[si])[0]
+                    STitle_Step += STitle_F.getlength(SRegexTitle[si])
                 si += 1
 
-            SBid_X = 549 - SBid_F.getsize(SBid)[0] / 2
+            SBid_X = 549 - SBid_F.getlength(SBid) / 2
             SPaper.text((SBid_X, 212 + j * 259), SBid, C_FFFFFF, SBid_F)
-            SScore_X = 1706 - SScore_F.getsize(SScore)[0]
+            SScore_X = 1706 - SScore_F.getlength(SScore)
             SPaper.text((SScore_X, 214 + j * 259), SScore, C_FFFFFF, SScore_F)
             SPaper.text((491, 133 + j * 259), SClick, C_6D4B2B, SData_F)
             SPaper.text((893, 133 + j * 259), SComment, C_6D4B2B, SData_F)
@@ -593,7 +593,7 @@ def SubRank(rtype):
                 )
                 SPaper.text((1748, 138 + j * 259), SStowRank, C_BCA798, SBiDataRank_F)
                 SPaper.text((1390, 138 + j * 259), SCoinRank, C_BCA798, SBiDataRank_F)
-            SScoreRank_X = 1856 - SScoreRank_F.getsize(SScoreRank)[0] / 2
+            SScoreRank_X = 1856 - SScoreRank_F.getlength(SScoreRank) / 2
             SPaper.text(
                 (SScoreRank_X, 214 + j * 259), SScoreRank, C_FFFFFF, SScoreRank_F
             )
@@ -623,10 +623,10 @@ def Stat():
     APaper_3 = ImageDraw.Draw(AImg_3)
     for i in range(7):
         ACata = SRankData[2][i][0]
-        ACata_X = 616 - ACata_F.getsize(ACata)[0] / 2
+        ACata_X = 616 - ACata_F.getlength(ACata) / 2
         APaper_1.text((ACata_X, 221 + i * 120), SRankData[2][i][0], C_6D4B2B, ACata_F)
         AScore = format(SRankData[2][i][1], ",")
-        AScore_X = 1046 - AScore_F.getsize(AScore)[0]
+        AScore_X = 1046 - AScore_F.getlength(AScore)
         APaper_1.text((AScore_X, 221 + i * 120), AScore, C_6D4B2B, AScore_F)
         ARank = str(SRankData[2][i][2]) if len(SRankData[2][i + 7]) > 2 else "--"
         APaper_1.text((1440, 221 + i * 120), ARank, C_AC8164, ARank_F)
@@ -645,12 +645,12 @@ def Stat():
     AImg_1.save("./ranking/pic/stat_1.png")
     for i in range(7):
         ACata = SRankData[2][i + 7][0]
-        ACata_X = 616 - ACata_F.getsize(ACata)[0] / 2
+        ACata_X = 616 - ACata_F.getlength(ACata) / 2
         APaper_2.text(
             (ACata_X, 221 + i * 120), SRankData[2][i + 7][0], C_6D4B2B, ACata_F
         )
         AScore = format(SRankData[2][i + 7][1], ",")
-        AScore_X = 1046 - AScore_F.getsize(AScore)[0]
+        AScore_X = 1046 - AScore_F.getlength(AScore)
         APaper_2.text((AScore_X, 221 + i * 120), AScore, C_6D4B2B, AScore_F)
         ARank = str(SRankData[2][i + 7][2]) if len(SRankData[2][i + 7]) > 2 else "--"
         APaper_2.text((1440, 221 + i * 120), ARank, C_AC8164, ARank_F)
@@ -671,13 +671,11 @@ def Stat():
     AComment = format(SRankData[3][0]["comment"], ",")
     ADanmu = format(SRankData[3][0]["danmu"], ",")
     AStow = format(SRankData[3][0]["stow"], ",")
-    APaper_3.text((869 - AStat_F.getsize(AClick)[0], 304), AClick, C_6D4B2B, AStat_F)
-    APaper_3.text(
-        (869 - AStat_F.getsize(AComment)[0], 438), AComment, C_6D4B2B, AStat_F
-    )
-    APaper_3.text((869 - AStat_F.getsize(AStow)[0], 572), AStow, C_6D4B2B, AStat_F)
-    APaper_3.text((869 - AStat_F.getsize(ADanmu)[0], 706), ADanmu, C_6D4B2B, AStat_F)
-    APaper_3.text((869 - AStat_F.getsize(ACoin)[0], 840), ACoin, C_6D4B2B, AStat_F)
+    APaper_3.text((869 - AStat_F.getlength(AClick), 304), AClick, C_6D4B2B, AStat_F)
+    APaper_3.text((869 - AStat_F.getlength(AComment), 438), AComment, C_6D4B2B, AStat_F)
+    APaper_3.text((869 - AStat_F.getlength(AStow), 572), AStow, C_6D4B2B, AStat_F)
+    APaper_3.text((869 - AStat_F.getlength(ADanmu), 706), ADanmu, C_6D4B2B, AStat_F)
+    APaper_3.text((869 - AStat_F.getlength(ACoin), 840), ACoin, C_6D4B2B, AStat_F)
     ALastClick = format(SRankData[3][1]["click"], ",")
     ALastCoin = format(SRankData[3][1]["yb"], ",")
     ALastComment = format(SRankData[3][1]["comment"], ",")
@@ -723,8 +721,8 @@ def Opening():
     MWeek = f"#{MRank[0]['id']}"
     MImg = Image.open(MAINTITLEIMG)
     MPaper = ImageDraw.Draw(MImg)
-    MTitle_X = 376 - MTitle_F.getsize(MTitle)[0] / 2
-    MWeek_X = 355 - MWeek_F.getsize(MWeek)[0] / 2
+    MTitle_X = 376 - MTitle_F.getlength(MTitle) / 2
+    MWeek_X = 355 - MWeek_F.getlength(MWeek) / 2
     MPaper.text((MTitle_X, 750), MTitle, C_FFFFFF, MTitle_F)
     MPaper.text((MWeek_X, 614), MWeek, C_FFFFFF, MWeek_F)
     MImg.save("./ranking/1_op/title.png")
@@ -738,8 +736,8 @@ def LongTerm():
     LongTerm_ = f"长期作品：{LastRankNum - 30}个" if LastRankNum - 30 > 0 else "长期作品：没有"
     LImg = Image.open(LONGIMG)
     LPaper = ImageDraw.Draw(LImg)
-    LTitle_X = 607 - LTitle_F.getsize(LTitle)[0] / 2
-    LongTerm__X = 607 - LongTerm_F.getsize(LongTerm_)[0] / 2
+    LTitle_X = 607 - LTitle_F.getlength(LTitle) / 2
+    LongTerm__X = 607 - LongTerm_F.getlength(LongTerm_) / 2
     LPaper.text((LTitle_X, 415), LTitle, C_FFFFFF, LTitle_F)
     LPaper.text((LongTerm__X, 681), LongTerm_, C_FFFFFF, LongTerm_F)
     LImg.save("./ranking/pic/_1.png")
@@ -752,8 +750,8 @@ def History():
     HUpTime = f"{HRank[0]['name']} (av{HRank[0]['wid']})"
     HImg = Image.open(HISTORYRECORDIMG)
     HPaper = ImageDraw.Draw(HImg)
-    HCount_X = 607 - HCount_F.getsize(HCount)[0] / 2
-    HUpTime_X = 607 - HUpTime_F.getsize(HUpTime)[0] / 2
+    HCount_X = 607 - HCount_F.getlength(HCount) / 2
+    HUpTime_X = 607 - HUpTime_F.getlength(HUpTime) / 2
     HPaper.text((HCount_X, 811), HCount, C_FFFFFF, HCount_F)
     HPaper.text((HUpTime_X, 529), HUpTime, C_FFFFFF, HUpTime_F)
     HImg.save("./ranking/pic/history.png")
@@ -776,10 +774,10 @@ def Top():
         )
         DiffText = f"比第{t+2}名高出{format(Diff, ',')}pts."
         TPaper.text(
-            (603 - Top_F.getsize(f"{t+1}")[0] / 2, 318), f"{t+1}", C_FFFFFF, Top_F
+            (603 - Top_F.getlength(f"{t+1}") / 2, 318), f"{t+1}", C_FFFFFF, Top_F
         )
         TPaper.text(
-            (609 - Diff_F.getsize(DiffText)[0] / 2, 722), DiffText, C_FFFFFF, Diff_F
+            (609 - Diff_F.getlength(DiffText) / 2, 722), DiffText, C_FFFFFF, Diff_F
         )
         TImg.save(f"./ranking/list1/av{Bid}_.png")
 
@@ -850,10 +848,10 @@ def Main():
     LongTerm()
     History()
     MainRank()
-    for i in range(4):
-        SubRank(i + 1)
     Stat()
     Top()
+    for i in range(4):
+        SubRank(i + 1)
 
 
 if __name__ == "__main__":
