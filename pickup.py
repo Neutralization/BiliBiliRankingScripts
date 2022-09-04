@@ -93,7 +93,7 @@ def Single(Avid):
     RegexTitle = re.sub(chr(65039), "", NFCTitle)
     RegexTitle = re.sub(COMBINING_CYRILLIC, "", RegexTitle)
     RegexTitle = re.sub(CONTROL, "", RegexTitle)
-    while (Title_F.getsize(RegexTitle)[0] + Title_O) > 1440:
+    while (Title_F.getlength(RegexTitle) + Title_O) > 1440:
         ShinkSize += 1
         Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54 - ShinkSize)
         Emoji_F = ImageFont.truetype(EMOJIONE, 54 - ShinkSize)
@@ -110,7 +110,7 @@ def Single(Avid):
             and re.match(r"[\u2640\u2642]", RegexTitle[i]) is None
         ):
             RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
-            Title_Step += Emoji_F.getsize(RegexTitle[i])[0]
+            Title_Step += Emoji_F.getlength(RegexTitle[i])
         elif re.match(CUNEIFORM, RegexTitle[i]) is not None:
             RankPaper.text(
                 (Title_Step, 979),
@@ -118,7 +118,7 @@ def Single(Avid):
                 C_6D4B2B,
                 UnicodeD_F,
             )
-            Title_Step += UnicodeD_F.getsize(RegexTitle[i])[0]
+            Title_Step += UnicodeD_F.getlength(RegexTitle[i])
         elif re.match(SCRIPT_SIGN_SQUARE, RegexTitle[i]) is not None:
             RankPaper.text(
                 (Title_Step, 979),
@@ -126,18 +126,18 @@ def Single(Avid):
                 C_6D4B2B,
                 UnicodeC_F,
             )
-            Title_Step += UnicodeC_F.getsize(RegexTitle[i])[0]
+            Title_Step += UnicodeC_F.getlength(RegexTitle[i])
         elif (
             re.match(DINGBATS, RegexTitle[i]) is not None
             or re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, RegexTitle[i]) is not None
         ):
             RankPaper.text(
-                (Title_Step, 979 - UnicodeB_F.getsize(RegexTitle[i])[1] * 0.15),
+                (Title_Step, 979 - UnicodeB_F.getbbox(RegexTitle[i])[-1] * 0.15),
                 RegexTitle[i],
                 C_6D4B2B,
                 UnicodeB_F,
             )
-            Title_Step += UnicodeB_F.getsize(RegexTitle[i])[0]
+            Title_Step += UnicodeB_F.getlength(RegexTitle[i])
         elif (
             (re.match(MODIFIER_LETTER, RegexTitle[i]) is not None)
             or (
@@ -148,21 +148,21 @@ def Single(Avid):
             or (re.match(MODIFIER_LETTER, RegexTitle[i - 1]) is not None)
         ):
             RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, UnicodeA_F)
-            Title_Step += UnicodeA_F.getsize(RegexTitle[i])[0]
+            Title_Step += UnicodeA_F.getlength(RegexTitle[i])
         else:
             RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Title_F)
-            Title_Step += Title_F.getsize(RegexTitle[i])[0]
+            Title_Step += Title_F.getlength(RegexTitle[i])
         i += 1
 
     Author_X = 31
     AuthorName = f"{Author}   投稿"
     RankPaper.text((Author_X, 927), AuthorName, C_6D4B2B, Author_F)
-    Bid_X = 195 - Bid_F.getsize(Bid)[0] / 2
+    Bid_X = 195 - Bid_F.getlength(Bid) / 2
     RankPaper.text((Bid_X, 847), Bid, C_FFFFFF, Bid_F)
-    Cata_X = 580 - Cata_F.getsize(Cata)[0] / 2
+    Cata_X = 580 - Cata_F.getlength(Cata) / 2
     RankPaper.text((Cata_X, 849), Cata, C_6D4B2B, Cata_F)
     UpTime_O = 933
-    UpTime_X = UpTime_O - UpTime_F.getsize(UpTime)[0] / 2
+    UpTime_X = UpTime_O - UpTime_F.getlength(UpTime) / 2
     RankPaper.text((UpTime_X, 850), UpTime, C_6D4B2B, UpTime_F)
     RankImg.save(f"./ranking/list1/av{Aid}.png")
 
