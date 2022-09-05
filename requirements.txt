@@ -1,5 +1,5 @@
 aiohttp==3.8.1
-arrow==1.2.2
+arrow==1.2.3
 emoji==2.0.0
 Pillow==9.2.0
 pip==22.2.2
