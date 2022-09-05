@@ -22,3 +22,4 @@ Adobe*/
 /*.mp4
 /*.png
 /*.psd
+!.eslintrc.js

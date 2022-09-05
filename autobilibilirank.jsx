@@ -14,7 +14,7 @@ file = new File('LostFile.json');
 file.open('r');
 content = file.read();
 file.close();
-LostVideos = JSON.parse(content)['name'];
+LostVideos = JSON.parse(content).name;
 RankDataList = [];
 for (n = 0; n < Parts.length; n++) {
     file = new File(Prefix + WEEK_NUM + '_' + Parts[n] + '.yml');
@@ -22,7 +22,7 @@ for (n = 0; n < Parts.length; n++) {
     content = file.read();
     file.close();
     RankList = content.replace(Regex, Subst).replace('\'', '"').replace('---', '{') + '}';
-    RankList = RankList.replace(',\n}', '\n}')
+    RankList = RankList.replace(',\n}', '\n}');
     RankDataList[RankDataList.length] = JSON.parse(RankList);
 }
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
@@ -655,7 +655,7 @@ AddVideoProperty(over_layer, 2, 0.5, 24.5, 2);
 
 // Part 18 (30+ to 150 +)
 AudioLayer_18 = AddLayer(Part_18, 'ED_BGM', null, 0);
-EDAudioLength = app.project.items[ResourceID['ED_BGM']].duration;
+EDAudioLength = app.project.items[ResourceID.ED_BGM].duration;
 AudioLayer_18.inPoint = 0;
 AudioLayer_18.outPoint = EDAudioLength;
 
