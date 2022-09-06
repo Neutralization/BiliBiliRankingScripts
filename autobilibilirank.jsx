@@ -295,7 +295,6 @@ function AddVideoProperty(Target, Ptype, Duration, Offset, Direction) {
 
 function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, IsTop) {
     SortRank = [];
-    InvalidPos = [1100, 777];
     PartSize = RankSize;
     for (key in RankData) {
         SortRank[SortRank.length] = key;
@@ -330,7 +329,6 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
             AddAudioProperty(NewVideoLayer, 2, 1, NewVideoLayer.inPoint, 1);
             AddAudioProperty(NewVideoLayer, 2, 3, NewVideoLayer.outPoint - 3, 2);
             NewVideoLayer.property('Position').setValue([CompSize[0] / 2, CompSize[1] / 2]);
-            InvalidPos = [1500, 1020];
             PartSize = CompSize;
             LogoLayer = AddLayer(Target, '周刊Logo', VideoDuration + 0.6, Offset);
             LogoLayer.property('Scale').setValue([(CompSize[0] / 640) * 100, (CompSize[1] / 384) * 100]);
@@ -371,29 +369,10 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
             InvalidLayer.outPoint = Offset + VideoDuration;
             InvalidLayer.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
 
-            // `Text Style` was added in After Effects 17.0
-            InvalidText = Target.layers.addText('视频已失效');
-            InvalidTextDoc = InvalidText.property('Source Text').value;
-            InvalidTextDoc.resetCharStyle();
-            InvalidTextDoc.applyFill = true;
-            InvalidTextDoc.justification = ParagraphJustification.CENTER_JUSTIFY;
-            InvalidText.inPoint = Offset;
-            InvalidText.outPoint = Offset + VideoDuration;
-            InvalidText.property('Position').setValue(InvalidPos);
-            InvalidText.property('Source Text').setValue(InvalidTextDoc);
-            InvalidText.property('Source Text').expression =
-                'text.sourceText.createStyle().setFont("FZY4K--GBK1-0").setFillColor(hexToRgb("CC0000")).setFontSize(48);';
-
-            // InvalidText = AddLayer(Target, '视频失效', VideoDuration, Offset)
-            // InvalidText.inPoint = Offset;
-            // InvalidText.outPoint = Offset + VideoDuration;
-            // InvalidText.property('Position').setValue(InvalidPos);
             if (IsTop || AddProperty) {
                 InvalidLayer.property('Position').setValue([CompSize[0] / 2, CompSize[1] / 2]);
                 AddVideoProperty(InvalidLayer, 1, 0.6, InvalidLayer.inPoint, 1);
                 AddVideoProperty(InvalidLayer, 1, 0.6, InvalidLayer.outPoint - 0.6, 2);
-                AddVideoProperty(InvalidText, 1, 0.6, InvalidText.inPoint, 1);
-                AddVideoProperty(InvalidText, 1, 0.6, InvalidText.outPoint - 0.6, 2);
             }
             OrigSize = InvalidLayer.sourceRectAtTime(InvalidLayer.inPoint, false);
             if (OrigSize.width / OrigSize.height >= 16 / 9) {
@@ -435,24 +414,6 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
                 LostVideoLayerS.inPoint = Offset;
                 LostVideoLayerS.outPoint = LostVideoLayerS.inPoint + 12;
 
-                // `Text Style` was added in After Effects 17.0
-                InvalidTextLayerS = Target.layers.addText('视频已失效');
-                InvalidTextDoc = InvalidTextLayerS.property('Source Text').value;
-                InvalidTextDoc.resetCharStyle();
-                InvalidTextDoc.applyFill = true;
-                InvalidTextDoc.applyStroke = false;
-                InvalidTextDoc.justification = ParagraphJustification.CENTER_JUSTIFY;
-                InvalidTextLayerS.inPoint = Offset;
-                InvalidTextLayerS.outPoint = InvalidTextLayerS.inPoint + 12;
-                InvalidTextLayerS.property('Position').setValue([1100, 777]);
-                InvalidTextLayerS.property('Source Text').setValue(InvalidTextDoc);
-                InvalidTextLayerS.property('Source Text').expression =
-                    'text.sourceText.createStyle().setFont("FZY4K--GBK1-0").setFillColor(hexToRgb("CC0000")).setFontSize(48);';
-
-                // InvalidTextS = AddLayer(Target, '视频失效', VideoDuration, Offset)
-                // InvalidTextS.inPoint = Offset;
-                // InvalidTextS.outPoint = InvalidText.inPoint + 12;
-                // InvalidTextS.property('Position').setValue([1100, 777]);
                 OrigSize = LostVideoLayerS.sourceRectAtTime(LostVideoLayerS.inPoint, false);
                 if (OrigSize.width / OrigSize.height >= 16 / 9) {
                     LostVideoLayerS.property('Scale').setValue([
@@ -483,7 +444,6 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
             } else {
                 if (IsInvalid == true) {
                     AddVideoProperty(InvalidLayer, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
-                    AddVideoProperty(InvalidText, 1, 0.6, InvalidText.outPoint - 0.6, 2);
                 }
                 AddVideoProperty(NewVideoLayer, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
                 AddVideoProperty(NewVideoLayer_mask, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
