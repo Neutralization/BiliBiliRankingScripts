@@ -19,6 +19,7 @@ from constant import (
     C_818181,
     C_AC8164,
     C_BCA798,
+    C_CC0000,
     C_EAAA7D,
     C_FFFFFF,
     COMBINING_CYRILLIC,
@@ -61,6 +62,8 @@ BRank = json.load(open(f"{WEEKS}_results_bangumi.json", "r", encoding="utf-8"))
 GRank = json.load(open(f"{WEEKS}_guoman_bangumi.json", "r", encoding="utf-8"))
 HRank = json.load(open(f"{WEEKS}_results_history.json", "r", encoding="utf-8"))
 SRank = json.load(open(f"{WEEKS}_stat.json", "r", encoding="utf-8"))
+Invalid = json.load(open("LostFile.json", "r", encoding="utf-8"))
+InvalidList = Invalid["name"]
 
 MRankData = {
     x["wid"]: {
@@ -208,6 +211,7 @@ def Single(args):
     DataFix_F = ImageFont.truetype(STYUANTI_SC_BOLD, 32)
     Emoji_F = ImageFont.truetype(EMOJIONE, 54)
     HisRank_F = ImageFont.truetype(STYUANTI_SC_BOLD, 72)
+    Invalid_F = ImageFont.truetype(FZY4K_GBK1_0, 48)
     LastRank_F = ImageFont.truetype(HANNOTATESC_W5, 36)
     Score_F = ImageFont.truetype(STYUANTI_SC_BOLD, 52)
     ScoreRank_F = ImageFont.truetype(HYM2GJ, 150)
@@ -413,6 +417,9 @@ def Single(args):
     else:
         RankPaper.text((1837, 778), CoinRank, C_EAAA7D, BiDataRank_F)
         RankPaper.text((1837, 921), DanmuRank, C_EAAA7D, BiDataRank_F)
+
+    if f"av{Aid}" in InvalidList:
+        RankPaper.text((980, 734), "视频已失效", C_CC0000, Invalid_F)
     RankImg.save(f"./ranking/list1/av{Aid}.png")
 
 
