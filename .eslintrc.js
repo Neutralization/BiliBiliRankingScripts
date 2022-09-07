@@ -14,6 +14,7 @@ module.exports = {
     rules: {
         'array-bracket-spacing': ['error', 'never'],
         'brace-style': ['error', '1tbs', { 'allowSingleLine': true }],
+        'comma-dangle': ['error', 'only-multiline'],
         'dot-location': ['error', 'property'],
         'dot-notation': ['error', { 'allowKeywords': false }],
         'indent': ['error', 4],
