@@ -4,8 +4,8 @@ import json
 from os.path import abspath
 from time import sleep
 
-from selenium.webdriver import Chrome
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver import Edge
+from selenium.webdriver.edge.options import Options
 
 text = "✥我҉͛̀̈̈̾̓̀͂̊͝的模҉̖̭̱͍̩͕͓̋̓͋̈̑͋̉͢͞ͅ样吓҈̎̍̅̒̎͂̈́̚͞.到你҈̛́̐̄́̃͗̓͒͒͊̿͛̒了？～❤✥"
 font = abspath("./footage/华文圆体粗体_[STYuanBold].ttf").replace("\\", "/")
@@ -40,9 +40,9 @@ with open("unicode.html", "w", encoding="utf-8-sig") as f:
     f.write(html_content)
 
 browser_options = Options()
-browser_options.add_argument("--headless")
+browser_options.add_argument("headless")
 
-browser = Chrome(options=browser_options)
+browser = Edge(options=browser_options)
 browser.set_window_size(1920, 1080)
 command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
 url = browser.command_executor._url + command
