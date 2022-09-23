@@ -10,10 +10,10 @@
 -   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html)
 -   [aria2c](https://aria2.github.io/)
 -   [FFmpeg](https://ffmpeg.org/)
--   [chromedriver](https://chromedriver.chromium.org/)
+-   [Edge WebDriver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/)
     > Windows 使用 [scoop](https://scoop.sh/) 执行  
-    > scoop install aria2 ffmpeg chromedriver  
-    > 其他方式需添加 `aria2c` `ffmpeg` `chromedriver` 路径到系统 `$PATH` 变量
+    > scoop install aria2 ffmpeg edgedriver  
+    > 其他方式需添加 `aria2c` `ffmpeg` `edgedriver` 路径到系统 `$PATH` 变量
 -   [PowerShell](https://docs.microsoft.com/zh-cn/powershell/) 使用 v7.2.0
     > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块  
     > Install-Module -Name powershell-yaml
