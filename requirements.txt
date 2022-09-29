@@ -7,5 +7,5 @@ pyOpenSSL==22.0.0
 PySocks==1.7.1
 PyYAML==6.0
 requests==2.28.1
-selenium==4.4.3
+selenium==4.5.0
 setuptools==65.3.0
