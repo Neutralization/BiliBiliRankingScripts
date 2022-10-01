@@ -449,13 +449,13 @@ def SubRank(rtype):
         }
         PageNum = 3
     elif rtype == 4:
-        LastRankNum = 3
+        LastRankNum = 10
         SScoreRankData = {
             int(v["score_rank"]): v
             for v in GRankData.values()
             if int(v["score_rank"]) > LastRankNum
         }
-        PageNum = 2
+        PageNum = 3
     for i in range(PageNum):
         SImg = Image.open(SUBRANKIMG) if rtype <= 2 else Image.open(SUBBANGUMIRANKIMG)
         SPaper = ImageDraw.Draw(SImg)
@@ -715,7 +715,7 @@ def MainRank():
         if v["sp_type_id"] is None and int(v["score_rank"]) <= LastRankNum
     ]
     RankDataB = [(k, False) for k, v in BRankData.items() if int(v["score_rank"]) <= 10]
-    RankDataG = [(k, False) for k, v in GRankData.items() if int(v["score_rank"]) <= 3]
+    RankDataG = [(k, False) for k, v in GRankData.items() if int(v["score_rank"]) <= 10]
     RankDataH = [(k, True) for k, v in HRankData.items() if int(v["score_rank"]) <= 5]
     RankData = RankDataM + RankDataB + RankDataG + RankDataH
     list(map(Single, RankData))
@@ -849,7 +849,7 @@ def Main():
     MakeYaml("results", 10, 4, 13)
     MakeYaml("results", 3, 1, 16)
     MakeYaml("results_history", 5, 1, 15)
-    MakeYaml("guoman_bangumi", 3, 1, 7)
+    MakeYaml("guoman_bangumi", 10, 1, 7)
     MakeYaml("results_bangumi", 10, 1, 11)
     Opening()
     LongTerm()
