@@ -139,7 +139,7 @@ StaticFootage = {
     哔哩哔哩_BGM: './public/bilibili.mp3',
     ED_BGM: './ranking/2_ed/ed.mp3',
     // VIDEO
-    NotFound: './error.mp4',
+    NotFound: './public/error.mp4',
 };
 
 for (key in StaticFootage) {
