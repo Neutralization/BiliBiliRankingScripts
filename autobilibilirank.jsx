@@ -35,7 +35,7 @@ Part_2 = app.project.items.addComp('Part_2', CompSize[0], CompSize[1], 1, 4, Com
 Part_3 = app.project.items.addComp('Part_3', CompSize[0], CompSize[1], 1, 60, CompFPS);
 Part_4 = app.project.items.addComp('Part_4', CompSize[0], CompSize[1], 1, 4, CompFPS);
 Part_5 = app.project.items.addComp('Part_5', CompSize[0], CompSize[1], 1, 60, CompFPS);
-Part_6 = app.project.items.addComp('Part_6', CompSize[0], CompSize[1], 1, 49.1, CompFPS);
+Part_6 = app.project.items.addComp('Part_6', CompSize[0], CompSize[1], 1, 56.6, CompFPS);
 Part_7 = app.project.items.addComp('Part_7', CompSize[0], CompSize[1], 1, 60, CompFPS);
 Part_8 = app.project.items.addComp('Part_8', CompSize[0], CompSize[1], 1, 4, CompFPS);
 Part_9 = app.project.items.addComp('Part_9', CompSize[0], CompSize[1], 1, 60, CompFPS);
@@ -72,6 +72,7 @@ StaticFootage = {
     主榜切换_1: './ranking/pic/_1.png',
     国创副榜_1: './ranking/list4/bangumi_004.png',
     国创副榜_2: './ranking/list4/bangumi_005.png',
+    国创副榜_3: './ranking/list4/bangumi_006.png',
     国创切换: './ranking/pic/guochuang_zhu.png',
     国创副榜: './ranking/pic/guochuang_fu.png',
     影视切换: './ranking/pic/film.png',
@@ -511,10 +512,10 @@ AddVideoProperty(NextLayer_4, 2, 1, 0, 1);
 Part_5.duration = AddRankPart(Part_5, RankDataList[1], 21, true, false, 0, false);
 
 // Part 6 (tv & bangumi)
-BlankLayer_6 = AddLayer(Part_6, '棕底', 49.1, 0);
-AudioLayer_6 = AddLayer(Part_6, '影视国创_BGM', 49.1, 0 - 30);
+BlankLayer_6 = AddLayer(Part_6, '棕底', 56.6, 0);
+AudioLayer_6 = AddLayer(Part_6, '影视国创_BGM', 56.6, 0 - 30);
 AudioLayer_6.inPoint = 0;
-AudioLayer_6.outPoint = 49.1;
+AudioLayer_6.outPoint = 56.6;
 AddAudioProperty(AudioLayer_6, 1, 1.8, AudioLayer_6.inPoint, 1);
 AddAudioProperty(AudioLayer_6, 1, 3.2, AudioLayer_6.outPoint - 3.2, 2);
 FilmLayer = AddLayer(Part_6, '影视切换', 3.73, 0);
@@ -530,10 +531,12 @@ AddVideoProperty(RankLayer_6_cn_sub, 2, 0.5, 26, 1);
 AddVideoProperty(RankLayer_6_cn_sub, 2, 0.5, 29.1, 2);
 RankLayer_6_bgm_4 = AddLayer(Part_6, '国创副榜_1', 7.5, 30);
 AddVideoProperty(RankLayer_6_bgm_4, 2, 0.5, 30, 1);
-RankLayer_6_bgm_5 = AddLayer(Part_6, '国创副榜_2', 8.4, 37.5);
-AddVideoProperty(RankLayer_6_bgm_5, 2, 0.5, 44.5, 2);
-RankLayer_6_cn_main = AddLayer(Part_6, '国创切换', 3.7, 45.4);
-AddVideoProperty(RankLayer_6_cn_main, 2, 0.6, 45.4, 1);
+RankLayer_6_bgm_5 = AddLayer(Part_6, '国创副榜_2', 7.5, 37.5);
+// AddVideoProperty(RankLayer_6_bgm_5, 2, 0.5, 44.5, 1);
+RankLayer_6_bgm_6 = AddLayer(Part_6, '国创副榜_3', 8.4, 45);
+AddVideoProperty(RankLayer_6_bgm_6, 2, 0.5, 52, 2);
+RankLayer_6_cn_main = AddLayer(Part_6, '国创切换', 3.7, 52.9);
+AddVideoProperty(RankLayer_6_cn_main, 2, 0.6, 52.9, 1);
 
 // Part 7 (tv & bangumi)
 Part_7.duration = AddRankPart(Part_7, RankDataList[2], 1, false, false, 0, false);
