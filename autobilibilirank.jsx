@@ -97,7 +97,7 @@ StaticFootage = {
     EDCard: './ranking/2_ed/ed.png',
     主榜切换_4: './ranking/pic/_5.png',
     STAFF名单: './ranking/2_ed/staff.png',
-    // 视频失效: './public/invalid.png',
+    视频失效: './public/invalid.png',
     1: './ranking/list2/001.png',
     2: './ranking/list2/002.png',
     3: './ranking/list2/003.png',
@@ -139,7 +139,7 @@ StaticFootage = {
     哔哩哔哩_BGM: './public/bilibili.mp3',
     ED_BGM: './ranking/2_ed/ed.mp3',
     // VIDEO
-    NotFound: './tv_x264.mp4',
+    NotFound: './error.mp4',
 };
 
 for (key in StaticFootage) {
@@ -306,7 +306,13 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
         if (!(LastRank - i in RankData)) {
             continue;
         }
-        VideoFile = RankData[LastRank - i][0];
+        IsInvalid = false;
+        for (key in LostVideos) {
+            if (RankData[LastRank - i][0] == LostVideos[key]) {
+                IsInvalid = true;
+            }
+        }
+        VideoFile = (IsInvalid == false) ? RankData[LastRank - i][0] : 'NotFound';
         VideoMask = RankData[LastRank - i][0] + '_';
         TopImage = RankData[LastRank - i][0] + '_m';
         VideoDuration = RankData[LastRank - i][1];
@@ -323,17 +329,38 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
         NewVideoLayer.outPoint = NewVideoLayer.inPoint + VideoDuration;
         NewVideoLayer.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
 
-        // NewVideoLayer.comment = LastRank - i + "-" + VideoFile;
-        // writeLn(NewVideoLayer.comment); DEBUG
+        // Add 16s
+        if (IsInvalid == true) {
+            VideoOffset = 0;
+            InvalidLayer = AddLayer(Target, '视频失效', VideoDuration, Offset);
+            // InvalidLayer.audioEnabled = false;
+            InvalidLayer.inPoint = Offset;
+            InvalidLayer.outPoint = Offset + VideoDuration;
+            InvalidLayer.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
+            OrigSize = InvalidLayer.sourceRectAtTime(InvalidLayer.inPoint, false);
+            InvalidLayer.property('Scale').setValue([
+                (PartSize[0] / OrigSize.width) * 100,
+                (PartSize[0] / OrigSize.width) * 100,
+            ]);
+            if (IsTop || AddProperty) {
+                InvalidLayer.property('Position').setValue([CompSize[0] / 2, CompSize[1] / 2]);
+                InvalidLayer.property('Scale').setValue([100, 100]);
+                AddVideoProperty(InvalidLayer, 1, 0.6, InvalidLayer.inPoint, 1);
+                AddVideoProperty(InvalidLayer, 1, 0.6, InvalidLayer.outPoint - 0.6, 2);
+            }
+        }
+
+        // Change Size & Add Logo
         if (IsTop) {
             AddVideoProperty(NewVideoLayer, 1, 3, NewVideoLayer.outPoint - 3, 2);
             AddAudioProperty(NewVideoLayer, 2, 1, NewVideoLayer.inPoint, 1);
             AddAudioProperty(NewVideoLayer, 2, 3, NewVideoLayer.outPoint - 3, 2);
             NewVideoLayer.property('Position').setValue([CompSize[0] / 2, CompSize[1] / 2]);
             PartSize = CompSize;
-            LogoLayer = AddLayer(Target, '周刊Logo', VideoDuration + 0.6, Offset);
+            LogoLayer = AddLayer(Target, '周刊Logo', VideoDuration + 0.2, Offset);
             LogoLayer.property('Scale').setValue([(CompSize[0] / 640) * 100, (CompSize[1] / 384) * 100]);
             LogoLayer.property('Position').setValue([CompSize[0] / 2, CompSize[1] / 2]);
+            AddVideoProperty(LogoLayer, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
         } else if (AddProperty) {
             AddVideoProperty(NewVideoLayer, 1, 0.6, NewVideoLayer.inPoint, 1);
             AddVideoProperty(NewVideoLayer, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
@@ -356,38 +383,7 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
             ]);
         }
 
-        IsInvalid = false;
-        for (key in LostVideos) {
-            if (RankData[LastRank - i][0] == LostVideos[key]) {
-                IsInvalid = true;
-            }
-        }
-        if (IsInvalid == true) {
-            VideoOffset = 0;
-            InvalidLayer = AddLayer(Target, 'NotFound', VideoDuration, Offset);
-            InvalidLayer.audioEnabled = false;
-            InvalidLayer.inPoint = Offset;
-            InvalidLayer.outPoint = Offset + VideoDuration;
-            InvalidLayer.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
-
-            if (IsTop || AddProperty) {
-                InvalidLayer.property('Position').setValue([CompSize[0] / 2, CompSize[1] / 2]);
-                AddVideoProperty(InvalidLayer, 1, 0.6, InvalidLayer.inPoint, 1);
-                AddVideoProperty(InvalidLayer, 1, 0.6, InvalidLayer.outPoint - 0.6, 2);
-            }
-            OrigSize = InvalidLayer.sourceRectAtTime(InvalidLayer.inPoint, false);
-            if (OrigSize.width / OrigSize.height >= 16 / 9) {
-                InvalidLayer.property('Scale').setValue([
-                    (PartSize[0] / OrigSize.width) * 100,
-                    (PartSize[0] / OrigSize.width) * 100,
-                ]);
-            } else {
-                InvalidLayer.property('Scale').setValue([
-                    (PartSize[1] / OrigSize.height) * 100,
-                    (PartSize[1] / OrigSize.height) * 100,
-                ]);
-            }
-        }
+        // Extra Step For Top 3
         if (IsTop) {
             BlackLayer = Target.layers.addSolid([0, 0, 0], '黑底', CompSize[0], CompSize[1], 1, 12);
             BlackLayer.inPoint = Offset - VideoOffset;
@@ -410,30 +406,23 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
             NewVideoLayerS.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
             if (IsInvalid == true) {
                 VideoOffset = 0;
-                LostVideoLayerS = AddLayer(Target, 'NotFound', VideoDuration, Offset);
-                LostVideoLayerS.audioEnabled = false;
-                LostVideoLayerS.inPoint = Offset;
-                LostVideoLayerS.outPoint = LostVideoLayerS.inPoint + 12;
-
-                OrigSize = LostVideoLayerS.sourceRectAtTime(LostVideoLayerS.inPoint, false);
-                if (OrigSize.width / OrigSize.height >= 16 / 9) {
-                    LostVideoLayerS.property('Scale').setValue([
-                        (RankSize[0] / OrigSize.width) * 100,
-                        (RankSize[0] / OrigSize.width) * 100,
-                    ]);
-                } else {
-                    LostVideoLayerS.property('Scale').setValue([
-                        (RankSize[1] / OrigSize.height) * 100,
-                        (RankSize[1] / OrigSize.height) * 100,
-                    ]);
-                }
-                LostVideoLayerS.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
+                InvalidLayerS = AddLayer(Target, '视频失效', VideoDuration, Offset);
+                // InvalidLayerS.audioEnabled = false;
+                InvalidLayerS.inPoint = Offset;
+                InvalidLayerS.outPoint = InvalidLayerS.inPoint + 12;
+                OrigSize = InvalidLayerS.sourceRectAtTime(InvalidLayerS.inPoint, false);
+                InvalidLayerS.property('Scale').setValue([
+                    (RankSize[0] / OrigSize.width) * 100,
+                    (RankSize[0] / OrigSize.width) * 100,
+                ]);
+                InvalidLayerS.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
             }
-            AddLayer(Target, '蓝底', 5, Offset);
+            BlueLayer = AddLayer(Target, '蓝底', 5.4, Offset - 0.4);
+            AddVideoProperty(BlueLayer, 1, 0.4, Offset - 0.4, 1);
             AddLayer(Target, VideoMask, 7, Offset + 5);
             TopRankLayer = AddLayer(Target, TopImage, 5, Offset);
             AddVideoProperty(TopRankLayer, 1, 1, Offset, 1);
-            Offset = Offset + VideoDuration + 0.6;
+            Offset = Offset + VideoDuration + 0.2;
         } else {
             NewVideoLayer_mask = AddLayer(Target, VideoMask, VideoDuration, Offset);
             if (AddNEXT && LastRank - i > FirstRank) {
