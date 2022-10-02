@@ -637,6 +637,7 @@ AddVideoProperty(EdCardLayer, 1, 1, EDAudioLength - 1, 2);
 Part_18.duration = EDAudioLength + 0.1;
 
 Comps = [
+    Part_1,
     Part_2,
     Part_3,
     Part_4,
@@ -655,10 +656,32 @@ Comps = [
     Part_17,
     Part_18,
 ];
-for (n = 0; n < Comps.length; n++) {
+for (n = 1; n < Comps.length; n++) {
     AddLayer(FinalComp, Comps[n].name, Comps[n].duration, FinalComp.duration);
     FinalComp.duration += Comps[n].duration;
 }
 CompBlackLayer.outPoint = FinalComp.duration;
 FinalComp.openInViewer();
 app.project.save(File('./bilibilirank_' + WEEK_NUM + '.aep'));
+
+Stamp = [];
+for (n = 0; n < Comps.length; n++) {
+    Stamp.push(Comps[n].duration);
+}
+TimeLine = [
+    {'from': 0, 'to': eval(Stamp.slice(0,1).join('+')), 'content': 'OP'},
+    {'from': eval(Stamp.slice(0,1).join('+')), 'to': eval(Stamp.slice(0,3).join('+')), 'content': 'Pickup'},
+    {'from': eval(Stamp.slice(0,3).join('+')), 'to': eval(Stamp.slice(0,5).join('+')), 'content': '21-30+'},
+    {'from': eval(Stamp.slice(0,5).join('+')), 'to': eval(Stamp.slice(0,7).join('+')), 'content': '影视&国创'},
+    {'from': eval(Stamp.slice(0,7).join('+')), 'to': eval(Stamp.slice(0,9).join('+')), 'content': '11-20'},
+    {'from': eval(Stamp.slice(0,9).join('+')), 'to': eval(Stamp.slice(0,11).join('+')), 'content': '番剧'},
+    {'from': eval(Stamp.slice(0,11).join('+')), 'to': eval(Stamp.slice(0,13).join('+')), 'content': '4-10'},
+    {'from': eval(Stamp.slice(0,13).join('+')), 'to': eval(Stamp.slice(0,15).join('+')), 'content': '历史'},
+    {'from': eval(Stamp.slice(0,15).join('+')), 'to': eval(Stamp.slice(0,16).join('+')), 'content': '1-3'},
+    {'from': eval(Stamp.slice(0,16).join('+')), 'to': eval(Stamp.slice(0,18).join('+')), 'content': 'ED'},
+
+];
+doc = new File('./stamp.json');
+doc.open('w');
+doc.write(JSON.stringify(TimeLine));
+doc.close();
