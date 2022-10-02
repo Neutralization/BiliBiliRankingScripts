@@ -32,7 +32,8 @@ function Normailze {
             + "-vf scale='min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw:min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih' "`
             + "-af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 "`
             + "-c:v h264_nvenc -c:a aac ./ranking/list1/$($FileName).mp4"
-    } else {
+    }
+    else {
         # CPU
         $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i ./ranking/list0/$($FileName).mp4 "`
             + "-vf scale='min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw:min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih' "`
@@ -51,7 +52,8 @@ function Main {
     if ($Part.Contains('*')) {
         $Files = Get-Content -Raw "./ranking/list1/$($RankNum)_*.yml"
         Get-ChildItem './ranking/list1/*.mp4' | ForEach-Object { $LocalVideos += $_.BaseName }
-    } else {
+    }
+    else {
         $Part | ForEach-Object {
             $Files += Get-Content -Raw "./ranking/list1/$($RankNum)_$($_).yml"
         }
@@ -67,12 +69,15 @@ function Main {
         if ($Part.Contains('*')) {
             if ($LocalVideos -notcontains $_.n) {
                 Normailze $_.n $_.o $_.l
-            } elseif ((Get-Item "./ranking/list1/$($_.n).mp4").length -eq 0) {
+            }
+            elseif ((Get-Item "./ranking/list1/$($_.n).mp4").length -eq 0) {
                 Normailze $_.n $_.o $_.l
-            } else {
+            }
+            else {
                 Write-Host "$($_.n) Already Normalized." -ForegroundColor Yellow
             }
-        } else {
+        }
+        else {
             Normailze $_.n $_.o $_.l
         }
     }

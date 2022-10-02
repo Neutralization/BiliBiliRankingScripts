@@ -18,7 +18,8 @@ if (!(Test-Path -Path $Backup)) {
     Move-Item -Path "$($FromFolder)\over.png" -Destination $Backup -Force
     Move-Item -Path "$($FromFolder)\rule_2.png" -Destination $Backup -Force
     Move-Item -Path "$($FromFolder)\$($RankNum)_*.yml" -Destination $Backup -Force
-} else {
+}
+else {
     Copy-Item -Path "$($Backup)\op_2.png" -Destination "$($DistFolder)\1_op\" -Force
     Copy-Item -Path "$($Backup)\start.png" -Destination "$($DistFolder)\1_op\" -Force
     Copy-Item -Path "$($Backup)\world.png" -Destination "$($DistFolder)\1_op\" -Force
