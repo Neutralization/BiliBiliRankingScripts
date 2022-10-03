@@ -668,18 +668,22 @@ Stamp = [];
 for (n = 0; n < Comps.length; n++) {
     Stamp.push(Comps[n].duration);
 }
-TimeLine = [
-    {'from': 0, 'to': eval(Stamp.slice(0,1).join('+')), 'content': 'OP'},
-    {'from': eval(Stamp.slice(0,1).join('+')), 'to': eval(Stamp.slice(0,3).join('+')), 'content': 'Pickup'},
-    {'from': eval(Stamp.slice(0,3).join('+')), 'to': eval(Stamp.slice(0,5).join('+')), 'content': '21-30+'},
-    {'from': eval(Stamp.slice(0,5).join('+')), 'to': eval(Stamp.slice(0,7).join('+')), 'content': '影视&国创'},
-    {'from': eval(Stamp.slice(0,7).join('+')), 'to': eval(Stamp.slice(0,9).join('+')), 'content': '11-20'},
-    {'from': eval(Stamp.slice(0,9).join('+')), 'to': eval(Stamp.slice(0,11).join('+')), 'content': '番剧'},
-    {'from': eval(Stamp.slice(0,11).join('+')), 'to': eval(Stamp.slice(0,13).join('+')), 'content': '4-10'},
-    {'from': eval(Stamp.slice(0,13).join('+')), 'to': eval(Stamp.slice(0,15).join('+')), 'content': '历史'},
-    {'from': eval(Stamp.slice(0,15).join('+')), 'to': eval(Stamp.slice(0,16).join('+')), 'content': '1-3'},
-    {'from': eval(Stamp.slice(0,16).join('+')), 'to': eval(Stamp.slice(0,18).join('+')), 'content': 'ED'},
 
+function SumStamp(Part) {
+    return Math.ceil(eval(Stamp.slice(0, Part).join('+')));
+}
+
+TimeLine = [
+    {'from': 0, 'to': SumStamp(1), 'content': 'OP'},
+    {'from': SumStamp(1), 'to': SumStamp(3), 'content': 'Pickup'},
+    {'from': SumStamp(3), 'to': SumStamp(5), 'content': '21-30+'},
+    {'from': SumStamp(5), 'to': SumStamp(7), 'content': '影视&国创'},
+    {'from': SumStamp(7), 'to': SumStamp(9), 'content': '11-20'},
+    {'from': SumStamp(9), 'to': SumStamp(11), 'content': '番剧'},
+    {'from': SumStamp(11), 'to': SumStamp(13), 'content': '4-10'},
+    {'from': SumStamp(13), 'to': SumStamp(15), 'content': '历史'},
+    {'from': SumStamp(15), 'to': SumStamp(16), 'content': '1-3'},
+    {'from': SumStamp(16), 'to': SumStamp(18), 'content': 'ED'},
 ];
 doc = new File('./stamp.json');
 doc.open('w');
