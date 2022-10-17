@@ -2,7 +2,7 @@ aiohttp==3.8.3
 arrow==1.2.3
 emoji==2.1.0
 Pillow==9.2.0
-pip==22.2.2
+pip==22.3
 pyOpenSSL==22.0.0
 PySocks==1.7.1
 PyYAML==6.0
