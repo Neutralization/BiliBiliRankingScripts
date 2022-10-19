@@ -342,7 +342,7 @@ def Single(args):
         RankPaper.text((Score_X, 280), Score, C_FFFFFF, Score_F)
         RankPaper.text((1495, 400), f"#{Week}", C_FFFFFF, HisRank_F)
         if f"av{Aid}" in InvalidList:
-            RankPaper.text((980, 734), "视频已失效", C_CC0000, Invalid_F)
+            RankPaper.text((980, 734), "", C_CC0000, Invalid_F)
         RankImg.save(f"./ranking/list1/av{Aid}.png")
         return 0
     RankPaper.text((Score_X, 376), Score, C_FFFFFF, Score_F)
@@ -421,7 +421,7 @@ def Single(args):
         RankPaper.text((1837, 921), DanmuRank, C_EAAA7D, BiDataRank_F)
 
     if f"av{Aid}" in InvalidList:
-        RankPaper.text((980, 734), "视频已失效", C_CC0000, Invalid_F)
+        RankPaper.text((980, 734), "", C_CC0000, Invalid_F)
     RankImg.save(f"./ranking/list1/av{Aid}.png")
 
 
