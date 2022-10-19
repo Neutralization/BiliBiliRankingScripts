@@ -5,8 +5,9 @@
 ## 工作环境
 
 -   [Adobe After Effects](https://www.adobe.com/products/aftereffects.html)
-    > Windows支持 CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/2019/2020/2021/2022  
-    > After Effects 17.0(CC2020) 开始才支持表达式的`Text Style`。
+    > Windows支持 CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/2019/2020/2021/2022/2023  
+    > ~~After Effects 17.0(CC2020) 开始才支持表达式的`Text Style`。~~ (脚本不再使用`Text Style`)
+    需要在AE首选项中打开`允许脚本写入文件和访问网络`
 -   [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html)
 -   [aria2c](https://aria2.github.io/)
 -   [FFmpeg](https://ffmpeg.org/)
@@ -14,10 +15,10 @@
     > Windows 使用 [scoop](https://scoop.sh/) 执行  
     > scoop install aria2 ffmpeg edgedriver  
     > 其他方式需添加 `aria2c` `ffmpeg` `edgedriver` 路径到系统 `$PATH` 变量
--   [PowerShell](https://docs.microsoft.com/zh-cn/powershell/) 使用 v7.2.0
+-   [PowerShell](https://docs.microsoft.com/zh-cn/powershell/) 使用 v7.2.6
     > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块  
     > Install-Module -Name powershell-yaml
--   [Python](https://www.python.org/) 使用 v3.9.8
+-   [Python](https://www.python.org/) 使用 v3.10.8
     > 安装 [arrow](https://pypi.org/project/arrow/) / [emoji](https://pypi.org/project/emoji/) / [Pillow](https://pypi.org/project/Pillow/) / [PyYAML](https://pypi.org/project/PyYAML/) / [requests](https://pypi.org/project/requests/) / [selenium](https://pypi.org/project/selenium/) 模块  
     > python -m pip install arrow emoji pillow pyyaml requests selenium  
     > 或者 python -m pip install -r requirements.txt
