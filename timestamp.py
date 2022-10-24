@@ -51,5 +51,5 @@ def main():
     print(json.loads(response.content))
 
 
-if __name__ == "__mian__":
+if __name__ == "__main__":
     main()
