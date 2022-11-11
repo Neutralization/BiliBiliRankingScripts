@@ -251,7 +251,7 @@ def Single(args):
         IconMark = Image.open(CoverFile)
         IconRegion = IconMark.crop((0, 0) + IconMark.size)
         IconCover = IconRegion.resize((115, 115), Image.Resampling.LANCZOS)
-        RankImg.paste(IconCover, (19, 929))
+        RankImg.paste(IconCover, (35, 930))
 
     ShinkSize = 0
     Title_O = 31 if rtype else 167
