@@ -68,7 +68,7 @@ StaticFootage = {
     注意事项_1: './public/warn_1.png',
     注意事项_2: './public/warn_2.png',
     哔哩哔哩: './ranking/1_op/world.png',
-    Pickup切换: './ranking/pic/_pickup.png',
+    Pickup_切换: './ranking/pic/_pickup.png',
     主榜切换_1: './ranking/pic/_1.png',
     国创副榜_1: './ranking/list4/bangumi_004.png',
     国创副榜_2: './ranking/list4/bangumi_005.png',
@@ -90,13 +90,13 @@ StaticFootage = {
     历史记录: './ranking/pic/history_record.png',
     周刊Logo: './public/logo.png',
     本周结语: './ranking/pic/over.png',
-    统计数据1: './ranking/pic/stat_1.png',
-    统计数据2: './ranking/pic/stat_2.png',
-    统计数据3: './ranking/pic/stat_3.png',
+    统计数据_1: './ranking/pic/stat_1.png',
+    统计数据_2: './ranking/pic/stat_2.png',
+    统计数据_3: './ranking/pic/stat_3.png',
     插入素材: './ranking/2_ed/addr2.png',
     EDCard: './ranking/2_ed/ed.png',
     主榜切换_4: './ranking/pic/_5.png',
-    STAFF名单: './ranking/2_ed/staff.png',
+    STAFF_名单: './ranking/2_ed/staff.png',
     视频失效: './public/invalid.png',
     1: './ranking/list2/001.png',
     2: './ranking/list2/002.png',
@@ -484,7 +484,7 @@ AudioLayer_2 = AddLayer(Part_2, 'Pickup_BGM', 4, 0);
 AddAudioProperty(AudioLayer_2, 1, 1, 0, 1);
 AddAudioProperty(AudioLayer_2, 1, 1, 3, 2);
 BlankLayer_2 = AddLayer(Part_2, '蓝底', 4, 0);
-NextLayer_2 = AddLayer(Part_2, 'Pickup切换', 4, 0);
+NextLayer_2 = AddLayer(Part_2, 'Pickup_切换', 4, 0);
 AddVideoProperty(NextLayer_2, 2, 1, 0, 1);
 
 // Part 3
@@ -596,10 +596,10 @@ bilibili_layer = AddLayer(Part_17, '哔哩哔哩_BGM', 25, 0);
 bilibili_layer.inPoint = 0;
 bilibili_layer.outPoint = 25;
 AddAudioProperty(bilibili_layer, 1, 3, bilibili_layer.outPoint - 3, 2);
-stat_1_layer = AddLayer(Part_17, '统计数据1', 7.33, 0.8);
+stat_1_layer = AddLayer(Part_17, '统计数据_1', 7.33, 0.8);
 AddVideoProperty(stat_1_layer, 2, 0.6, 0.8, 1);
-stat_2_layer = AddLayer(Part_17, '统计数据2', 5.27, 8.13);
-stat_3_layer = AddLayer(Part_17, '统计数据3', 5.8, 13.4);
+stat_2_layer = AddLayer(Part_17, '统计数据_2', 5.27, 8.13);
+stat_3_layer = AddLayer(Part_17, '统计数据_3', 5.8, 13.4);
 AddVideoProperty(stat_3_layer, 2, 0.6, 18.6, 2);
 over_layer = AddLayer(Part_17, '本周结语', 5.5, 19.5);
 AddVideoProperty(over_layer, 2, 0.5, 19.5, 1);
@@ -622,7 +622,7 @@ for (i = 1; i < 30; i++) {
 }
 LastRankCardLayer = AddLayer(Part_18, i, SubRankLength, 9 + SubRankLength * 29);
 AddVideoProperty(LastRankCardLayer, 1, 0.6, 9 + SubRankLength * 30 - 0.6, 2);
-StaffLayer = AddLayer(Part_18, 'STAFF名单', 4.6, 0);
+StaffLayer = AddLayer(Part_18, 'STAFF_名单', 4.6, 0);
 AddVideoProperty(StaffLayer, 1, 0.6, 0, 1);
 AddVideoProperty(StaffLayer, 1, 0.6, 4, 2);
 NextLayer_18 = AddLayer(Part_18, '主榜切换_4', 5.9, 4);
