@@ -4,7 +4,7 @@ param (
 )
 $ProgressPreference = "SilentlyContinue"
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
-$CookieFile = "$($TruePath)/cookies.txt"
+$CookieFile = "$($TruePath)/bilibili.com_cookies.txt"
 # $DownloadList = "$($TruePath)/download.txt"
 $DownloadFolder = "$($TruePath)/ranking/list0"
 $UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.26"
@@ -105,14 +105,14 @@ function BiliDown {
     $PageList = "https://api.bilibili.com/x/player/pagelist?aid=$($AID)&jsonp=jsonp"
     $Headers.referer = "https://www.bilibili.com/video/av$($AID)/"
     $Headers.path = "/x/player/pagelist?aid=$($AID)&jsonp=jsonp"
-    $Pages = Invoke-WebRequest  -UseBasicParsing -Uri $PageList -WebSession $Session -Headers $Headers |
+    $Pages = Invoke-WebRequest -UseBasicParsing -Uri $PageList -WebSession $Session -Headers $Headers |
     Select-Object -ExpandProperty "Content" | ConvertFrom-Json
     $CID = $Pages.data | Where-Object -Property "page" -EQ $Part | Select-Object -ExpandProperty "cid"
     # Write-Output $CID
 
     $SourceUrl = "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1&voice_balance=1"
     # Write-Output $SourceUrl
-    $VideoData = Invoke-WebRequest  -UseBasicParsing -Uri $SourceUrl -WebSession $Session -Headers $Headers |
+    $VideoData = Invoke-WebRequest -UseBasicParsing -Uri $SourceUrl -WebSession $Session -Headers $Headers |
     Select-Object -ExpandProperty "Content" | ConvertFrom-Json
     Write-Host "$($ID) Video Downloading......"
 
