@@ -7,12 +7,12 @@ WEEKS = floor(
     (int(arrow.now("Asia/Shanghai").timestamp()) - YUME + 133009) / 3600 / 24 / 7
 )
 EMOJIONE = "./footage/EmojiOneColor.otf"
-FZY4K_GBK1_0 = "./footage/方正粗圆_GBK_[FZY4K_GBK1_0].ttf"
+FZY4K_GBK1_0 = "./footage/方正粗圆_GBK_[FZY4K].ttf"
 GOTHICA1 = "./footage/GothicA1-Regular.ttf"
 HANNOTATESC_W5 = "./footage/华康手札体简W5_[HannotateSC-W5].ttf"
 HUAWENYUANTI_BOLD = "./footage/华文圆体粗体_[STYuanBold].ttf"
-HYM2GJ = "./footage/汉仪黑咪体简_[HYm2gj].ttf"
-HYQIHEI_AZEJ = "./footage/汉仪旗黑-105简_[HYQiHei_AZEJ].ttf"
+HYM2GJ = "./footage/汉仪黑咪体简_[HYHeiMiTiJ].ttf"
+HYQIHEI_AZEJ = "./footage/汉仪旗黑_105_简繁_[HYQiHei_105JF].ttf"
 SEGOE_UI = "./footage/Segoe_UI.ttf"
 SEGOE_UI_HISTORIC = "./footage/Segoe_UI_Historic.ttf"
 SEGOE_UI_SYMBOL = "./footage/Segoe_UI_Symbol.ttf"
