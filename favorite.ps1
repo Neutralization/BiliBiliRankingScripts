@@ -58,6 +58,6 @@ $Files | ForEach-Object {
 AddFavourite $FIDData['周刊历代一位'] $RankVideos[2].Substring(2)
 Start-Sleep -Seconds 1
 $RankVideos[ - ($RankVideos.Length - 3)..-1] | ForEach-Object {
-    AddFavourite $FIDData['周刊往期pickup'] $_.Substring(2)
+    AddFavourite $FIDData['周刊往期Pickup'] $_.Substring(2)
     Start-Sleep -Seconds 1
 }
