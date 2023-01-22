@@ -110,6 +110,18 @@ function BiliDown {
     $CID = $Pages.data | Where-Object -Property "page" -EQ $Part | Select-Object -ExpandProperty "cid"
     # Write-Output $CID
 
+    $CCsub = "https://api.bilibili.com/x/player/v2?aid=$($AID)&cid=$($CID)"
+    $SubData = Invoke-WebRequest -UseBasicParsing -Uri $CCsub -WebSession $Session -Headers $Headers |
+    Select-Object -ExpandProperty "Content" | ConvertFrom-Json
+    if ($null -ne $SubData.data.subtitle.subtitles[0].subtitle_url -and $SubData.data.subtitle.subtitles[0].lan -notmatch 'ai') {
+        Invoke-WebRequest -Uri "http:$($SubData.data.subtitle.subtitles[0].subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "$($DownloadFolder)/$($CID)_.json"
+        Start-Process -NoNewWindow -Wait -FilePath "python.exe" -ArgumentList "ccsub2ass.py $($DownloadFolder)/$($CID)_"
+        $CC = $true
+    }
+    else {
+        $CC = $false
+    }
+
     $SourceUrl = "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1&voice_balance=1"
     # Write-Output $SourceUrl
     $VideoData = Invoke-WebRequest -UseBasicParsing -Uri $SourceUrl -WebSession $Session -Headers $Headers |
@@ -132,7 +144,13 @@ function BiliDown {
         $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide ""$($VideoDASH)"" --header=""$($UA)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($CID)_v.m4s"
         Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
 
-        $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c copy $($DownloadFolder)/$($ID).mp4"
+        if ($CC) {
+            Write-Output "$($ID) Adding CC subtitles......"
+            $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c:a copy -vf subtitles=.$($DownloadFolder.Substring($TruePath.Length))/$($CID)_.ass  $($DownloadFolder)/$($ID).mp4"
+        }
+        else {
+            $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c copy $($DownloadFolder)/$($ID).mp4"
+        }
         Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -ArgumentList $ffmpegArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
     }
     catch { New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType "file" -Value "" -Force }
