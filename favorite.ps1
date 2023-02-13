@@ -40,7 +40,7 @@ $FIDList.data.list | ForEach-Object {
 }
 
 $Self = (Invoke-WebRequest -Uri "https://api.bilibili.com/x/space/arc/search?mid=398300398&ps=30&tid=0&pn=1&keyword=$($RankNum)&order=pubdate&jsonp=jsonp" -Headers $Headers).Content | ConvertFrom-Json
-AddFavourite $FIDData['周刊往期合集'] $Self.data.list.vlist[0].aid
+AddFavourite $FIDData['周刊合集'] $Self.data.list.vlist[0].aid
 Start-Sleep -Seconds 1
 $Parts = @(16, 3)
 $Files = @()
@@ -55,9 +55,9 @@ $Files | ForEach-Object {
         }
     }
 }
-AddFavourite $FIDData['周刊历代一位'] $RankVideos[2].Substring(2)
+AddFavourite $FIDData['周刊一位'] $RankVideos[2].Substring(2)
 Start-Sleep -Seconds 1
 $RankVideos[ - ($RankVideos.Length - 3)..-1] | ForEach-Object {
-    AddFavourite $FIDData['周刊往期Pickup'] $_.Substring(2)
+    AddFavourite $FIDData['周刊 Pickup'] $_.Substring(2)
     Start-Sleep -Seconds 1
 }
