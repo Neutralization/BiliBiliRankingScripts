@@ -29,14 +29,14 @@ function Normailze {
         # Nvidia CUDA
         $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -vsync cfr "`
             + "-hwaccel_output_format cuda -c:v h264_cuvid -i ./ranking/list0/$($FileName).mp4 "`
-            + "-vf scale='min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw:min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih' "`
+            + "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "`
             + "-af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 "`
             + "-c:v h264_nvenc -c:a aac ./ranking/list1/$($FileName).mp4"
     }
     else {
         # CPU
         $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i ./ranking/list0/$($FileName).mp4 "`
-            + "-vf scale='min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw:min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih' "`
+            + "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "`
             + "-af $($Target):print_format=summary:linear=true:$($Source) -b:v 20M -ar 48000 "`
             + "-c:v libx264 -c:a aac ./ranking/list1/$($FileName).mp4"
     }
