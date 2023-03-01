@@ -476,6 +476,8 @@ def SubRank(rtype):
             SUnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 52)
             SUpTime_F = ImageFont.truetype(STYUANTI_SC_BOLD, 37)
             k = LastRankNum + 4 * i + j + 1
+            if SScoreRankData.get(k) is None:
+                continue
             SBid = SScoreRankData[k]["bv"]
             SClick = SScoreRankData[k]["clicks"]
             SClickRank = SScoreRankData[k]["clicks_rank"]
