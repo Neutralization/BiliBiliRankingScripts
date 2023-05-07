@@ -52,6 +52,7 @@
 - [x] 正确渲染稿件标题中的 emoji 字符
 - [x] Adobe AfterEffects 版本兼容性测试
 - [x] 正确渲染稿件标题中的 Unicode 字符
+- [ ] 取代 Pillow 改用前端作图
 - [ ] ~~视频渲染完成后自动投稿~~（废弃）
 - [ ] ~~调整 Artificial Idiot 算法自动化视频选段步骤~~（废弃）
 
