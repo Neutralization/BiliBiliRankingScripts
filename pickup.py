@@ -1,33 +1,27 @@
 # -*- coding: utf-8 -*-
 
+import json
 import re
+from os import remove
+from os.path import abspath
 from unicodedata import combining, normalize
 
 import arrow
-import emoji
 import requests
 from PIL import Image, ImageDraw, ImageFont
+from selenium.webdriver import Edge
+from selenium.webdriver.edge.options import Options
 from yaml import BaseLoader
 from yaml import load as yload
 
 from constant import (
     C_6D4B2B,
     C_FFFFFF,
-    COMBINING_CYRILLIC,
     CONTROL,
-    CUNEIFORM,
-    DINGBATS,
-    EMOJIONE,
-    GOTHICA1,
     HANNOTATESC_W5,
     HUAWENYUANTI_BOLD,
-    MATHEMATICAL_ALPHANUMERIC_SYMBOLS,
-    MODIFIER_LETTER,
     PICKUPIMG,
-    SCRIPT_SIGN_SQUARE,
-    SEGOE_UI,
-    SEGOE_UI_HISTORIC,
-    SEGOE_UI_SYMBOL,
+    SEGOE_UI_EMOJI,
     STYUANTI_SC_BOLD,
     WEEKS,
 )
@@ -42,6 +36,20 @@ LOST_INFO = {
         "title": "42",
     },
 }
+
+browser_options = Options()
+browser_options.add_argument("headless")
+browser = Edge(options=browser_options)
+browser.set_window_size(4096, 500)
+browser_command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
+browser_url = browser.command_executor._url + browser_command
+browser_data = json.dumps(
+    {
+        "cmd": "Emulation.setDefaultBackgroundColorOverride",
+        "params": {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
+    }
+)
+browser.command_executor._request("POST", browser_url, browser_data)
 
 
 def GetInfo(aid):
@@ -67,12 +75,6 @@ def Single(Avid):
     Author_F = ImageFont.truetype(HANNOTATESC_W5, 32)
     Bid_F = ImageFont.truetype(STYUANTI_SC_BOLD, 42)
     Cata_F = ImageFont.truetype(STYUANTI_SC_BOLD, 36)
-    Emoji_F = ImageFont.truetype(EMOJIONE, 54)
-    Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54)
-    UnicodeA_F = ImageFont.truetype(SEGOE_UI, 54)
-    UnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 54)
-    UnicodeC_F = ImageFont.truetype(GOTHICA1, 54)
-    UnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 54)
     UpTime_F = Cata_F
     AllData = GetInfo(Avid)
     if AllData is None:
@@ -86,73 +88,27 @@ def Single(Avid):
     RankImg = Image.open(PICKUPIMG)
     RankPaper = ImageDraw.Draw(RankImg)
 
-    ShinkSize = 0
-    Title_O = 31
     NFCTitle = normalize("NFC", Title)
     NFCTitle = "".join([c for c in NFCTitle if combining(c) == 0])
-    RegexTitle = re.sub(chr(65039), "", NFCTitle)
-    RegexTitle = re.sub(COMBINING_CYRILLIC, "", RegexTitle)
-    RegexTitle = re.sub(CONTROL, "", RegexTitle)
-    while (Title_F.getlength(RegexTitle) + Title_O) > 1440:
-        ShinkSize += 1
-        Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54 - ShinkSize)
-        Emoji_F = ImageFont.truetype(EMOJIONE, 54 - ShinkSize)
-        UnicodeA_F = ImageFont.truetype(SEGOE_UI, 54 - ShinkSize)
-        UnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 54 - ShinkSize)
-        UnicodeC_F = ImageFont.truetype(GOTHICA1, 54 - ShinkSize)
-        UnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 54 - ShinkSize)
+    RegexTitle = re.sub(CONTROL, "", NFCTitle)
 
-    i = 0
-    Title_Step = Title_O
-    while i < len(RegexTitle):
-        if (
-            emoji.is_emoji(RegexTitle[i])
-            and re.match(r"[\u2640\u2642]", RegexTitle[i]) is None
-        ):
-            RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
-            Title_Step += Emoji_F.getlength(RegexTitle[i])
-        elif re.match(CUNEIFORM, RegexTitle[i]) is not None:
-            RankPaper.text(
-                (Title_Step, 979),
-                RegexTitle[i],
-                C_6D4B2B,
-                UnicodeD_F,
-            )
-            Title_Step += UnicodeD_F.getlength(RegexTitle[i])
-        elif re.match(SCRIPT_SIGN_SQUARE, RegexTitle[i]) is not None:
-            RankPaper.text(
-                (Title_Step, 979),
-                RegexTitle[i],
-                C_6D4B2B,
-                UnicodeC_F,
-            )
-            Title_Step += UnicodeC_F.getlength(RegexTitle[i])
-        elif (
-            re.match(DINGBATS, RegexTitle[i]) is not None
-            or re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, RegexTitle[i]) is not None
-        ):
-            RankPaper.text(
-                (Title_Step, 979 - UnicodeB_F.getbbox(RegexTitle[i])[-1] * 0.15),
-                RegexTitle[i],
-                C_6D4B2B,
-                UnicodeB_F,
-            )
-            Title_Step += UnicodeB_F.getlength(RegexTitle[i])
-        elif (
-            (re.match(MODIFIER_LETTER, RegexTitle[i]) is not None)
-            or (
-                i + 1 < len(RegexTitle)
-                and re.match(r"[0-9a-zA-Z\u4E00-\u9FA5]", RegexTitle[i + 1]) is None
-                and re.match(MODIFIER_LETTER, RegexTitle[i + 1]) is not None
-            )
-            or (re.match(MODIFIER_LETTER, RegexTitle[i - 1]) is not None)
-        ):
-            RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, UnicodeA_F)
-            Title_Step += UnicodeA_F.getlength(RegexTitle[i])
-        else:
-            RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Title_F)
-            Title_Step += Title_F.getlength(RegexTitle[i])
-        i += 1
+    TImg_O = 32
+    TImg = text2img(
+        Aid,
+        RegexTitle,
+        abspath(HUAWENYUANTI_BOLD).replace("\\", "/"),
+        abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
+        C_6D4B2B,
+        54,
+    )
+    TImgRegion = TImg.crop((0, 0) + TImg.size)
+    TImgCover = (
+        TImgRegion.resize(TImg.size, Image.Resampling.LANCZOS)
+        if (TImg_O + TImg.size[0]) <= 1475
+        else TImgRegion.resize((1475 - TImg_O, TImg.size[1]), Image.Resampling.LANCZOS)
+    )
+    RankImg.paste(TImgCover, (TImg_O, 1000 - int(TImg.size[1] / 2)), mask=TImgCover)
+    remove(f"./{Aid}.png")
 
     Author_X = 31
     AuthorName = f"{Author}   投稿"
@@ -165,6 +121,59 @@ def Single(Avid):
     UpTime_X = UpTime_O - UpTime_F.getlength(UpTime) / 2
     RankPaper.text((UpTime_X, 850), UpTime, C_6D4B2B, UpTime_F)
     RankImg.save(f"./ranking/list1/av{Aid}.png")
+
+
+def text2img(name, text, font, emoji, color, size):
+    global browser
+    html_content = f"""<html>
+        <head>
+            <style type="text/css">
+                @font-face {{
+                    font-family: "Custom";
+                    src: url("{font}");
+                }}
+                @font-face {{
+                    font-family: "Emoji";
+                    src: url("{emoji}");
+                }}
+                body {{
+                    font-family: Custom, Emoji, Segoe UI, Segoe UI Historic, Segoe UI Emoji, sans-serif;
+                    font-size: {size}px;
+                    overflow: hidden;
+                    line-height: 500px;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    text-align: left;
+                    color: {color};
+                    padding: 0px 20px 0px 20px;
+                }}
+            </style>
+        </head>
+        <body>
+            <p>{text}</p>
+        </body>
+    </html>"""
+
+    with open("TEXT.html", "w", encoding="utf-8-sig") as f:
+        f.write(html_content)
+
+    browser.get(f'file://{abspath("TEXT.html")}')
+    print(f"./{name}.png")
+    browser.save_screenshot(f"./{name}.png")
+    img = Image.open(f"./{name}.png")
+    x, y = img.size
+    i = 0
+    while i <= x:
+        if sum([img.getpixel((i, k))[-1] for k in range(y)]) != 0:
+            break
+        i += 1
+    j = x - 1
+    while j >= 0:
+        if sum([img.getpixel((j, k))[-1] for k in range(y)]) != 0:
+            break
+        j -= 1
+    img = img.crop((i, 0) + (j + 1, y))
+    return img
 
 
 def Main():

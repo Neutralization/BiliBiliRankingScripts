@@ -2,14 +2,16 @@
 
 import csv
 import json
-import os
 import re
+from os import remove
+from os.path import abspath, exists
 from unicodedata import combining, normalize
 
 import arrow
-import emoji
 import requests
 from PIL import Image, ImageDraw, ImageFont
+from selenium.webdriver import Edge
+from selenium.webdriver.edge.options import Options
 from yaml import dump
 
 from constant import (
@@ -22,15 +24,10 @@ from constant import (
     C_CC0000,
     C_EAAA7D,
     C_FFFFFF,
-    COMBINING_CYRILLIC,
     CONTROL,
-    CUNEIFORM,
-    DINGBATS,
     DOWNIMG,
     DRAWIMG,
-    EMOJIONE,
     FZY4K_GBK1_0,
-    GOTHICA1,
     HANNOTATESC_W5,
     HISTORYRANKIMG,
     HISTORYRECORDIMG,
@@ -40,12 +37,7 @@ from constant import (
     LONGTIMEIMG,
     MAINRANKIMG,
     MAINTITLEIMG,
-    MATHEMATICAL_ALPHANUMERIC_SYMBOLS,
-    MODIFIER_LETTER,
-    SCRIPT_SIGN_SQUARE,
-    SEGOE_UI,
-    SEGOE_UI_HISTORIC,
-    SEGOE_UI_SYMBOL,
+    SEGOE_UI_EMOJI,
     STATONEIMG,
     STATTHREEIMG,
     STATTWOIMG,
@@ -64,6 +56,19 @@ HRank = json.load(open(f"{WEEKS}_results_history.json", "r", encoding="utf-8"))
 SRank = json.load(open(f"{WEEKS}_stat.json", "r", encoding="utf-8"))
 Invalid = json.load(open("LostFile.json", "r", encoding="utf-8"))
 InvalidList = Invalid["name"]
+browser_options = Options()
+browser_options.add_argument("headless")
+browser = Edge(options=browser_options)
+browser.set_window_size(4096, 500)
+browser_command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
+browser_url = browser.command_executor._url + browser_command
+browser_data = json.dumps(
+    {
+        "cmd": "Emulation.setDefaultBackgroundColorOverride",
+        "params": {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
+    }
+)
+browser.command_executor._request("POST", browser_url, browser_data)
 
 MRankData = {
     x["wid"]: {
@@ -195,7 +200,7 @@ AllData = {
 
 def Resource(bid, link, name):
     ext = link.split(".")[-1]
-    if not os.path.exists(f"./pic/{bid}_{name}.{ext}"):
+    if not exists(f"./pic/{bid}_{name}.{ext}"):
         resp = requests.get(link)
         with open(f"./pic/{bid}_{name}.{ext}", "wb") as f:
             f.write(resp.content)
@@ -209,17 +214,11 @@ def Single(args):
     BiDataRank_F = ImageFont.truetype(HANNOTATESC_W5, 26)
     Cata_F = ImageFont.truetype(STYUANTI_SC_BOLD, 36)
     DataFix_F = ImageFont.truetype(STYUANTI_SC_BOLD, 32)
-    Emoji_F = ImageFont.truetype(EMOJIONE, 54)
     HisRank_F = ImageFont.truetype(STYUANTI_SC_BOLD, 72)
     Invalid_F = ImageFont.truetype(FZY4K_GBK1_0, 48)
     LastRank_F = ImageFont.truetype(HANNOTATESC_W5, 36)
     Score_F = ImageFont.truetype(STYUANTI_SC_BOLD, 52)
     ScoreRank_F = ImageFont.truetype(HYM2GJ, 150)
-    Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54)
-    UnicodeA_F = ImageFont.truetype(SEGOE_UI, 54)
-    UnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 54)
-    UnicodeC_F = ImageFont.truetype(GOTHICA1, 54)
-    UnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 54)
     Part_F = BiDataRank_F
     Data_F = UpTime_F = Cata_F
     Aid = AllData[bid]["av"]
@@ -253,73 +252,27 @@ def Single(args):
         IconCover = IconRegion.resize((115, 115), Image.Resampling.LANCZOS)
         RankImg.paste(IconCover, (35, 930))
 
-    ShinkSize = 0
-    Title_O = 31 if rtype else 167
     NFCTitle = normalize("NFC", Title)
     NFCTitle = "".join([c for c in NFCTitle if combining(c) == 0])
-    RegexTitle = re.sub(chr(65039), "", NFCTitle)
-    RegexTitle = re.sub(COMBINING_CYRILLIC, "", RegexTitle)
-    RegexTitle = re.sub(CONTROL, "", RegexTitle)
-    while (Title_F.getlength(RegexTitle) + Title_O) > 1440:
-        ShinkSize += 1
-        Title_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 54 - ShinkSize)
-        Emoji_F = ImageFont.truetype(EMOJIONE, 54 - ShinkSize)
-        UnicodeA_F = ImageFont.truetype(SEGOE_UI, 54 - ShinkSize)
-        UnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 54 - ShinkSize)
-        UnicodeC_F = ImageFont.truetype(GOTHICA1, 54 - ShinkSize)
-        UnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 54 - ShinkSize)
+    RegexTitle = re.sub(CONTROL, "", NFCTitle)
 
-    i = 0
-    Title_Step = Title_O
-    while i < len(RegexTitle):
-        if (
-            emoji.is_emoji(RegexTitle[i])
-            and re.match(r"[\u2640\u2642]", RegexTitle[i]) is None
-        ):
-            RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Emoji_F)
-            Title_Step += Emoji_F.getlength(RegexTitle[i])
-        elif re.match(CUNEIFORM, RegexTitle[i]) is not None:
-            RankPaper.text(
-                (Title_Step, 979),
-                RegexTitle[i],
-                C_6D4B2B,
-                UnicodeD_F,
-            )
-            Title_Step += UnicodeD_F.getlength(RegexTitle[i])
-        elif re.match(SCRIPT_SIGN_SQUARE, RegexTitle[i]) is not None:
-            RankPaper.text(
-                (Title_Step, 979),
-                RegexTitle[i],
-                C_6D4B2B,
-                UnicodeC_F,
-            )
-            Title_Step += UnicodeC_F.getlength(RegexTitle[i])
-        elif (
-            re.match(DINGBATS, RegexTitle[i]) is not None
-            or re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, RegexTitle[i]) is not None
-        ):
-            RankPaper.text(
-                (Title_Step, 979 - UnicodeB_F.getbbox(RegexTitle[i])[-1] * 0.15),
-                RegexTitle[i],
-                C_6D4B2B,
-                UnicodeB_F,
-            )
-            Title_Step += UnicodeB_F.getlength(RegexTitle[i])
-        elif (
-            (re.match(MODIFIER_LETTER, RegexTitle[i]) is not None)
-            or (
-                i + 1 < len(RegexTitle)
-                and re.match(r"[0-9a-zA-Z\u4E00-\u9FA5]", RegexTitle[i + 1]) is None
-                and re.match(MODIFIER_LETTER, RegexTitle[i + 1]) is not None
-            )
-            or (re.match(MODIFIER_LETTER, RegexTitle[i - 1]) is not None)
-        ):
-            RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, UnicodeA_F)
-            Title_Step += UnicodeA_F.getlength(RegexTitle[i])
-        else:
-            RankPaper.text((Title_Step, 979), RegexTitle[i], C_6D4B2B, Title_F)
-            Title_Step += Title_F.getlength(RegexTitle[i])
-        i += 1
+    TImg_O = 32 if rtype else 192
+    TImg = text2img(
+        Aid,
+        RegexTitle,
+        abspath(HUAWENYUANTI_BOLD).replace("\\", "/"),
+        abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
+        C_6D4B2B,
+        54,
+    )
+    TImgRegion = TImg.crop((0, 0) + TImg.size)
+    TImgCover = (
+        TImgRegion.resize(TImg.size, Image.Resampling.LANCZOS)
+        if (TImg_O + TImg.size[0]) <= 1475
+        else TImgRegion.resize((1475 - TImg_O, TImg.size[1]), Image.Resampling.LANCZOS)
+    )
+    RankImg.paste(TImgCover, (TImg_O, 1000 - int(TImg.size[1] / 2)), mask=TImgCover)
+    remove(f"./{Aid}.png")
 
     Author_X = 31 if rtype else 189
     AuthorName = Author if rtype else "投稿"
@@ -465,15 +418,9 @@ def SubRank(rtype):
             SBid_F = ImageFont.truetype(STYUANTI_SC_BOLD, 32)
             SBiDataRank_F = ImageFont.truetype(STYUANTI_SC_BOLD, 32)
             SData_F = ImageFont.truetype(STYUANTI_SC_BOLD, 40)
-            SEmoji_F = ImageFont.truetype(EMOJIONE, 52)
             SLastRank_F = ImageFont.truetype(STYUANTI_SC_BOLD, 34)
             SScore_F = ImageFont.truetype(STYUANTI_SC_BOLD, 45)
             SScoreRank_F = ImageFont.truetype(HYM2GJ, 48)
-            STitle_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 52)
-            SUnicodeA_F = ImageFont.truetype(SEGOE_UI, 52)
-            SUnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 52)
-            SUnicodeC_F = ImageFont.truetype(GOTHICA1, 52)
-            SUnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 52)
             SUpTime_F = ImageFont.truetype(STYUANTI_SC_BOLD, 37)
             k = LastRankNum + 4 * i + j + 1
             if SScoreRankData.get(k) is None:
@@ -506,86 +453,30 @@ def SubRank(rtype):
 
             SNFCTitle = normalize("NFC", STitle)
             SNFCTitle = "".join([c for c in SNFCTitle if combining(c) == 0])
-            SRegexTitle = re.sub(chr(65039), "", SNFCTitle)
-            SRegexTitle = re.sub(COMBINING_CYRILLIC, "", SRegexTitle)
-            SRegexTitle = re.sub(CONTROL, "", SRegexTitle)
-            SShinkSize = 0
-            while (STitle_F.getlength(SRegexTitle) + 443) > 1890:
-                SShinkSize += 1
-                STitle_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 52 - SShinkSize)
-                SEmoji_F = ImageFont.truetype(EMOJIONE, 52 - SShinkSize)
-                SUnicodeA_F = ImageFont.truetype(SEGOE_UI, 52 - SShinkSize)
-                SUnicodeB_F = ImageFont.truetype(SEGOE_UI_SYMBOL, 52 - SShinkSize)
-                SUnicodeC_F = ImageFont.truetype(GOTHICA1, 52 - SShinkSize)
-                SUnicodeD_F = ImageFont.truetype(SEGOE_UI_HISTORIC, 52 - SShinkSize)
+            SRegexTitle = re.sub(CONTROL, "", SNFCTitle)
 
-            STitle_Y = 52 + j * 259
-            STitle_X = 443
-            si = 0
-            STitle_Step = STitle_X
-            while si < len(SRegexTitle):
-                if (
-                    emoji.is_emoji(SRegexTitle[si])
-                    and re.match(r"[\u2640\u2642]", SRegexTitle[si]) is None
-                ):
-                    SPaper.text(
-                        (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, SEmoji_F
-                    )
-                    STitle_Step += SEmoji_F.getlength(SRegexTitle[si])
-                elif re.match(CUNEIFORM, SRegexTitle[si]) is not None:
-                    SPaper.text(
-                        (
-                            STitle_Step,
-                            STitle_Y - SUnicodeD_F.getbbox(SRegexTitle[si])[-1] * 0.15,
-                        ),
-                        SRegexTitle[si],
-                        C_6D4B2B,
-                        SUnicodeD_F,
-                    )
-                    STitle_Step += SUnicodeD_F.getlength(SRegexTitle[si])
-                elif re.match(SCRIPT_SIGN_SQUARE, SRegexTitle[si]) is not None:
-                    SPaper.text(
-                        (STitle_Step, STitle_Y),
-                        SRegexTitle[si],
-                        C_6D4B2B,
-                        SUnicodeC_F,
-                    )
-                    STitle_Step += SUnicodeC_F.getlength(SRegexTitle[si])
-                elif (
-                    re.match(DINGBATS, SRegexTitle[si]) is not None
-                    or re.match(MATHEMATICAL_ALPHANUMERIC_SYMBOLS, SRegexTitle[si])
-                    is not None
-                ):
-                    SPaper.text(
-                        (
-                            STitle_Step,
-                            STitle_Y - SUnicodeB_F.getbbox(SRegexTitle[si])[-1] * 0.15,
-                        ),
-                        SRegexTitle[si],
-                        C_6D4B2B,
-                        SUnicodeB_F,
-                    )
-                    STitle_Step += SUnicodeB_F.getlength(SRegexTitle[si])
-                elif (
-                    (re.match(MODIFIER_LETTER, SRegexTitle[si]) is not None)
-                    or (
-                        si + 1 < len(SRegexTitle)
-                        and re.match(r"[0-9a-zA-Z\u4E00-\u9FA5]", SRegexTitle[si + 1])
-                        is None
-                        and re.match(MODIFIER_LETTER, SRegexTitle[si + 1]) is not None
-                    )
-                    or (re.match(MODIFIER_LETTER, SRegexTitle[si - 1]) is not None)
-                ):
-                    SPaper.text(
-                        (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, SUnicodeA_F
-                    )
-                    STitle_Step += SUnicodeA_F.getlength(SRegexTitle[si])
-                else:
-                    SPaper.text(
-                        (STitle_Step, STitle_Y), SRegexTitle[si], C_6D4B2B, STitle_F
-                    )
-                    STitle_Step += STitle_F.getlength(SRegexTitle[si])
-                si += 1
+            STImg_X = 424
+            STImg_Y = 75 + j * 259
+            STImg = text2img(
+                SBid,
+                SRegexTitle,
+                abspath(HUAWENYUANTI_BOLD).replace("\\", "/"),
+                abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
+                C_6D4B2B,
+                52,
+            )
+            STImgRegion = STImg.crop((0, 0) + STImg.size)
+            STImgCover = (
+                STImgRegion.resize(STImg.size, Image.Resampling.LANCZOS)
+                if (STImg_X + STImg.size[0]) <= 1885
+                else STImgRegion.resize(
+                    (1885 - STImg_X, STImg.size[1]), Image.Resampling.LANCZOS
+                )
+            )
+            SImg.paste(
+                STImgCover, (STImg_X, STImg_Y - int(STImg.size[1] / 2)), mask=STImgCover
+            )
+            remove(f"./{SBid}.png")
 
             SBid_X = 549 - SBid_F.getlength(SBid) / 2
             SPaper.text((SBid_X, 212 + j * 259), SBid, C_FFFFFF, SBid_F)
@@ -845,6 +736,59 @@ def MakeYaml(file, max, min, part):
             ]
         )
         writer.writerows(sorted(doorcontent, reverse=True))
+
+
+def text2img(name, text, font, emoji, color, size):
+    global browser
+    html_content = f"""<html>
+        <head>
+            <style type="text/css">
+                @font-face {{
+                    font-family: "Custom";
+                    src: url("{font}");
+                }}
+                @font-face {{
+                    font-family: "Emoji";
+                    src: url("{emoji}");
+                }}
+                body {{
+                    font-family: Custom, Emoji, Segoe UI, Segoe UI Historic, Segoe UI Emoji, sans-serif;
+                    font-size: {size}px;
+                    overflow: hidden;
+                    line-height: 500px;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    text-align: left;
+                    color: {color};
+                    padding: 0px 20px 0px 20px;
+                }}
+            </style>
+        </head>
+        <body>
+            <p>{text}</p>
+        </body>
+    </html>"""
+
+    with open("TEXT.html", "w", encoding="utf-8-sig") as f:
+        f.write(html_content)
+
+    browser.get(f'file://{abspath("TEXT.html")}')
+    print(f"./{name}.png")
+    browser.save_screenshot(f"./{name}.png")
+    img = Image.open(f"./{name}.png")
+    x, y = img.size
+    i = 0
+    while i <= x:
+        if sum([img.getpixel((i, k))[-1] for k in range(y)]) != 0:
+            break
+        i += 1
+    j = x - 1
+    while j >= 0:
+        if sum([img.getpixel((j, k))[-1] for k in range(y)]) != 0:
+            break
+        j -= 1
+    img = img.crop((i, 0) + (j + 1, y))
+    return img
 
 
 def Main():
