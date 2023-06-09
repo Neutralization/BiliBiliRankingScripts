@@ -1,6 +1,6 @@
 aiohttp==3.8.4
 arrow==1.2.3
-emoji==2.2.0
+emoji==2.5.0
 Pillow==9.5.0
 pip==23.1.2
 pyOpenSSL==23.1.1
