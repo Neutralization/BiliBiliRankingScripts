@@ -18,6 +18,7 @@ function Normailze {
     )
     if (-Not(Test-Path "$($DownloadFolder)/$($FileName).mp4")) {
         Write-Host "$($FileName).mp4 Not Exist!" -ForegroundColor Red
+        ffmpeg -n -hide_banner -t 40 -f lavfi -i anullsrc -f lavfi -i color=size=1280x720:duration=60:rate=30:color=AntiqueWhite -vf "drawtext=fontfile=MiSans-Medium.ttf:fontsize=147:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text='$($FileName)'" "$($FootageFolder)/$($FileName).mp4"
         return $null
     }
     $Target = 'loudnorm=I=-23.0:LRA=+7.0:tp=-1.0'
@@ -37,8 +38,7 @@ function Normailze {
             + "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "`
             + "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "`
             + "-c:v h264_nvenc -b:v 20M -c:a aac -b:a 320k $($FootageFolder)/$($FileName).mp4"
-    }
-    elseif ($Intel) {
+    } elseif ($Intel) {
         # Intel QSV
         $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) "`
             + "-init_hw_device qsv=hw -filter_hw_device hw "`
@@ -47,8 +47,7 @@ function Normailze {
             + "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "`
             + "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "`
             + "-c:v h264_qsv -b:v 20M -c:a aac -b:a 320k $($FootageFolder)/$($FileName).mp4"
-    }
-    else {
+    } else {
         # x264
         $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) "`
             + "-i $($DownloadFolder)/$($FileName).mp4 "`
@@ -87,8 +86,7 @@ function Main {
     if ($Part.Contains('*')) {
         $Files = Get-Content -Raw "$($FootageFolder)/$($RankNum)_*.yml"
         Get-ChildItem "$($FootageFolder)/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
-    }
-    else {
+    } else {
         $Part | ForEach-Object {
             $Files += Get-Content -Raw "$($FootageFolder)/$($RankNum)_$($_).yml"
         }
@@ -104,15 +102,12 @@ function Main {
         if ($Part.Contains('*')) {
             if ($LocalVideos -notcontains $_.n) {
                 Normailze $_.n $_.o $_.l
-            }
-            elseif ((Get-Item "$($FootageFolder)/$($_.n).mp4").length -eq 0) {
+            } elseif ((Get-Item "$($FootageFolder)/$($_.n).mp4").length -eq 0) {
                 Normailze $_.n $_.o $_.l
-            }
-            else {
+            } else {
                 Write-Host "$($_.n) Already Normalized." -ForegroundColor Yellow
             }
-        }
-        else {
+        } else {
             Normailze $_.n $_.o $_.l
         }
     }
@@ -121,7 +116,7 @@ function Main {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
             "$($_)", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
-    $EDFile = Get-ChildItem -Path "./ranking/2_ed/*.mp3" | Where-Object BaseName -notmatch 'ed' | Select-Object -ExpandProperty BaseName
+    $EDFile = Get-ChildItem -Path "./ranking/2_ed/*.mp3" | Where-Object BaseName -NotMatch 'ed' | Select-Object -ExpandProperty BaseName
     if ($null -ne $EDFile ) {
         EDNormalize $EDFile
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
