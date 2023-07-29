@@ -6,6 +6,7 @@ import re
 from os import remove
 from os.path import abspath, exists
 from unicodedata import combining, normalize
+from math import log10
 
 import arrow
 import requests
@@ -83,11 +84,15 @@ MRankData = {
         "comments": format(x["comments"], ","),
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": (x["clicks"] + 200000) / (x["clicks"] * 2),
+        "fix_a": (x["clicks"] + 1000000) / (x["clicks"] * 2),
         "fix_b": (x["stows"] * 20 + x["yb"] * 10)
         / (x["clicks"] + x["yb"] * 10 + x["comments"] * 50),
         "fix_b_": (x["clicks"] * 50) / (x["clicks"] + x["comments"] * 50),
-        "fix_c": (x["yb"] * 2000) / x["clicks"],
+        "fix_c": (x["comments"] * 50 + x["danmu"])
+        / (x["clicks"] * 2 + x["stows"] * 10 + x["yb"] * 20),
+        "fix_c_": (x["yb"] * 2000) / x["clicks"],
+        "fix_d": log10(max(x["comments"], 0) + max(x["danmu"], 0) + 10)
+        / log10(max(x["clicks"], 0) + max(x["stows"], 0) + max(x["yb"], 0) + 10),
         "fix_p": 4 / (x["part"] + 3),
         "last": str(x["last"]),
         "part": str(x["part"]),
@@ -119,11 +124,15 @@ BRankData = {
         "cover": x["cover"],
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": (x["click"] + 200000) / (x["click"] * 2),
+        "fix_a": (x["click"] + 1000000) / (x["click"] * 2),
         "fix_b": (x["stow"] * 20 + x["yb"] * 10)
         / (x["click"] + x["yb"] * 10 + x["comm"] * 50),
         "fix_b_": (x["click"] * 50) / (x["click"] + x["comm"] * 50),
-        "fix_c": (x["yb"] * 2000) / x["click"],
+        "fix_c": (x["comm"] * 50 + x["danmu"])
+        / (x["click"] * 2 + x["stow"] * 10 + x["yb"] * 20),
+        "fix_c_": (x["yb"] * 2000) / x["click"],
+        "fix_d": log10(max(x["comm"], 0) + max(x["danmu"], 0) + 10)
+        / log10(max(x["click"], 0) + max(x["stow"], 0) + max(x["yb"], 0) + 10),
         "fix_p": 4 / (x["part_count"] + 3),
         "last": str(x.get("last") if x.get("last") else 0),
         "part": str(x["part_count"]),
@@ -153,11 +162,15 @@ GRankData = {
         "cover": x["cover"],
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": (x["click"] + 200000) / (x["click"] * 2),
+        "fix_a": (x["click"] + 1000000) / (x["click"] * 2),
         "fix_b": (x["stow"] * 20 + x["yb"] * 10)
         / (x["click"] + x["yb"] * 10 + x["comm"] * 50),
         "fix_b_": (x["click"] * 50) / (x["click"] + x["comm"] * 50),
-        "fix_c": (x["yb"] * 2000) / x["click"],
+        "fix_c": (x["comm"] * 50 + x["danmu"])
+        / (x["click"] * 2 + x["stow"] * 10 + x["yb"] * 20),
+        "fix_c_": (x["yb"] * 2000) / x["click"],
+        "fix_d": log10(max(x["comm"], 0) + max(x["danmu"], 0) + 10)
+        / log10(max(x["click"], 0) + max(x["stow"], 0) + max(x["yb"], 0) + 10),
         "fix_p": 4 / (x["part_count"] + 3),
         "last": str(x.get("last") if x.get("last") else 0),
         "part": str(x["part_count"]),
@@ -353,17 +366,27 @@ def Single(args):
     FixB = AllData[bid]["fix_b"]
     FixB_ = AllData[bid]["fix_b_"]
     FixC = AllData[bid]["fix_c"]
+    FixC_ = AllData[bid]["fix_c_"]
     FixP = AllData[bid]["fix_p"]
+    FixD = AllData[bid]["fix_d"]
     AFix = f"×{str(round(FixP * FixA, 3))}"
-    BFix = f"×{str(round(FixB * 50, 1))}" if rtype else f"×{str(round(FixB_, 1))}"
-    BFix_ = f"×{str(round(FixB * 10, 2))}"
-    CFix = "×20" if rtype else f"×{str(round(FixC, 2) if FixC < 50.00 else 50.00)}"
+    BFix = f"×{str(round(FixB * 50, 2))}" if rtype else f"×{str(round(FixB_, 2))}"
+    BFix_ = f"×{str(round(FixC * 20, 2))}"
+    CFix = (
+        f"×{str(round(FixC, 2))}"
+        if rtype
+        else f"×{str(round(FixC_, 2) if FixC_ < 50.00 else 50.00)}"
+    )
+    DFix = f"/{str(round(FixD, 3))}"
     RankPaper.text((1710, 551), AFix, C_EAAA7D, DataFix_F)
     RankPaper.text((1710, 695), BFix, C_EAAA7D, DataFix_F)
     RankPaper.text((1710, 839), CFix, C_EAAA7D, DataFix_F)
 
     if rtype:
         RankPaper.text((1710, 983), BFix_, C_EAAA7D, DataFix_F)
+        RankPaper.text(
+            (1810, 418), DFix, C_FFFFFF, ImageFont.truetype(STYUANTI_SC_BOLD, 22)
+        )
     RankPaper.text((1837, 492), ClickRank, C_EAAA7D, BiDataRank_F)
     RankPaper.text((1837, 635), CommentRank, C_EAAA7D, BiDataRank_F)
     if rtype:
