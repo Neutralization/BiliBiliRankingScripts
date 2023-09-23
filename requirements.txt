@@ -1,5 +1,4 @@
 arrow
-numpy
 Pillow
 PyYAML
 requests
