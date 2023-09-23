@@ -8,7 +8,7 @@ import requests
 
 
 def main(bvid):
-    stamp = json.dumps(json.load(open("stamp.json", "r", encoding="utf-8")))
+    stamp = json.dumps(json.load(open("stamp.json", "r", encoding="gb2312")))
 
     session = requests.session()
     jar = http.cookiejar.MozillaCookieJar("./cookies.txt")
