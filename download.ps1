@@ -4,9 +4,9 @@ param (
 )
 $ProgressPreference = "SilentlyContinue"
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
+$DownloadFolder = "$($TruePath)/ranking/list0"
 # $CookieFile = "$($TruePath)/bilibili.com_cookies.txt"
 # $DownloadList = "$($TruePath)/download.txt"
-# $DownloadFolder = "$($TruePath)/ranking/list0"
 # $UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.26"
 # 
 # $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
@@ -156,6 +156,7 @@ function Main {
     $Files = @()
     $RankVideos = @()
     $ExistVideos = @()
+    $LostVideos = @()
     if ($Part.Contains("*")) {
         $Files = Get-Content -Raw "$($DownloadFolder)/../list1/$($RankNum)_*.yml"
         Get-ChildItem "$($DownloadFolder)/*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
@@ -171,8 +172,11 @@ function Main {
             }
         }
     }
-    
+    Get-Content ".\LostFile.json" | ConvertFrom-Json | Select-Object -ExpandProperty name | ForEach-Object {
+        $LostVideos += $_
+    }
     $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
+    $NeedVideos = $NeedVideos | Where-Object { $LostVideos -notcontains $_ }
     $OldVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
 
     $RankVideos | Where-Object { $ExistVideos -contains $_ } | ForEach-Object {
