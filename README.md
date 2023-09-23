@@ -22,13 +22,13 @@
 - [json2.js](https://github.com/douglascrockford/JSON-js)
 - [BBDown](https://github.com/nilaoda/BBDown)
 
-## 获取 Cookie（下载视频使用）
+## 获取 Cookie
 
-~~注意使用 `Netscape HTTP Cookie File` 格式保存为 `bilibili.com_cookies.txt`~~
+注意使用 `Netscape HTTP Cookie File` 格式保存为 `cookies.txt`
 
-- ~~Chrome 安装 [EditThisCookie](https://chrome.google.com/webstore/detail/fngmhnnpilhplaeedifhccceomclgfbg)~~
-- ~~Firefox 安装 [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/)~~
-- ~~Microsoft Edge 安装 [Cookie Editor](https://microsoftedge.microsoft.com/addons/detail/cookie-editor/ajfboaconbpkglpfanbmlfgojgndmhmc)~~
+- Chrome 安装 [EditThisCookie](https://chrome.google.com/webstore/detail/fngmhnnpilhplaeedifhccceomclgfbg)
+- Firefox 安装 [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/)
+- Microsoft Edge 安装 [Cookie Editor](https://microsoftedge.microsoft.com/addons/detail/cookie-editor/ajfboaconbpkglpfanbmlfgojgndmhmc)
 
 参考 BBDown的[使用教程](https://github.com/nilaoda/BBDown#%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B)
 
