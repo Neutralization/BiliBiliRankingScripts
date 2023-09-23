@@ -811,6 +811,7 @@ def text2img(name, text, font, emoji, color, size):
             break
         j -= 1
     img = img.crop((i, 0) + (j + 1, y))
+    remove(abspath("TEXT.html"))
     return img
 
 
