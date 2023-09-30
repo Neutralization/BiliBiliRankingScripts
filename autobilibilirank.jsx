@@ -1,4 +1,5 @@
 // @include 'json2/json2.js';
+app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 YUME = 1277009809;
 WEEK_NUM = Math.floor((Date.now() / 1000 - YUME + 133009) / 3600 / 24 / 7);
 
@@ -26,7 +27,6 @@ for (n = 0; n < Parts.length; n++) {
     RankList = RankList.replace(',\n}', '\n}');
     RankDataList[RankDataList.length] = JSON.parse(RankList);
 }
-app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 app.newProject();
 app.project.workingSpace = 'Rec.709 Gamma 2.4';
 app.project.bitsPerChannel = 8;
@@ -49,6 +49,7 @@ Part_15 = app.project.items.addComp('Part_15', CompSize[0], CompSize[1], 1, 60, 
 Part_16 = app.project.items.addComp('Part_16', CompSize[0], CompSize[1], 1, 60, CompFPS);
 Part_17 = app.project.items.addComp('Part_17', CompSize[0], CompSize[1], 1, 25, CompFPS);
 Part_18 = app.project.items.addComp('Part_18', CompSize[0], CompSize[1], 1, 60, CompFPS);
+CoverComp = app.project.items.addComp('封面', 960, 600, 1, 1 / CompFPS, CompFPS);
 
 StaticFolder = app.project.items.addFolder('StaticFootage');
 WeeklyFolder = app.project.items.addFolder('WeeklyFootage');
@@ -143,6 +144,12 @@ StaticFootage = {
     // VIDEO
     NotFound: './public/error.mp4',
 };
+
+CoverFile = new ImportOptions(File('footage/newfm.png'));
+CoverFile.ImportAs = ImportAsType.FOOTAGE;
+CoverItem = app.project.importFile(CoverFile);
+CoverItem.name = 'newfm';
+CoverItem.parentFolder = StaticFolder;
 
 for (key in StaticFootage) {
     FootageFile = new ImportOptions(File(StaticFootage[key]));
@@ -744,7 +751,15 @@ for (n = 1; n < Comps.length; n++) {
 }
 CompBlackLayer.outPoint = FinalComp.duration;
 FinalComp.openInViewer();
-app.project.save(File('./bilibilirank_' + WEEK_NUM + '.aep'));
+
+AddLayer(CoverComp, 'newfm', 25, 0);
+WEEKLayer = AddText(CoverComp, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [370, 140], [54, 234]);
+WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 50);
+WEEKLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
+WEEKLayer.applyPreset(new File('DropShadow.ffx'));
+CoverComp.openInViewer();
+
+app.project.save(new File('./bilibilirank_' + WEEK_NUM + '.aep'));
 
 Stamp = [];
 for (n = 0; n < Comps.length; n++) {
