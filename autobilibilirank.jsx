@@ -5,6 +5,7 @@ WEEK_NUM = Math.floor((Date.now() / 1000 - YUME + 133009) / 3600 / 24 / 7);
 CompFPS = 60;
 CompSize = [1920, 1080];
 RankSize = [1440, 810];
+AlbumSize = [188, 188];
 Prefix = './ranking/list1/';
 Regex =
     /- :rank: (\d+)\n {2}:name: (\w+)\n {2}:length: (\d+)\n {2}:offset: (\d+)(\n {2}:short: \d+)?(\n {2}:no_pause: true)?/gm;
@@ -95,7 +96,8 @@ StaticFootage = {
     统计数据_3: './ranking/pic/stat_3.png',
     插入素材: './ranking/2_ed/addr2.png',
     EDCard: './ranking/2_ed/ed.png',
-    主榜切换_4: './ranking/pic/_5.png',
+    主榜切换_4: './footage/EDBGM.png',
+    ED封面: './ranking/2_ed/Cover.jpg',
     STAFF_名单: './ranking/2_ed/staff.png',
     视频失效: './public/invalid.png',
     1: './ranking/list2/001.png',
@@ -192,6 +194,46 @@ function AddLayer(Target, Name, Duration, Offset) {
     NewLayer = Target.layers.add(app.project.items[ResourceID[Name]], Duration);
     NewLayer.startTime = Offset;
     return NewLayer;
+}
+
+function AddText(Target, text, justify, boxsize, position) {
+    TLayer = Target.layers.addBoxText(boxsize);
+    TDocument = TLayer.property('Source Text').value;
+    TDocument.resetCharStyle();
+    TDocument.resetParagraphStyle();
+    TDocument.applyFill = true; // 填充颜色
+    TDocument.applyStroke = false; // 描边颜色
+    //TDocument.autoLeading = true; // 自动行距
+    //TDocument.baselineShift = 0; // 基线偏移
+    //TDocument.fillColor = color; // 填充颜色 [R/255, G/255, B/255]
+    //TDocument.font = font; // 字体
+    //TDocument.fontSize = fontsize; // 字号
+    //TDocument.horizontalScale = 1; // 水平缩放
+    TDocument.justification = justify; // 段落对齐
+    //TDocument.leading = leading; // 行距
+    TDocument.text = text; // 文本
+    //TDocument.tracking = tracking; // 字间距
+    //TDocument.tsume = tsume; // 字符压缩
+    //TDocument.verticalScale = 1; // 垂直缩放
+    TLayer.property('Position').setValue(position);
+    TLayer.property('Source Text').setValue(TDocument);
+    return TLayer;
+}
+
+function TextExpression(Font, Color, Size, Leading, Tracking) {
+    return (
+        'text.sourceText.createStyle().setFont("' +
+        Font +
+        '").setFillColor(hexToRgb("' +
+        Color +
+        '")).setFontSize(' +
+        Size +
+        ').setLeading(' +
+        Leading +
+        ').setTracking(' +
+        Tracking +
+        ');'
+    );
 }
 
 function AddAudioProperty(Target, Ptype, Duration, Offset, Direction) {
@@ -625,9 +667,49 @@ AddVideoProperty(LastRankCardLayer, 1, 0.6, 9 + SubRankLength * 30 - 0.6, 2);
 StaffLayer = AddLayer(Part_18, 'STAFF_名单', 4.6, 0);
 AddVideoProperty(StaffLayer, 1, 0.6, 0, 1);
 AddVideoProperty(StaffLayer, 1, 0.6, 4, 2);
+AlbumLayer = AddLayer(Part_18, 'ED封面', 5.9, 4);
+AlbumLayer.property('Position').setValue([170, 926]);
+OrigSize = AlbumLayer.sourceRectAtTime(AlbumLayer.inPoint, false);
+if (OrigSize.width / OrigSize.height <= 1) {
+    AlbumLayer.property('Scale').setValue([
+        (AlbumSize[0] / OrigSize.width) * 100,
+        (AlbumSize[0] / OrigSize.width) * 100,
+    ]);
+} else {
+    AlbumLayer.property('Scale').setValue([
+        (AlbumSize[1] / OrigSize.height) * 100,
+        (AlbumSize[1] / OrigSize.height) * 100,
+    ]);
+}
 NextLayer_18 = AddLayer(Part_18, '主榜切换_4', 5.9, 4);
+SortRank = [];
+for (key in RankDataList[1]) {
+    SortRank[SortRank.length] = key;
+}
+LastRank = Math.max.apply(Math, SortRank);
+SubRankText = AddText(Part_18, (LastRank + 1) + '-' + (LastRank + 120), ParagraphJustification.CENTER_JUSTIFY, [700, 226], [605, 523]);
+SubRankText.startTime = 4;
+SubRankText.outPoint = 4 + 5.9;
+SubRankText.property('Source Text').expression = TextExpression('HYm2gj', 'FFFFFF', 216, 108, 0);
+SubRankText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.width/2+s.left, s.height/2+s.top];';
+file = new File('./ranking/2_ed/' + WEEK_NUM + '.txt');
+file.open('r');
+content = file.read();
+file.close();
+EDInfoText = AddText(Part_18, content, ParagraphJustification.LEFT_JUSTIFY, [1640, 140], [290, 860]);
+EDInfoText.startTime = 4;
+EDInfoText.outPoint = 4 + 5.9;
+EDInfoText.property('Source Text').expression = 'text.sourceText.createStyle().setFont("FZY3K--GBK1-0").setFillColor(hexToRgb("FFFFFF")).setFontSize(30).setLeading(48).setTracking(100).setFauxBold(true);';
+EDInfoText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
+
+AddVideoProperty(AlbumLayer, 1, 0.6, 4, 1);
+AddVideoProperty(AlbumLayer, 1, 0.6, 9.3, 2);
 AddVideoProperty(NextLayer_18, 1, 0.6, 4, 1);
 AddVideoProperty(NextLayer_18, 1, 0.6, 9.3, 2);
+AddVideoProperty(SubRankText, 1, 0.6, 4, 1);
+AddVideoProperty(SubRankText, 1, 0.6, 9.3, 2);
+AddVideoProperty(EDInfoText, 1, 0.6, 4, 1);
+AddVideoProperty(EDInfoText, 1, 0.6, 9.3, 2);
 AddrLayer = AddLayer(Part_18, '插入素材', 5, EDAudioLength - 10);
 AddVideoProperty(AddrLayer, 1, 0.6, EDAudioLength - 10, 1);
 AddVideoProperty(AddrLayer, 1, 0.6, EDAudioLength - 5.6, 2);
