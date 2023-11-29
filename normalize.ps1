@@ -7,7 +7,7 @@ $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $DownloadFolder = "$($TruePath)/ranking/list0"
 $FootageFolder = "$($TruePath)/ranking/list1"
 
-if (Test-Path -Path 'C:\Windows\System32\nvcuvid.dll') { $Nvdia = $true } else { $Nvdia = $false }
+if (Test-Path -Path 'C:/Windows/System32/nvcuvid.dll') { $Nvdia = $true } else { $Nvdia = $false }
 if ((WMIC CPU Get Name) -match 'Intel') { $Intel = $true } else { $Intel = $false }
 
 function Normailze {
@@ -41,7 +41,7 @@ function Normailze {
             + "-i $($DownloadFolder)/$($FileName).mp4 "`
             + "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "`
             + "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "`
-            + "-c:v h264_nvenc -b:v 20M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($FileName).mp4"
+            + "-c:v h264_nvenc -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($FileName).mp4"
     } elseif ($Intel) {
         # Intel QSV
         $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) "`
@@ -50,14 +50,14 @@ function Normailze {
             + "-vf hwupload=extra_hw_frames=64,format=qsv "`
             + "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "`
             + "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "`
-            + "-c:v h264_qsv -b:v 20M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($FileName).mp4"
+            + "-c:v h264_qsv -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($FileName).mp4"
     } else {
         # x264
         $VideoArg = "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) "`
             + "-i $($DownloadFolder)/$($FileName).mp4 "`
             + "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "`
             + "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "`
-            + "-c:v libx264 -b:v 20M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($FileName).mp4"
+            + "-c:v libx264 -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($FileName).mp4"
     }
     Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $VideoArg
     Write-Host "$($FileName) Finish!" -ForegroundColor White
