@@ -213,6 +213,8 @@ AllData = {
 
 def Resource(bid, link, name):
     ext = link.split(".")[-1]
+    if len(link) == 0:
+        return "./footage/cover_lost.png"
     if not exists(f"./pic/{bid}_{name}.{ext}"):
         resp = requests.get(link)
         with open(f"./pic/{bid}_{name}.{ext}", "wb") as f:
