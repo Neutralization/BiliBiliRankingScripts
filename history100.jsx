@@ -1,49 +1,45 @@
-YUME = 1277009809;
-weeks = Math.round((Date.now() / 1000 - YUME) / 3600 / 24 / 7);
-
+// @include 'json2/json2.js';
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 app.newProject();
 app.project.workingSpace = 'Rec.709 Gamma 2.4';
+app.project.bitsPerChannel = 8;
 MasterComposition = app.project.items.addComp('bilirank_100history', 1920, 1080, 1, 1800, 60);
 StaticFolder = app.project.items.addFolder('StaticResource');
 WeeklyFolder = app.project.items.addFolder('HistoryResource');
 
 NormalRankSize = [1440, 810];
 VideoSize = [1920, 1080];
-DirectoryPrefix = '.\\ranking\\list100\\';
+DirectoryPrefix = './ranking/list100/';
 LostFile = '404_tv';
-// @include "json2.js"
 regex = /- :rank: (\d+)\n {2}:name: (\w+)\n {2}:length: (\d+)\n {2}:offset: (\d+)(\n {2}:short: \d+)?(\n {2}:no_pause: true)?/gm;
 subst = '$1: ["$2", $3, $4],';
-parts = [100];
+parts = [700];
 RankDataList = [];
-// alert(weeks);
 for (n = 0; n < parts.length; n++) {
     file = new File(DirectoryPrefix + parts[n] + '.yml');
     file.open('r');
     ymlstring = file.read();
     file.close();
     RankList = ymlstring.replace(regex, subst).replace('\'', '"').replace('---', '{') + '}';
-    // alert(RankList);
     RankDataList[RankDataList.length] = JSON.parse(RankList);
 }
 lostfile = new File('LostFile.json');
 lostfile.open('r');
 content = lostfile.read();
 lostfile.close();
-LostVideos = JSON.parse(content)['name'];
+LostVideos = JSON.parse(content).name;
 
 RankData = RankDataList[0];
 
 StaticResource = {
     // IMAGE
-    spop: '.\\ranking\\pic\\spop.png',
-    sped: '.\\ranking\\pic\\sped.png',
+    spop: './ranking/pic/spop.png',
+    sped: './ranking/pic/sped.png',
     // AUDIO
-    op_audio: '.\\public\\54 - Subtitle 1.mp3',
-    ed_audio: '.\\public\\55 - Subtitle 2.mp3',
+    op_audio: './public/54 - Subtitle 1.mp3',
+    ed_audio: './public/55 - Subtitle 2.mp3',
     // VIDEO
-    '404_tv': '.\\tv_x264.mp4',
+    '404_tv': './public/tv_x264.mp4',
 };
 
 for (key in StaticResource) {
@@ -58,21 +54,21 @@ for (n = 0; n < RankDataList.length; n++) {
     // IMPORT VIDEO
     for (key in RankDataList[n]) {
         FileBaseName = RankDataList[n][key][0];
-        FileFullPath = DirectoryPrefix + (601 - key) + '_' + FileBaseName + '.mp4';
+        FileFullPath = DirectoryPrefix + key + '_' + FileBaseName + '.mp4';
         ResourceFile = new ImportOptions(File(FileFullPath));
         ResourceFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(ResourceFile);
-        FileItem.name = 601 - key + '_' + RankDataList[n][key][0];
+        FileItem.name = key + '_' + RankDataList[n][key][0];
         FileItem.parentFolder = WeeklyFolder;
     }
     // IMPORT IMAGE
     for (key in RankDataList[n]) {
         FileBaseName = RankDataList[n][key][0];
-        FileFullPath = DirectoryPrefix + (601 - key) + '_' + FileBaseName + '.png';
+        FileFullPath = DirectoryPrefix + key + '_' + FileBaseName + '.png';
         ResourceFile = new ImportOptions(File(FileFullPath));
         ResourceFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(ResourceFile);
-        FileItem.name = 601 - key + '_' + RankDataList[n][key][0] + '_';
+        FileItem.name = key + '_' + RankDataList[n][key][0] + '_';
         FileItem.parentFolder = WeeklyFolder;
     }
 }
@@ -196,20 +192,20 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
     for (rank in RankData) {
         SortRank[SortRank.length] = rank;
     }
-    LastRank = Math.max.apply(Math, SortRank);
-    FirstRank = Math.min.apply(Math, SortRank);
-    for (i = 0; LastRank - i >= FirstRank; i++) {
-        if (!(LastRank - i in RankData)) {
+    LastRank = Math.min.apply(Math, SortRank);
+    FirstRank = Math.max.apply(Math, SortRank);
+    for (i = 0; LastRank + i <= FirstRank; i++) {
+        if (!(LastRank + i in RankData)) {
             continue;
         }
-        VideoFile = 601 - LastRank + i + '_' + RankData[LastRank - i][0];
-        VideoMaskImage = 601 - LastRank + i + '_' + RankData[LastRank - i][0] + '_';
-        VideoDuration = RankData[LastRank - i][1];
+        VideoFile = LastRank + i + '_' + RankData[LastRank + i][0];
+        VideoMaskImage = LastRank + i + '_' + RankData[LastRank + i][0] + '_';
+        VideoDuration = RankData[LastRank + i][1];
         TrueDuration = app.project.items[ResourceID[VideoFile]].duration;
         if (TrueDuration < VideoDuration) {
             VideoDuration = TrueDuration;
         }
-        VideoOffset = RankData[LastRank - i][2];
+        VideoOffset = RankData[LastRank + i][2];
         VideoOffset = 0;
         NewVideoLayer = AddLayer(MasterComposition, VideoFile, VideoDuration, GlobalOffset - VideoOffset);
         NewVideoLayer.inPoint = GlobalOffset;
@@ -235,12 +231,12 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
             ]);
         }
         NewVideoLayer.property('Position').setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
-        NewVideoLayer.comment = LastRank - i + '-' + VideoFile;
+        NewVideoLayer.comment = LastRank + i + '-' + VideoFile;
         writeLn(NewVideoLayer.comment); // DEBUG
 
         CheckLost = false;
         for (lost in LostVideos) {
-            if (RankData[LastRank - i][0] == LostVideos[lost]) CheckLost = true;
+            if (RankData[LastRank + i][0] == LostVideos[lost]) CheckLost = true;
         }
         if (CheckLost == true) {
             VideoOffset = 0;
@@ -280,11 +276,11 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
             LostVideoLayer.property('Position').setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
         }
         NewVideoLayer_mask = AddLayer(MasterComposition, VideoMaskImage, VideoDuration, GlobalOffset);
-        if (NeedSpace && LastRank - i > FirstRank) {
+        if (NeedSpace && LastRank + i > FirstRank) {
             ChangeLayer = AddLayer(MasterComposition, '0_change', 1, GlobalOffset + VideoDuration);
             ChangeAudioLayer = AddLayer(MasterComposition, '0_change_audio', 1, GlobalOffset + VideoDuration);
             GlobalOffset = GlobalOffset + VideoDuration + 1;
-        } else if (LastRank - i > FirstRank) {
+        } else if (LastRank + i > FirstRank) {
             GlobalOffset = GlobalOffset + VideoDuration;
         } else {
             if (CheckLost == true) {
@@ -317,6 +313,6 @@ EdLayer = AddLayer(MasterComposition, 'sped', 6, GlobalRankOffset);
 AddVideoProperty(EdLayer, 1, GlobalRankOffset, 0.6, 1);
 
 MasterComposition.duration = GlobalRankOffset + 6;
-app.project.save(File('.\\bilirank_100history.aep'));
+app.project.save(File('./bilirank_100history.aep'));
 
 MasterComposition.openInViewer();
