@@ -69,14 +69,14 @@ function EDNormalize {
         [parameter(position = 1)]$FileName
     )
     $Target = 'loudnorm=I=-23.0:LRA=+7.0:tp=-1.0'
-    $AudioArg = "-y -hide_banner -i ""./ranking/2_ed/$($FileName).mp3"" -af $($Target):print_format=json -f null -"
+    $AudioArg = "-y -hide_banner -i ""./ranking/2_ed/$($FileName)"" -af $($Target):print_format=json -f null -"
     $AudioInfo = "./ranking/2_ed/ed.log"
     Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -RedirectStandardError $AudioInfo -ArgumentList $AudioArg
     $AudioData = Get-Content -Path $AudioInfo | Select-Object -Last 12 | ConvertFrom-Json
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
-    Write-Host "ffmpeg -i ""./ranking/2_ed/$($FileName).mp3"" "`
+    Write-Host "ffmpeg -i ""./ranking/2_ed/$($FileName)"" "`
         + "-af 'measured_I=$($AudioData.input_i):LRA=$($AudioData.input_lra):tp=$($AudioData.input_tp)' -> '$($Target)'" -ForegroundColor Blue
-    $VideoArg = "-y -hide_banner -loglevel error -i ""./ranking/2_ed/$($FileName).mp3"" "`
+    $VideoArg = "-y -hide_banner -loglevel error -i ""./ranking/2_ed/$($FileName)"" "`
         + "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "`
         + "-c:a libmp3lame -q:a 0 ""./ranking/2_ed/ed.mp3"""
     Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $VideoArg
@@ -120,11 +120,11 @@ function Main {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
             "$($_)", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
-    $EDFile = Get-ChildItem -Path "./ranking/2_ed/*.mp3" | Where-Object BaseName -NotMatch 'ed' | Select-Object -ExpandProperty BaseName
+    $EDFile = Get-ChildItem -Path "./ranking/2_ed/*" -Include *.mp3, *.flac | Where-Object BaseName -NotMatch 'ed' | Select-Object -ExpandProperty Name
     if ($null -ne $EDFile ) {
         EDNormalize $EDFile
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            "./ranking/2_ed/$($EDFile).mp3", 'OnlyErrorDialogs', 'SendToRecycleBin')
+            "./ranking/2_ed/$($EDFile)", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
 }
 
