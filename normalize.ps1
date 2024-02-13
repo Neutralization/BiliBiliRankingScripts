@@ -120,7 +120,7 @@ function Main {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
             "$($_)", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
-    $EDFile = Get-ChildItem -Path "./ranking/2_ed/*" -Include *.mp3, *.flac | Where-Object BaseName -NotMatch 'ed' | Select-Object -ExpandProperty Name
+    $EDFile = Get-ChildItem -Path "./ranking/2_ed/*" -Include *.mp3, *.flac | Where-Object Name -NotMatch 'ed.mp3' | Select-Object -ExpandProperty Name
     if ($null -ne $EDFile ) {
         EDNormalize $EDFile
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
