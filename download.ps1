@@ -193,7 +193,7 @@ function Main {
     }
     $NeedVideos | ForEach-Object {
         Write-Host "$($_)" -ForegroundColor Yellow
-        .\BBDown.exe $_
+        BiliDown $_
     }
 }
 
