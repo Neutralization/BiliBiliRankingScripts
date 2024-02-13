@@ -6,12 +6,10 @@ $ProgressPreference = "SilentlyContinue"
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $DownloadFolder = "$($TruePath)/ranking/list0"
 $CookieFile = "$($TruePath)/bilibili.com_cookies.txt"
-$DownloadList = "$($TruePath)/download.txt"
-$UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.26"
+$UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0"
 
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-$Session.UserAgent = $UA
-$CookieString = ""
+$Session.UserAgent = $UserAgent
 if (Test-Path $CookieFile) {
     $Cookies = Get-Content -Path $CookieFile
     $Cookies | ForEach-Object {
@@ -21,21 +19,13 @@ if (Test-Path $CookieFile) {
             $Value = $Cookie[6]
             $Path = $Cookie[2]
             $Domain = $Cookie[0]
-            $CookieString += "$($Name)=$($Value); "
             $Session.Cookies.Add((New-Object System.Net.Cookie($Name, $Value, $Path, $Domain)))
         }
     }
 }
 $Headers = @{
-    "authority"  = "api.bilibili.com"
-    "method"     = "GET"
-    "path"       = ""
-    "scheme"     = "https"
-    "origin"     = "https://www.bilibili.com"
-    "referer"    = ""
-    "user-agent" = $UA
+    "User-Agent" = $UserAgent
 }
-if ("" -ne $CookieString) { $Headers.cookie = $CookieString }
 
 function ABconvert {
     param (
@@ -61,7 +51,11 @@ function ABconvert {
         0..5 | ForEach-Object {
             $r += $tr[$x[$s[$_]]] * [Math]::Pow(58, $_)
         }
-        return (($r - $add) -bxor $xor)
+        $r = ($r - $add) -bxor $xor
+        if ($r -lt 0) {
+            $r += [Math]::Pow(2, 31)
+        }
+        return $r
     }
     function enc {
         param (
@@ -89,65 +83,79 @@ function BiliDown {
 
     if ($ID -match "^[aA]") {
         $AID = $ID.Substring(2)
-        $BID = ABconvert $ID.Substring(2) $false
+        $BID = ABconvert $AID $false
+        $ID = "av$($AID)"
     } elseif ($ID -match "^[bB]") {
         $AID = ABconvert $ID $true
-        $BID = $ID
+        $BID = ABconvert $AID $false
+        $ID = $BID
     } else {
         exit
     }
-    # Write-Output $AID
-    # Write-Output $BID
-
+    Write-Host "av$($AID) / $($BID)"
     $PageList = "https://api.bilibili.com/x/player/pagelist?aid=$($AID)&jsonp=jsonp"
+    # Write-Host $PageList
     $Headers.referer = "https://www.bilibili.com/video/av$($AID)/"
     $Headers.path = "/x/player/pagelist?aid=$($AID)&jsonp=jsonp"
-    $Pages = Invoke-WebRequest -UseBasicParsing -Uri $PageList -WebSession $Session -Headers $Headers |
-        Select-Object -ExpandProperty "Content" | ConvertFrom-Json
+    $Pages = Invoke-WebRequest -UseBasicParsing -Uri $PageList -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty "Content" | ConvertFrom-Json
+    # Write-Host $Pages.data
     $CID = $Pages.data | Where-Object -Property "page" -EQ $Part | Select-Object -ExpandProperty "cid"
-    # Write-Output $CID
+    # Write-Host $CID
 
     $CCsub = "https://api.bilibili.com/x/player/v2?aid=$($AID)&cid=$($CID)"
-    $SubData = Invoke-WebRequest -UseBasicParsing -Uri $CCsub -WebSession $Session -Headers $Headers |
-        Select-Object -ExpandProperty "Content" | ConvertFrom-Json
+    $SubData = Invoke-WebRequest -UseBasicParsing -Uri $CCsub -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty "Content" | ConvertFrom-Json
     if ($null -ne $SubData.data.subtitle.subtitles[0].subtitle_url -and $SubData.data.subtitle.subtitles[0].lan -notmatch 'ai') {
+        # Write-Host "http:$($SubData.data.subtitle.subtitles[0].subtitle_url)"
         Invoke-WebRequest -Uri "http:$($SubData.data.subtitle.subtitles[0].subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "$($DownloadFolder)/$($CID)_.json"
         Start-Process -NoNewWindow -Wait -FilePath "python.exe" -ArgumentList "ccsub2ass.py $($DownloadFolder)/$($CID)_"
         $CC = $true
+        Write-Host "$($ID) Subtitle Downloading......" -ForegroundColor Yellow
     } else {
         $CC = $false
     }
 
-    $SourceUrl = "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1&voice_balance=1"
-    # Write-Output $SourceUrl
-    $VideoData = Invoke-WebRequest -UseBasicParsing -Uri $SourceUrl -WebSession $Session -Headers $Headers |
-        Select-Object -ExpandProperty "Content" | ConvertFrom-Json
-    Write-Host "$($ID) Video Downloading......"
+    $SourceUrl = "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
+    # Write-Host $SourceUrl
+    $Headers.referer = "https://www.bilibili.com/video/av$($AID)/"
+    $Headers.path = "/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
+    $VideoData = Invoke-WebRequest -UseBasicParsing -Uri $SourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty "Content" | ConvertFrom-Json
+    # Write-Host $VideoData.data
+    Write-Host "$($ID) Video Downloading......" -ForegroundColor Green
 
     $AudioID = $VideoData.data.dash.audio.id | Measure-Object -Maximum | Select-Object -ExpandProperty "Maximum"
-    $AudioDASH = $VideoData.data.dash.audio | Where-Object -Property "id" -EQ $AudioID |
-        Select-Object -ExpandProperty "baseUrl"
+    $AudioDASH = $VideoData.data.dash.audio | Where-Object -Property "id" -EQ $AudioID | Select-Object -ExpandProperty "baseUrl"
     $VideoID = $VideoData.data.dash.video.id | Measure-Object -Maximum | Select-Object -ExpandProperty "Maximum"
-    $VideoDASH = $VideoData.data.dash.video | Where-Object -Property "id" -EQ $VideoID |
-        Where-Object -Property "codecs" -Match "avc" | Select-Object -ExpandProperty "baseUrl"
-    # Write-Output $AudioDASH
-    # Write-Output $VideoDASH
+    $Video1080Plus = $VideoData.data.accept_description.IndexOf('高清 1080P+')
+    $Video1080 = $VideoData.data.accept_description.IndexOf('高清 1080P')
+    if ($Video1080Plus -ge 0) {
+        $VideoID = $VideoData.data.accept_quality[$Video1080Plus]
+    } elseif ($Video1080 -ge 0) {
+        $VideoID = $VideoData.data.accept_quality[$Video1080]
+    }
+    # Write-Host $VideoID
+    $VideoDASH = $VideoData.data.dash.video | Where-Object -Property "id" -EQ $VideoID | Where-Object -Property "codecs" -Match "avc" | Select-Object -ExpandProperty "baseUrl"
+    # Write-Host $AudioDASH
+    # Write-Host $VideoDASH
 
     try {
-        $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide ""$($AudioDASH)"" --header=""$($UA)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($CID)_a.m4s"
+        $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide ""$($AudioDASH)"" --header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($CID)_a.m4s"
+        # Write-Host $aria2cArgs
         Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
-
-        $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide ""$($VideoDASH)"" --header=""$($UA)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($CID)_v.m4s"
+        $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide ""$($VideoDASH)"" --header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($CID)_v.m4s"
+        # Write-Host $aria2cArgs
         Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
-
+    
         if ($CC) {
-            Write-Output "$($ID) Adding CC subtitles......"
+            Write-Host "$($ID) Merging with subtitle......" -ForegroundColor Yellow
             $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c:a copy -vf subtitles=.$($DownloadFolder.Substring($TruePath.Length))/$($CID)_.ass  $($DownloadFolder)/$($ID).mp4"
         } else {
+            Write-Host "$($ID) Merging A/V files......" -ForegroundColor Green
             $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c copy $($DownloadFolder)/$($ID).mp4"
         }
         Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -ArgumentList $ffmpegArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
-    } catch { New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType "file" -Value "" -Force }
+    } catch { 
+        New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType "file" -Value "" -Force 
+    }
     Remove-Item "$($DownloadFolder)/$($CID)_*.*"
 }
 
