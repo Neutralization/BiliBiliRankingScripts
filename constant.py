@@ -60,3 +60,46 @@ COMBINING_CYRILLIC = r"[\u0483-\u0489]"
 DINGBATS = r"[\u2700-\u27BF]"
 # BV1iq4y1z7UK | 边境查车，毒贩扔出手榴弹！！！\b纪录疫情下的广西边境...
 CONTROL = r"[\u0000-\u0019\u007F-\u00A0]"
+
+XOR_CODE = 23442827791579
+MASK_CODE = 2251799813685247
+MAX_AID = 1 << 51
+BASE = 58
+BV_LEN = 12
+ALPHABET = "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf"
+
+table = {}
+for i in range(58):
+    table[ALPHABET[i]] = i
+
+
+def av2bv(avid: int):
+    bv_list = list("BV1000000000")
+    bv_idx = BV_LEN - 1
+    tmp = (MAX_AID | avid) ^ XOR_CODE
+    while tmp != 0:
+        bv_list[bv_idx] = ALPHABET[tmp % BASE]
+        tmp //= BASE
+        bv_idx -= 1
+    bv_list[3], bv_list[9] = bv_list[9], bv_list[3]
+    bv_list[4], bv_list[7] = bv_list[7], bv_list[4]
+    return "".join(bv_list)
+
+
+def bv2av(bvid: str):
+    bv_list = list(bvid)
+    bv_list[3], bv_list[9] = bv_list[9], bv_list[3]
+    bv_list[4], bv_list[7] = bv_list[7], bv_list[4]
+    tmp = 0
+    for char in bv_list[3:]:
+        idx = table[char]
+        tmp = tmp * BASE + idx
+    avid = (tmp & MASK_CODE) ^ XOR_CODE
+    return avid
+
+
+if __name__ == "__main__":
+    print(av2bv(1600688209))
+    print(av2bv(1450294115))
+    print(bv2av("BV13v4y1o7PJ"))
+    print(bv2av("BV1WZ4y1n7z2"))
