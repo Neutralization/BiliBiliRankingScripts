@@ -48,6 +48,7 @@ from constant import (
     TOPIMG,
     UPIMG,
     WEEKS,
+    av2bv,
 )
 
 MRank = json.load(open(f"{WEEKS}_results.json", "r", encoding="utf-8"))
@@ -75,7 +76,9 @@ MRankData = {
     x["wid"]: {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
-        "bv": x["bv"],
+        "bv": (
+            x["bv"].replace("bv", "BV") if "bv1" in x["bv"] else av2bv(int(x["bv"][3:]))
+        ),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "changqi": x["changqi"],
         "clicks_rank": format(x["clicks_rank"], ","),
@@ -115,7 +118,9 @@ BRankData = {
     x["wid"]: {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
-        "bv": x["bv"],
+        "bv": (
+            x["bv"].replace("bv", "BV") if "bv1" in x["bv"] else av2bv(int(x["bv"][3:]))
+        ),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "clicks_rank": format(x["click_rank"], ","),
         "clicks": format(x["click"], ","),
@@ -153,7 +158,9 @@ GRankData = {
     x["wid"]: {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
-        "bv": x["bv"],
+        "bv": (
+            x["bv"].replace("bv", "BV") if "bv1" in x["bv"] else av2bv(int(x["bv"][3:]))
+        ),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "clicks_rank": format(x["click_rank"], ","),
         "clicks": format(x["click"], ","),
@@ -191,7 +198,9 @@ HRankData = {
     x["wid"]: {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
-        "bv": x["bv"],
+        "bv": (
+            x["bv"].replace("bv", "BV") if "bv1" in x["bv"] else av2bv(int(x["bv"][3:]))
+        ),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "score": format(x["score"], ","),
         "score_rank": str(x["score_rank"]),
@@ -249,9 +258,7 @@ def Single(args):
     RankImg = (
         Image.open(HISTORYRANKIMG)
         if ishistory
-        else Image.open(MAINRANKIMG)
-        if rtype
-        else Image.open(BANGUMIRANKIMG)
+        else Image.open(MAINRANKIMG) if rtype else Image.open(BANGUMIRANKIMG)
     )
     RankPaper = ImageDraw.Draw(RankImg)
 
@@ -660,7 +667,9 @@ def LongTerm():
     LongTerm_F = ImageFont.truetype(HANNOTATESC_W5, 45)
     LastRankNum = int(MRank[0]["rank_from"])
     LTitle = f"{LastRankNum}-21"
-    LongTerm_ = f"长期作品：{LastRankNum - 30}个" if LastRankNum - 30 > 0 else "长期作品：没有"
+    LongTerm_ = (
+        f"长期作品：{LastRankNum - 30}个" if LastRankNum - 30 > 0 else "长期作品：没有"
+    )
     LImg = Image.open(LONGIMG)
     LPaper = ImageDraw.Draw(LImg)
     LTitle_X = 607 - LTitle_F.getlength(LTitle) / 2
