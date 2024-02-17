@@ -102,70 +102,87 @@ function BiliDown {
     } else {
         exit
     }
-    Write-Host "av$($AID) / $($BID)"
+    Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 获取 av$($AID) / $($BID)" -ForegroundColor Green
     $PageList = "https://api.bilibili.com/x/player/pagelist?aid=$($AID)&jsonp=jsonp"
-    # Write-Host $PageList
+    Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - API $($PageList)"
     $Headers.referer = "https://www.bilibili.com/video/av$($AID)/"
     $Headers.path = "/x/player/pagelist?aid=$($AID)&jsonp=jsonp"
     $Pages = Invoke-WebRequest -UseBasicParsing -Uri $PageList -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty "Content" | ConvertFrom-Json
-    # Write-Host $Pages.data
+    Write-Debug $Pages.data[0]
     $CID = $Pages.data | Where-Object -Property "page" -EQ $Part | Select-Object -ExpandProperty "cid"
-    # Write-Host $CID
-
+    Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - 获取 CID $($CID)"
+    
     $CCsub = "https://api.bilibili.com/x/player/v2?aid=$($AID)&cid=$($CID)"
+    Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - API $($CCsub)"
     $SubData = Invoke-WebRequest -UseBasicParsing -Uri $CCsub -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty "Content" | ConvertFrom-Json
-    if ($null -ne $SubData.data.subtitle.subtitles[0].subtitle_url -and $SubData.data.subtitle.subtitles[0].lan -notmatch 'ai') {
-        # Write-Host "http:$($SubData.data.subtitle.subtitles[0].subtitle_url)"
+    if ($null -ne $SubData.data.subtitle.subtitles[0].subtitle_url -and $SubData.data.subtitle.subtitles[0].lan_doc -notmatch '自动生成') {
+        Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 存在 CC 字幕" -ForegroundColor Green
+        Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - Subtitle http:$($SubData.data.subtitle.subtitles[0].subtitle_url)"
+        Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 下载 CC 字幕" -ForegroundColor Green
         Invoke-WebRequest -Uri "http:$($SubData.data.subtitle.subtitles[0].subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "$($DownloadFolder)/$($CID)_.json"
+        Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 转换 ASS 字幕" -ForegroundColor Green
         Start-Process -NoNewWindow -Wait -FilePath "python.exe" -ArgumentList "ccsub2ass.py $($DownloadFolder)/$($CID)_"
         $CC = $true
-        Write-Host "$($ID) Subtitle Downloading......" -ForegroundColor Yellow
     } else {
         $CC = $false
     }
 
     $SourceUrl = "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
-    # Write-Host $SourceUrl
+    Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - API $($SourceUrl)"
     $Headers.referer = "https://www.bilibili.com/video/av$($AID)/"
     $Headers.path = "/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
+    Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 解析视频链接" -ForegroundColor Green
     $VideoData = Invoke-WebRequest -UseBasicParsing -Uri $SourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty "Content" | ConvertFrom-Json
-    # Write-Host $VideoData.data
-    Write-Host "$($ID) Video Downloading......" -ForegroundColor Green
+    Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - $($VideoData.data)"
 
     $AudioID = $VideoData.data.dash.audio.id | Measure-Object -Maximum | Select-Object -ExpandProperty "Maximum"
     $AudioDASH = $VideoData.data.dash.audio | Where-Object -Property "id" -EQ $AudioID | Select-Object -ExpandProperty "baseUrl"
+    Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - 音频流 $($AudioID) $($AudioDASH)"
     $VideoID = $VideoData.data.dash.video.id | Measure-Object -Maximum | Select-Object -ExpandProperty "Maximum"
     $Video1080Plus = $VideoData.data.accept_description.IndexOf('高清 1080P+')
     $Video1080 = $VideoData.data.accept_description.IndexOf('高清 1080P')
     if ($Video1080Plus -ge 0) {
         $VideoID = $VideoData.data.accept_quality[$Video1080Plus]
+        Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - 选择 高清 1080P+"
     } elseif ($Video1080 -ge 0) {
-        $VideoID = $VideoData.data.accept_quality[$Video1080]
+        Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - 选择 高清 1080P"
+    } else {
+        Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - 选择最清晰画质"
     }
-    # Write-Host $VideoID
     $VideoDASH = $VideoData.data.dash.video | Where-Object -Property "id" -EQ $VideoID | Where-Object -Property "codecs" -Match "avc" | Select-Object -ExpandProperty "baseUrl"
-    # Write-Host $AudioDASH
-    # Write-Host $VideoDASH
+    Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - 视频流 $($VideoID) $($VideoDASH)"
 
     try {
-        $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide ""$($AudioDASH)"" --header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($CID)_a.m4s"
-        # Write-Host $aria2cArgs
+        $aria2cArgs = -join @("-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none "
+            "--summary-interval=0 --download-result=hide --console-log-level=notice ""$($AudioDASH)"" "
+            "--header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($CID)_a.m4s"
+        )
+        Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - aria2c.exe $($aria2cArgs)"
+        Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 开始下载音频" -ForegroundColor Green
         Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
-        $aria2cArgs = "-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none --summary-interval=0 --download-result=hide ""$($VideoDASH)"" --header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($CID)_v.m4s"
-        # Write-Host $aria2cArgs
+        $aria2cArgs = -join @("-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none "
+            "--summary-interval=0 --download-result=hide --console-log-level=notice ""$($VideoDASH)"" "
+            "--header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($CID)_v.m4s"
+        )
+        Write-Debug "$(Get-Date -Format "MM/dd HH:mm:ss") - aria2c.exe $($aria2cArgs)"
+        Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 开始下载视频" -ForegroundColor Green
         Start-Process -NoNewWindow -Wait -FilePath "aria2c.exe" -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
     
         if ($CC) {
-            Write-Host "$($ID) Merging with subtitle......" -ForegroundColor Yellow
-            $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c:a copy -vf subtitles=.$($DownloadFolder.Substring($TruePath.Length))/$($CID)_.ass  $($DownloadFolder)/$($ID).mp4"
+            Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 合并音视频 嵌入CC字幕" -ForegroundColor Green
+            $ffmpegArgs = -join @(
+                "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c:a copy "
+                "-vf subtitles=.$($DownloadFolder.Substring($TruePath.Length))/$($CID)_.ass  $($DownloadFolder)/$($ID).mp4"
+            )
         } else {
-            Write-Host "$($ID) Merging A/V files......" -ForegroundColor Green
+            Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 合并音视频" -ForegroundColor Green
             $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c copy $($DownloadFolder)/$($ID).mp4"
         }
         Start-Process -NoNewWindow -Wait -FilePath "ffmpeg.exe" -ArgumentList $ffmpegArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
-    } catch { 
-        New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType "file" -Value "" -Force 
+    } catch {
+        New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType "file" -Value "" -Force
     }
+    Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - 清理临时文件`n" -ForegroundColor Green
     Remove-Item "$($DownloadFolder)/$($CID)_*.*"
 }
 
@@ -198,7 +215,7 @@ function Main {
     $OldVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
 
     $RankVideos | Where-Object { $ExistVideos -contains $_ } | ForEach-Object {
-        Write-Host "$($_) Already Downloaded." -ForegroundColor Yellow
+        Write-Host "$(Get-Date -Format "MM/dd HH:mm:ss") - $($_) 已存在，跳过下载" -ForegroundColor Green
     }
     Add-Type -AssemblyName Microsoft.VisualBasic
     $OldVideos | ForEach-Object {
@@ -210,8 +227,7 @@ function Main {
             "$($_)", "OnlyErrorDialogs", "SendToRecycleBin")
     }
     $NeedVideos | ForEach-Object {
-        Write-Host "$($_)" -ForegroundColor Yellow
-        BiliDown $_
+        BiliDown $_ # -Debug
     }
 }
 
