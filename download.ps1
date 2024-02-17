@@ -34,44 +34,54 @@ function ABconvert {
     )
     # 如何看待 2020 年 3 月 23 日哔哩哔哩将稿件的「av 号」变更为「BV 号」？ - mcfx的回答 - 知乎
     # https://www.zhihu.com/question/381784377/answer/1099438784
-    $table = "fZodR9XQDSUm21yCkr6zBqiveYah8bt4xsWpHnJE7jL5VG3guMTKNPAwcF".ToCharArray()
-    $tr = @{}
+    #
+    # https://github.com/Colerar/abv
+    $ALPHABET = "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf".ToCharArray()
+    $table = @{}
     0..57 | ForEach-Object {
-        $tr[$table[$_]] = $_
+        $table[$ALPHABET[$_]] = $_
     }
-    $s = @(11, 10, 3, 8, 4, 6)
-    $xor = 177451812
-    $add = 8728348608
+    $XOR_CODE = 23442827791579
+    $MASK_CODE = 2251799813685247
+    $MAX_AID = [Int64]1 -shl 51
+    $BASE = 58
+    $BV_LEN = 12
 
-    function dec {
+    function bv2av {
         param (
-            [string]$x
+            [string]$bvid
         )
-        $r = 0
-        0..5 | ForEach-Object {
-            $r += $tr[$x[$s[$_]]] * [Math]::Pow(58, $_)
+        $bv_list = $bvid.ToCharArray()
+        $bv_list[3], $bv_list[9] = $bv_list[9], $bv_list[3]
+        $bv_list[4], $bv_list[7] = $bv_list[7], $bv_list[4]
+        $tmp = 0
+        foreach ($char in $bv_list[3..$BV_LEN]) {
+            $idx = $table[$char]
+            $tmp = $tmp * $BASE + $idx
         }
-        $r = ($r - $add) -bxor $xor
-        if ($r -lt 0) {
-            $r += [Math]::Pow(2, 31)
-        }
-        return $r
+        $avid = ($tmp -band $MASK_CODE) -bxor $XOR_CODE
+        return $avid
     }
-    function enc {
+    function av2bv {
         param (
-            [string]$x
+            [string]$avid
         )
-        $x = ($x -bxor $xor) + $add
-        $r = "BV1  4 1 7  ".ToCharArray()
-        0..5 | ForEach-Object {
-            $r[$s[$_]] = $table[[Math]::Floor($x / [Math]::Pow(58, $_)) % 58]
+        $bv_list = "BV1000000000".ToCharArray()
+        $bv_idx = $BV_LEN - 1
+        $tmp = ($MAX_AID -bor $avid) -bxor $XOR_CODE
+        while ($tmp -ne 0) {
+            $bv_list[$bv_idx] = $ALPHABET[$tmp % $BASE]
+            $tmp = [Math]::Truncate($tmp / $BASE)
+            $bv_idx -= 1
         }
-        return -join $r
+        $bv_list[3], $bv_list[9] = $bv_list[9], $bv_list[3]
+        $bv_list[4], $bv_list[7] = $bv_list[7], $bv_list[4]
+        return -join $bv_list
     }
     if ($Target) {
-        return dec $Source
+        return bv2av $Source
     } else {
-        return enc $Source
+        return av2bv $Source
     }
 }
 
