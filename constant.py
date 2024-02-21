@@ -61,6 +61,10 @@ DINGBATS = r"[\u2700-\u27BF]"
 # BV1iq4y1z7UK | 边境查车，毒贩扔出手榴弹！！！\b纪录疫情下的广西边境...
 CONTROL = r"[\u0000-\u0019\u007F-\u00A0]"
 
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"
+
+# https://www.zhihu.com/question/381784377/answer/1099438784
+# https://github.com/Colerar/abv
 XOR_CODE = 23442827791579
 MASK_CODE = 2251799813685247
 MAX_AID = 1 << 51

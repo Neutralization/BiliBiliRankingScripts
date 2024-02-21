@@ -7,7 +7,7 @@ $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $DownloadFolder = "$($TruePath)/ranking/list0"
 $CookieFile = "$($TruePath)/bilibili.com_cookies.txt"
-$UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0'
+$UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 $Session.UserAgent = $UserAgent
