@@ -16,17 +16,17 @@ $Cookie | ForEach-Object {
     }
 }
 $Headers = @{
-    "Accept"           = "application/json, text/javascript, */*; q=0.01"
-    "Accept-Language"  = "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2"
-    "Accept-Encoding"  = "gzip, deflate, br"
-    "X-Requested-With" = "XMLHttpRequest"
-    "DNT"              = "1"
-    "Connection"       = "keep-alive"
-    "Referer"          = "https://member.bilibili.com/platform/upload-manager/article"
-    "Sec-Fetch-Dest"   = "empty"
-    "Sec-Fetch-Mode"   = "cors"
-    "Sec-Fetch-Site"   = "same-origin"
-    "TE"               = "trailers"
+    'Accept'           = 'application/json, text/javascript, */*; q=0.01'
+    'Accept-Language'  = 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2'
+    'Accept-Encoding'  = 'gzip, deflate, br'
+    'X-Requested-With' = 'XMLHttpRequest'
+    'DNT'              = '1'
+    'Connection'       = 'keep-alive'
+    'Referer'          = 'https://member.bilibili.com/platform/upload-manager/article'
+    'Sec-Fetch-Dest'   = 'empty'
+    'Sec-Fetch-Mode'   = 'cors'
+    'Sec-Fetch-Site'   = 'same-origin'
+    'TE'               = 'trailers'
 }
 $Headers.Add('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0')
 function AddFavourite {
@@ -55,16 +55,16 @@ function AddFavourite {
 
     $CSRF = $Session.Cookies.GetCookies('https://www.bilibili.com')['bili_jct'].Value
     $Params = @{
-        "rid"           = $AVID
-        "type"          = "2"
-        "add_media_ids" = $FID
-        "del_media_ids" = ""
-        "platform"      = "web"
-        "eab_x"         = "2"
-        "ramval"        = "0"
-        "ga"            = "1"
-        "gaia_source"   = "web_normal"
-        "csrf"          = $CSRF
+        'rid'           = $AVID
+        'type'          = '2'
+        'add_media_ids' = $FID
+        'del_media_ids' = ''
+        'platform'      = 'web'
+        'eab_x'         = '2'
+        'ramval'        = '0'
+        'ga'            = '1'
+        'gaia_source'   = 'web_normal'
+        'csrf'          = $CSRF
     }
     $Result = (Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v3/fav/resource/deal' -Method 'POST' -Headers $Headers -Body $Params).Content | ConvertFrom-Json
     Write-Host $Result
@@ -77,14 +77,14 @@ $FIDList.data.list | ForEach-Object {
 }
 
 $Body = @{
-    "status"      = "is_pubing,pubed,not_pubed"
-    "pn"          = "1"
-    "ps"          = "10"
-    "keyword"     = "周刊哔哩哔哩排行榜#$($RankNum)"
-    "coop"        = "1"
-    "interactive" = "1"
+    'status'      = 'is_pubing,pubed,not_pubed'
+    'pn'          = '1'
+    'ps'          = '10'
+    'keyword'     = "周刊哔哩哔哩排行榜#$($RankNum)"
+    'coop'        = '1'
+    'interactive' = '1'
 }
-$Self = (Invoke-WebRequest -Uri "https://member.bilibili.com/x/web/archives" -Headers $Headers -Body $Body -WebSession $Session).Content | ConvertFrom-Json
+$Self = (Invoke-WebRequest -Uri 'https://member.bilibili.com/x/web/archives' -Headers $Headers -Body $Body -WebSession $Session).Content | ConvertFrom-Json
 Write-Host $Self.data.arc_audits[0].Archive.bvid
 AddFavourite $FIDData['周刊合集'] $Self.data.arc_audits[0].Archive.aid
 Start-Sleep -Seconds 1
