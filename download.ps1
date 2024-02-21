@@ -1,5 +1,6 @@
 param (
-    [string]$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7),
+    [string]$RankNum = [Math]::Floor(
+        ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7),
     [array]$Part = @("*")
 )
 $ProgressPreference = "SilentlyContinue"

@@ -1,7 +1,8 @@
 $ProgressPreference = 'SilentlyContinue'
 $FromFolder = '.\'
-$DistFolder = 'D:\Documents\bilibiliweek\ranking'
-$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
+$DistFolder = 'D:\bilibiliweek\ranking'
+$RankNum = [string]$RankNum = [Math]::Floor(
+    ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 
 $Backup = "$($FromFolder)\$($RankNum)"
 

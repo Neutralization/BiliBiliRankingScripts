@@ -1,5 +1,6 @@
 param (
-    [string]$RankNum = [Math]::Round(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809) / 3600 / 24 / 7)
+    [string]$RankNum = [Math]::Floor(
+        ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 )
 $ProgressPreference = 'SilentlyContinue'
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
@@ -11,7 +12,7 @@ $Cookie | ForEach-Object {
         $SingleCookie.Name = $Single[5]
         $SingleCookie.Value = $Single[6]
         $SingleCookie.Domain = "member$($Single[0])"
-        $Session.Cookies.Add($SingleCookie);
+        $Session.Cookies.Add($SingleCookie)
     }
 }
 $Headers = @{
@@ -44,7 +45,7 @@ function AddFavourite {
             $SingleCookie.Value = $Single[6]
             $SingleCookie.Domain = $Single[0]
             $CookieString += "$($Single[5])=$($Single[6]); "
-            $Session.Cookies.Add($SingleCookie);
+            $Session.Cookies.Add($SingleCookie)
         }
     }
     $Headers = @{}
