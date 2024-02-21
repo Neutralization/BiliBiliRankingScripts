@@ -6,10 +6,6 @@ $RankNum = [string]$RankNum = [Math]::Floor(
 
 $Backup = "$($FromFolder)\$($RankNum)"
 
-Expand-Archive -Path "$($FromFolder)\$($RankNum)json.zip" -DestinationPath "$($DistFolder)\..\" -Force
-python genyaml.py
-python generate.py
-
 if (!(Test-Path -Path $Backup)) {
     New-Item -ItemType Directory $Backup
     Move-Item -Path "$($FromFolder)\op_2.png" -Destination $Backup -Force
@@ -27,4 +23,8 @@ if (!(Test-Path -Path $Backup)) {
     Copy-Item -Path "$($Backup)\over.png" -Destination "$($DistFolder)\pic\" -Force
     Copy-Item -Path "$($Backup)\rule_2.png" -Destination "$($DistFolder)\pic\" -Force
     Copy-Item -Path "$($Backup)\$($RankNum)_*.yml" -Destination "$($DistFolder)\list1\" -Force
+}
+
+Get-ChildItem -File "$($RankNum)*.rar" -Path $FromFolder | ForEach-Object {
+    (7z e $_ -o"$($DistFolder)\2_ed" -y) > $null
 }
