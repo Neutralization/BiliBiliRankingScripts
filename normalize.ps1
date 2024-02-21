@@ -10,6 +10,7 @@ $FootageFolder = "$($TruePath)/ranking/list1"
 if (Test-Path -Path 'C:/Windows/System32/nvcuvid.dll') { $Nvdia = $true } else { $Nvdia = $false }
 if ((WMIC CPU Get Name) -match 'Intel') { $Intel = $true } else { $Intel = $false }
 $LostVideos = @(Get-Content ".\LostFile.json" | ConvertFrom-Json | Select-Object -ExpandProperty name)
+$Nvdia = $false
 
 function Normailze {
     param (
