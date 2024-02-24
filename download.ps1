@@ -140,12 +140,17 @@ function BiliDown {
     $AudioDASH = $VideoData.data.dash.audio | Where-Object -Property 'id' -EQ $AudioID | Select-Object -ExpandProperty 'baseUrl'
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 音频流 $($AudioID) $($AudioDASH)"
     $VideoID = $VideoData.data.dash.video.id | Measure-Object -Maximum | Select-Object -ExpandProperty 'Maximum'
+    $Video1080P60 = $VideoData.data.accept_description.IndexOf('高清 1080P60')
     $Video1080Plus = $VideoData.data.accept_description.IndexOf('高清 1080P+')
     $Video1080 = $VideoData.data.accept_description.IndexOf('高清 1080P')
-    if ($Video1080Plus -ge 0) {
+    if ($Video1080P60 -ge 0) {
+        $VideoID = $VideoData.data.accept_quality[$Video1080P60]
+        Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 选择 高清 1080P60"
+    } elseif ($Video1080Plus -ge 0) {
         $VideoID = $VideoData.data.accept_quality[$Video1080Plus]
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 选择 高清 1080P+"
     } elseif ($Video1080 -ge 0) {
+        $VideoID = $VideoData.data.accept_quality[$Video1080]
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 选择 高清 1080P"
     } else {
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 选择最清晰画质"
@@ -228,7 +233,7 @@ function Main {
             "$($_)", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
     $NeedVideos | ForEach-Object {
-        BiliDown $_ # -Debug
+        BiliDown $_ -Debug
     }
 }
 
