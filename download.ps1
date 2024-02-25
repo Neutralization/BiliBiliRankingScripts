@@ -233,7 +233,7 @@ function Main {
             "$($_)", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
     $NeedVideos | ForEach-Object {
-        BiliDown $_ -Debug
+        BiliDown $_ # -Debug
     }
 }
 
