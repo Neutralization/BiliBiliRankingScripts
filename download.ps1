@@ -116,7 +116,7 @@ function BiliDown {
     $CCsub = "https://api.bilibili.com/x/player/v2?aid=$($AID)&cid=$($CID)"
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - API $($CCsub)"
     $SubData = Invoke-WebRequest -UseBasicParsing -Uri $CCsub -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
-    if ($null -ne $SubData.data.subtitle.subtitles[0].subtitle_url -and $SubData.data.subtitle.subtitles[0].lan_doc -notmatch '自动生成') {
+    if ($null -ne $SubData.data.subtitle.subtitles[0].subtitle_url -and $SubData.data.subtitle.subtitles[0].lan -notmatch 'ai-') {
         Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 存在 CC 字幕" -ForegroundColor Green
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - Subtitle http:$($SubData.data.subtitle.subtitles[0].subtitle_url)"
         Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 下载 CC 字幕" -ForegroundColor Green
@@ -213,7 +213,7 @@ function Main {
             }
         }
     }
-    Get-Content '.\LostFile.json' | ConvertFrom-Json | Select-Object -ExpandProperty name | ForEach-Object {
+    Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json | Select-Object -ExpandProperty name | ForEach-Object {
         $LostVideos += $_
     }
     $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
