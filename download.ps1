@@ -128,34 +128,47 @@ function BiliDown {
         $CC = $false
     }
 
-    $SourceUrl = "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
+    $RedirectTest = Invoke-WebRequest "https://www.bilibili.com/video/$($BID)/" -MaximumRedirection 0 -ErrorAction SilentlyContinue -SkipHttpErrorCheck
+    if ($RedirectTest.Headers.Location -match 'bangumi/play') {
+        $SourceUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
+    } else {
+        $SourceUrl = "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
+    }
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - API $($SourceUrl)"
     $Headers.referer = "https://www.bilibili.com/video/av$($AID)/"
-    $Headers.path = "/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
+    $Headers.path = $SourceUrl.Substring('https://api.bilibili.com'.Length)
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 解析视频链接" -ForegroundColor Green
-    $VideoData = Invoke-WebRequest -UseBasicParsing -Uri $SourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
-    Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($VideoData.data)"
-
-    $AudioID = $VideoData.data.dash.audio.id | Measure-Object -Maximum | Select-Object -ExpandProperty 'Maximum'
-    $AudioDASH = $VideoData.data.dash.audio | Where-Object -Property 'id' -EQ $AudioID | Select-Object -ExpandProperty 'baseUrl'
+    $VideoInfo = Invoke-WebRequest -UseBasicParsing -Uri $SourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
+    if ($RedirectTest.Headers.Location -match 'bangumi/play') {
+        $VideoData = $VideoInfo.result.video_info
+    } else {
+        $VideoData = $VideoInfo.data
+    }
+    Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($VideoData)"
+    if ($null -eq $VideoData) {
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 解析失败，跳过" -ForegroundColor Red
+        return
+    }
+    $AudioID = $VideoData.dash.audio.id | Measure-Object -Maximum | Select-Object -ExpandProperty 'Maximum'
+    $AudioDASH = $VideoData.dash.audio | Where-Object -Property 'id' -EQ $AudioID | Select-Object -ExpandProperty 'baseUrl'
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 音频流 $($AudioID) $($AudioDASH)"
-    $VideoID = $VideoData.data.dash.video.id | Measure-Object -Maximum | Select-Object -ExpandProperty 'Maximum'
-    $Video1080P60 = $VideoData.data.accept_description.IndexOf('高清 1080P60')
-    $Video1080Plus = $VideoData.data.accept_description.IndexOf('高清 1080P+')
-    $Video1080 = $VideoData.data.accept_description.IndexOf('高清 1080P')
+    $VideoID = $VideoData.dash.video.id | Measure-Object -Maximum | Select-Object -ExpandProperty 'Maximum'
+    $Video1080P60 = $VideoData.accept_description.IndexOf('高清 1080P60')
+    $Video1080Plus = $VideoData.accept_description.IndexOf('高清 1080P+')
+    $Video1080 = $VideoData.accept_description.IndexOf('高清 1080P')
     if ($Video1080P60 -ge 0) {
-        $VideoID = $VideoData.data.accept_quality[$Video1080P60]
+        $VideoID = $VideoData.accept_quality[$Video1080P60]
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 选择 高清 1080P60"
     } elseif ($Video1080Plus -ge 0) {
-        $VideoID = $VideoData.data.accept_quality[$Video1080Plus]
+        $VideoID = $VideoData.accept_quality[$Video1080Plus]
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 选择 高清 1080P+"
     } elseif ($Video1080 -ge 0) {
-        $VideoID = $VideoData.data.accept_quality[$Video1080]
+        $VideoID = $VideoData.accept_quality[$Video1080]
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 选择 高清 1080P"
     } else {
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 选择最清晰画质"
     }
-    $VideoDASH = $VideoData.data.dash.video | Where-Object -Property 'id' -EQ $VideoID | Where-Object -Property 'codecs' -Match 'avc' | Select-Object -ExpandProperty 'baseUrl'
+    $VideoDASH = $VideoData.dash.video | Where-Object -Property 'id' -EQ $VideoID | Where-Object -Property 'codecs' -Match 'avc' | Select-Object -ExpandProperty 'baseUrl'
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 视频流 $($VideoID) $($VideoDASH)"
 
     try {
