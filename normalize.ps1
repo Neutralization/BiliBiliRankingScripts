@@ -43,8 +43,7 @@ function Normailze {
         # Nvidia CUDA
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 使用 Nvidia CUDA 加速转码"
         $VideoArg = -join @(
-            "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -hwaccel_output_format cuda -c:v h264_cuvid "
-            "-i $($DownloadFolder)/$($FileName).mp4 "
+            "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i $($DownloadFolder)/$($FileName).mp4 "
             "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "
             "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "
             "-c:v h264_nvenc -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($FileName).mp4"
