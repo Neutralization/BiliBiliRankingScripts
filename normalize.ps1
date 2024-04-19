@@ -10,8 +10,7 @@ $FootageFolder = "$($TruePath)/ranking/list1"
 
 if (Test-Path -Path 'C:/Windows/System32/nvcuvid.dll') { $Nvdia = $true } else { $Nvdia = $false }
 if ((WMIC CPU Get Name) -match 'Intel') { $Intel = $true } else { $Intel = $false }
-$LostVideos = @(Get-Content '.\LostFile.json' | ConvertFrom-Json | Select-Object -ExpandProperty name)
-$Nvdia = $false
+$LostVideos = @(Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json | Select-Object -ExpandProperty name)
 
 function Normailze {
     param (
@@ -139,7 +138,7 @@ function Main {
     if ($null -ne $EDFile ) {
         EDNormalize $EDFile
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            "./ranking/2_ed/$($EDFile)", 'OnlyErrorDialogs', 'SendToRecycleBin')
+            "$($TruePath)/ranking/2_ed/$($EDFile)", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
 }
 
