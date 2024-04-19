@@ -5,13 +5,11 @@
 ## 工作环境 (Windows 10/11)
 
 - [Adobe After Effects](https://www.adobe.com/products/aftereffects.html)
-    > CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/2019/2020/2021/2022/2023  
+    > 支持版本 CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/2019/2020/2021/2022/2023/2024  
     需要在 AE 首选项中打开`允许脚本写入文件和访问网络`
-- [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html)
+- [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) / [Voukoder Pro / Classic](https://www.voukoder.org/forum/thread/783-downloads-instructions/) & Adobe Aftereffects Connector
 - [aria2c](https://aria2.github.io/) / [FFmpeg](https://ffmpeg.org/) / [Edge WebDriver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/)
-    > [winget](https://github.com/microsoft/winget-cli) install aria2.aria2  
-    > [winget](https://github.com/microsoft/winget-cli) install Gyan.FFmpeg.Shared  
-    > [winget](https://github.com/microsoft/winget-cli) install Microsoft.EdgeDriver  
+    > [winget](https://github.com/microsoft/winget-cli) install aria2.aria2 Gyan.FFmpeg.Shared Microsoft.EdgeDriver  
     > 其他方式需添加 `aria2c` `ffmpeg` `edgedriver` 路径到系统 `$PATH` 变量
 - [PowerShell](https://docs.microsoft.com/zh-cn/powershell/)
     > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块  
@@ -20,17 +18,14 @@
     > 安装 [arrow](https://pypi.org/project/arrow/) / [Pillow](https://pypi.org/project/Pillow/) / [PyYAML](https://pypi.org/project/PyYAML/) / [requests](https://pypi.org/project/requests/) / [selenium](https://pypi.org/project/selenium/) 模块  
     > python -m pip install -r requirements.txt
 - [json2.js](https://github.com/douglascrockford/JSON-js)
-- [BBDown](https://github.com/nilaoda/BBDown)
 
 ## 获取 Cookie
 
 注意使用 `Netscape HTTP Cookie File` 格式保存为 `cookies.txt`
 
-- Chrome 安装 [EditThisCookie](https://chrome.google.com/webstore/detail/fngmhnnpilhplaeedifhccceomclgfbg)
+- Chrome 安装 [Get cookies.txt Clean](https://chromewebstore.google.com/detail/ahmnmhfbokciafffnknlekllgcnafnie)
+- Edge 安装 [Export Cookies File](https://microsoftedge.microsoft.com/addons/detail/export-cookies-file/hbglikhfdcfhdfikmocdflffaecbnedo)
 - Firefox 安装 [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/)
-- Microsoft Edge 安装 [Cookie Editor](https://microsoftedge.microsoft.com/addons/detail/cookie-editor/ajfboaconbpkglpfanbmlfgojgndmhmc)
-
-参考 BBDown的[使用教程](https://github.com/nilaoda/BBDown#%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B)
 
 ## 流程简述
 
@@ -49,14 +44,9 @@
 
 ## Todo
 
-- [x] ~~使用 PowerShell 重写 rankdoor.py 功能~~（废弃）
 - [x] 自动生成 1080P 视频的图片素材
-- [x] 正确渲染稿件标题中的 emoji 字符
-- [x] Adobe AfterEffects 版本兼容性测试
 - [x] 正确渲染稿件标题中的 Unicode 字符
 - [ ] 取代 Pillow 改用前端作图
-- [ ] ~~视频渲染完成后自动投稿~~（废弃）
-- [ ] ~~调整 Artificial Idiot 算法自动化视频选段步骤~~（废弃）
 
 ## 学习资料
 
