@@ -23,7 +23,7 @@
 
 注意使用 `Netscape HTTP Cookie File` 格式保存为 `cookies.txt`
 
-- Chrome 安装 [Get cookies.txt Clean](https://chromewebstore.google.com/detail/ahmnmhfbokciafffnknlekllgcnafnie)
+- Chrome 安装 [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
 - Edge 安装 [Export Cookies File](https://microsoftedge.microsoft.com/addons/detail/export-cookies-file/hbglikhfdcfhdfikmocdflffaecbnedo)
 - Firefox 安装 [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/)
 
