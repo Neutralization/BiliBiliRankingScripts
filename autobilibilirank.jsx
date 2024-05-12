@@ -771,16 +771,16 @@ function SumStamp(Part) {
 }
 
 TimeLine = [
-    {'from': 0, 'to': SumStamp(1), 'content': 'OP'},
-    {'from': SumStamp(1), 'to': SumStamp(3), 'content': 'Pickup'},
-    {'from': SumStamp(3), 'to': SumStamp(5), 'content': '21-30+'},
-    {'from': SumStamp(5), 'to': SumStamp(7), 'content': '影视&国创'},
-    {'from': SumStamp(7), 'to': SumStamp(9), 'content': '11-20'},
-    {'from': SumStamp(9), 'to': SumStamp(11), 'content': '番剧'},
-    {'from': SumStamp(11), 'to': SumStamp(13), 'content': '4-10'},
-    {'from': SumStamp(13), 'to': SumStamp(15), 'content': '历史'},
-    {'from': SumStamp(15), 'to': SumStamp(16), 'content': '1-3'},
-    {'from': SumStamp(16), 'to': SumStamp(18), 'content': 'ED'},
+    { 'from': 0, 'to': SumStamp(1), 'content': 'OP' },
+    { 'from': SumStamp(1), 'to': SumStamp(3), 'content': 'Pickup' },
+    { 'from': SumStamp(3), 'to': SumStamp(5), 'content': '21-30+' },
+    { 'from': SumStamp(5), 'to': SumStamp(7), 'content': '影视&国创' },
+    { 'from': SumStamp(7), 'to': SumStamp(9), 'content': '11-20' },
+    { 'from': SumStamp(9), 'to': SumStamp(11), 'content': '番剧' },
+    { 'from': SumStamp(11), 'to': SumStamp(13), 'content': '4-10' },
+    { 'from': SumStamp(13), 'to': SumStamp(15), 'content': '历史' },
+    { 'from': SumStamp(15), 'to': SumStamp(16), 'content': '1-3' },
+    { 'from': SumStamp(16), 'to': SumStamp(18), 'content': 'ED' },
 ];
 doc = new File('./stamp.json');
 doc.open('w');
