@@ -35,7 +35,7 @@ function Normailze {
     $AudioInfo = "$($DownloadFolder)/$($FileName).log"
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 分析 $($FileName) 音频数据" -ForegroundColor Green
     Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -RedirectStandardError $AudioInfo -ArgumentList $AudioArg
-    $AudioData = Get-Content -Path $AudioInfo | Select-Object -Last 12 | ConvertFrom-Json
+    $AudioData = Get-Content -Path $AudioInfo | Select-Object -Last 14 | Select-Object -First 12 | ConvertFrom-Json
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($AudioData)"
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($Source)"
@@ -83,7 +83,7 @@ function EDNormalize {
     $AudioInfo = './ranking/2_ed/ed.log'
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 分析 $($FileName) 音频数据"
     Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -RedirectStandardError $AudioInfo -ArgumentList $AudioArg
-    $AudioData = Get-Content -Path $AudioInfo | Select-Object -Last 12 | ConvertFrom-Json
+    $AudioData = Get-Content -Path $AudioInfo | Select-Object -Last 14 | Select-Object -First 12 | ConvertFrom-Json
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($AudioData)"
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($Source)"
