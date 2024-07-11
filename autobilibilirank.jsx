@@ -49,13 +49,17 @@ Part_15 = app.project.items.addComp('Part_15', CompSize[0], CompSize[1], 1, 60, 
 Part_16 = app.project.items.addComp('Part_16', CompSize[0], CompSize[1], 1, 60, CompFPS);
 Part_17 = app.project.items.addComp('Part_17', CompSize[0], CompSize[1], 1, 25, CompFPS);
 Part_18 = app.project.items.addComp('Part_18', CompSize[0], CompSize[1], 1, 60, CompFPS);
-CoverComp = app.project.items.addComp('封面', 960, 600, 1, 1 / CompFPS, CompFPS);
+CoverComp1 = app.project.items.addComp('封面_16-9', 1120, 630, 1, 1 / CompFPS, CompFPS);
+CoverComp2 = app.project.items.addComp('封面_4-3', 960, 720, 1, 1 / CompFPS, CompFPS);
 
 StaticFolder = app.project.items.addFolder('StaticFootage');
 WeeklyFolder = app.project.items.addFolder('WeeklyFootage');
 
 StaticFootage = {
     // IMAGE
+    投稿封面_1: './footage/ANNIVERSARY.png',
+    投稿封面_2: './footage/STANDARD.png',
+    投稿封面_3: './footage/CHARA.png',
     蓝底: './public/blank.png',
     棕底: './public/bg_2.png',
     NEXT: './public/change.png',
@@ -144,12 +148,6 @@ StaticFootage = {
     // VIDEO
     NotFound: './public/error.mp4',
 };
-
-CoverFile = new ImportOptions(File('footage/newfm.png'));
-CoverFile.ImportAs = ImportAsType.FOOTAGE;
-CoverItem = app.project.importFile(CoverFile);
-CoverItem.name = 'newfm';
-CoverItem.parentFolder = StaticFolder;
 
 for (key in StaticFootage) {
     FootageFile = new ImportOptions(File(StaticFootage[key]));
@@ -752,12 +750,44 @@ for (n = 1; n < Comps.length; n++) {
 CompBlackLayer.outPoint = FinalComp.duration;
 FinalComp.openInViewer();
 
-AddLayer(CoverComp, 'newfm', 25, 0);
-WEEKLayer = AddText(CoverComp, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [370, 140], [54, 234]);
-WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 50);
+AddLayer(CoverComp1, '投稿封面_1', 25, 0);
+AddLayer(CoverComp1, '投稿封面_2', 25, 0);
+AddLayer(CoverComp1, '投稿封面_3', 25, 0);
+AnniversaryLayer = AddText(CoverComp1, 'The 15th year', ParagraphJustification.LEFT_JUSTIFY, [540, 100], [128, 384]);
+AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60);
+AnniversaryLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
+AnniversaryLayer.applyPreset(new File('DropShadow.ffx'));
+AnniversaryLayer.enabled = false;
+WEEKLayer = AddText(CoverComp1, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [440, 140], [134, 254]);
+WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100);
 WEEKLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
 WEEKLayer.applyPreset(new File('DropShadow.ffx'));
-CoverComp.openInViewer();
+CoverComp1.openInViewer();
+
+AddLayer(CoverComp2, '投稿封面_1', 25, 0);
+AddLayer(CoverComp2, '投稿封面_2', 25, 0);
+AddLayer(CoverComp2, '投稿封面_3', 25, 0);
+AnniversaryLayer = AddText(CoverComp2, 'The 15th year', ParagraphJustification.LEFT_JUSTIFY, [540, 100], [48, 428]);
+AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60);
+AnniversaryLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
+AnniversaryLayer.applyPreset(new File('DropShadow.ffx'));
+AnniversaryLayer.enabled = false;
+WEEKLayer = AddText(CoverComp2, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [440, 140], [54, 298]);
+WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100);
+WEEKLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
+WEEKLayer.applyPreset(new File('DropShadow.ffx'));
+CoverComp2.openInViewer();
+
+renderQueue = app.project.renderQueue;
+render = renderQueue.items.add(CoverComp1);
+render.outputModules[1].applyTemplate('Cover');
+render.outputModules[1].file = new File('./封面_169_[#].jpg');
+render = renderQueue.items.add(CoverComp2);
+render.outputModules[1].applyTemplate('Cover');
+render.outputModules[1].file = new File('./封面_43_[#].jpg');
+render = renderQueue.items.add(FinalComp);
+render.outputModules[1].applyTemplate('Voukoder');
+render.outputModules[1].file = new File('./周刊哔哩哔哩排行榜#' + WEEK_NUM + '.mp4');
 
 app.project.save(new File('./bilibilirank_' + WEEK_NUM + '.aep'));
 
