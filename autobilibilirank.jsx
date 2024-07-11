@@ -645,8 +645,8 @@ bilibili_layer = AddLayer(Part_17, '哔哩哔哩_BGM', 25, 0);
 bilibili_layer.inPoint = 0;
 bilibili_layer.outPoint = 25;
 AddAudioProperty(bilibili_layer, 1, 3, bilibili_layer.outPoint - 3, 2);
-stat_1_layer = AddLayer(Part_17, '统计数据_1', 7.33, 0.8);
-AddVideoProperty(stat_1_layer, 2, 0.6, 0.8, 1);
+stat_1_layer = AddLayer(Part_17, '统计数据_1', 7.33, 0.4);
+AddVideoProperty(stat_1_layer, 2, 0.6, 0.4, 1);
 stat_2_layer = AddLayer(Part_17, '统计数据_2', 5.27, 8.13);
 stat_3_layer = AddLayer(Part_17, '统计数据_3', 5.8, 13.4);
 AddVideoProperty(stat_3_layer, 2, 0.6, 18.6, 2);
@@ -767,7 +767,7 @@ for (n = 0; n < Comps.length; n++) {
 }
 
 function SumStamp(Part) {
-    return Math.ceil(eval(Stamp.slice(0, Part).join('+')));
+    return Math.ceil(eval(Stamp.slice(0, Part).join('+'))) + 1;
 }
 
 TimeLine = [
