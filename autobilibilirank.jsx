@@ -643,14 +643,14 @@ bilibili_layer = AddLayer(Part_17, '哔哩哔哩_BGM', 25, 0);
 bilibili_layer.inPoint = 0;
 bilibili_layer.outPoint = 25;
 AddAudioProperty(bilibili_layer, 1, 3, bilibili_layer.outPoint - 3, 2);
-stat_1_layer = AddLayer(Part_17, '统计数据_1', 7.33, 0.4);
+stat_1_layer = AddLayer(Part_17, '统计数据_1', 6, 0.4);
 AddVideoProperty(stat_1_layer, 2, 0.6, 0.4, 1);
-stat_2_layer = AddLayer(Part_17, '统计数据_2', 5.27, 8.13);
-stat_3_layer = AddLayer(Part_17, '统计数据_3', 5.8, 13.4);
-AddVideoProperty(stat_3_layer, 2, 0.6, 18.6, 2);
-over_layer = AddLayer(Part_17, '本周结语', 5.5, 19.5);
-AddVideoProperty(over_layer, 2, 0.5, 19.5, 1);
-AddVideoProperty(over_layer, 2, 0.5, 24.5, 2);
+stat_2_layer = AddLayer(Part_17, '统计数据_2', 6, 6.4);
+stat_3_layer = AddLayer(Part_17, '统计数据_3', 6, 12.4);
+AddVideoProperty(stat_3_layer, 2, 0.6, 17.8, 2);
+over_layer = AddLayer(Part_17, '本周结语', 6.5, 18.5);
+AddVideoProperty(over_layer, 2, 0.5, 18.5, 1);
+AddVideoProperty(over_layer, 2, 0.5, 24.3, 2);
 
 // Part 18 (30+ to 150 +)
 AudioLayer_18 = AddLayer(Part_18, 'ED_BGM', null, 0);
