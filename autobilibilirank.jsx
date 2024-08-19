@@ -190,9 +190,12 @@ for (n = 0; n < RankDataList.length; n++) {
 
 // ITEM INDEX
 ResourceID = {};
-for (n = 1; n <= app.project.items.length; n++) {
-    ResourceID[app.project.items[n].name] = n;
+function ReCountResource() {
+    for (n = 1; n <= app.project.items.length; n++) {
+        ResourceID[app.project.items[n].name] = n;
+    }
 }
+ReCountResource();
 
 // FUNCTION
 function AddLayer(Target, Name, Duration, Offset) {
@@ -371,7 +374,45 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
         }
         VideoOffset = RankData[LastRank - i][2];
         VideoOffset = 0;
-        NewVideoLayer = AddLayer(Target, VideoFile, VideoDuration, Offset - VideoOffset);
+        SubJson = new File(Prefix + VideoFile + '.json');
+        SubExist = SubJson.exists;
+        if (!SubExist) {
+            NewVideoLayer = AddLayer(Target, VideoFile, VideoDuration, Offset - VideoOffset);
+        } else {
+            SubJson.open('r');
+            content = SubJson.read();
+            SubJson.close();
+            Subs = JSON.parse(content).body;
+            VideoComp = app.project.items.addComp(VideoFile + '_CC', CompSize[0], CompSize[1], 1, TrueDuration, CompFPS);
+            VideoComp.hideShyLayers = true;
+            VideoComp.parentFolder = WeeklyFolder;
+            ReCountResource();
+            NewVideoLayer = AddLayer(VideoComp, VideoFile, TrueDuration, 0);
+            for (n = 0; n < Subs.length; n++) {
+                if (
+                    (Subs[n].from < RankData[LastRank - i][2] && Subs[n].to <= RankData[LastRank - i][2]) ||
+                    (Subs[n].from >= RankData[LastRank - i][2] + TrueDuration && Subs[n].to > RankData[LastRank - i][2] + TrueDuration)
+                ) {
+                    continue;
+                } else {
+                    BlackLayer = VideoComp.layers.addSolid([0, 0, 0], '黑底', CompSize[0], CompSize[1], 1, 1);
+                    BlackLayer.startTime = 0 - RankData[LastRank - i][2];
+                    BlackLayer.inPoint = BlackLayer.startTime + Subs[n].from;
+                    BlackLayer.outPoint = BlackLayer.startTime + Subs[n].to;
+                    SubLayer = AddText(VideoComp, Subs[n].content, ParagraphJustification.CENTER_JUSTIFY, [CompSize[0], 120], [CompSize[0] / 2, CompSize[1] - 2 * 52]);
+                    SubLayer.startTime = BlackLayer.startTime;
+                    SubLayer.inPoint = BlackLayer.inPoint;
+                    SubLayer.outPoint = BlackLayer.outPoint;
+                    SubLayer.property('Source Text').expression = TextExpression('Microsoft YaHei', '#FFFFFF', 52, 52, 52, Subs[n].content.replace('\n', '\\n'));
+                    SubLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.width/2+s.left, s.height/2+s.top];';
+                    BlackLayer.property('Position').expression = 'thisComp.layer(thisLayer.index-1).transform.position;';
+                    BlackLayer.property('Scale').expression = 's=thisComp.layer(thisLayer.index-1).sourceRectAtTime();transform.scale=[(s.width+30)*100/thisLayer.width,(s.height+30)*100/thisLayer.height];';
+                    BlackLayer.property('Opacity').setValue(50);
+                    BlackLayer.shy = true;
+                }
+            }
+            NewVideoLayer = AddLayer(Target, VideoFile + '_CC', VideoDuration, Offset - VideoOffset);
+        }
         NewVideoLayer.inPoint = Offset;
         NewVideoLayer.outPoint = Offset + VideoDuration;
         NewVideoLayer.inPoint = NewVideoLayer.outPoint - VideoDuration;
@@ -436,7 +477,11 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
         if (IsTop) {
             BlackLayer = Target.layers.addSolid([0, 0, 0], '黑底', CompSize[0], CompSize[1], 1, 12);
             BlackLayer.inPoint = Offset - VideoOffset;
-            NewVideoLayerS = AddLayer(Target, VideoFile, 12, Offset - VideoOffset);
+            if (!SubExist) {
+                NewVideoLayerS = AddLayer(Target, VideoFile, 12, Offset - VideoOffset);
+            } else {
+                NewVideoLayerS = AddLayer(Target, VideoFile + '_CC', 12, Offset - VideoOffset);
+            }
             NewVideoLayerS.audioEnabled = false;
             NewVideoLayerS.inPoint = NewVideoLayer.inPoint;
             NewVideoLayerS.outPoint = NewVideoLayer.inPoint + 12;
@@ -791,6 +836,7 @@ render = renderQueue.items.add(FinalComp);
 render.outputModules[1].applyTemplate('Voukoder');
 render.outputModules[1].file = new File('./周刊哔哩哔哩排行榜#' + WEEK_NUM + '.mp4');
 
+app.project.consolidateFootage();
 app.project.save(new File('./bilibilirank_' + WEEK_NUM + '.aep'));
 
 Stamp = [];

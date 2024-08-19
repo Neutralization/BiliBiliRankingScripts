@@ -119,13 +119,8 @@ function BiliDown {
     if ($null -ne $SubData.data.subtitle.subtitles[0].subtitle_url -and $SubData.data.subtitle.subtitles[0].lan -notmatch 'ai-') {
         Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 存在 CC 字幕" -ForegroundColor Green
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - Subtitle http:$($SubData.data.subtitle.subtitles[0].subtitle_url)"
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 下载 CC 字幕" -ForegroundColor Green
-        Invoke-WebRequest -Uri "http:$($SubData.data.subtitle.subtitles[0].subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "$($DownloadFolder)/$($CID)_.json"
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 转换 ASS 字幕" -ForegroundColor Green
-        Start-Process -NoNewWindow -Wait -FilePath 'python.exe' -ArgumentList "ccsub2ass.py $($DownloadFolder)/$($CID)_"
-        $CC = $true
-    } else {
-        $CC = $false
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 下载 CC 字幕 $($ID).json" -ForegroundColor Green
+        Invoke-WebRequest -Uri "http:$($SubData.data.subtitle.subtitles[0].subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "$($DownloadFolder)/../list1/$ID.json"
     }
 
     $RedirectTest = Invoke-WebRequest "https://www.bilibili.com/video/$($BID)/" -MaximumRedirection 0 -ErrorAction SilentlyContinue -SkipHttpErrorCheck
@@ -186,17 +181,10 @@ function BiliDown {
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - aria2c.exe $($aria2cArgs)"
         Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 开始下载视频" -ForegroundColor Green
         Start-Process -NoNewWindow -Wait -FilePath 'aria2c.exe' -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
-    
-        if ($CC) {
-            Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 合并音视频 嵌入CC字幕" -ForegroundColor Green
-            $ffmpegArgs = -join @(
-                "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c:a copy "
-                "-vf subtitles=.$($DownloadFolder.Substring($TruePath.Length))/$($CID)_.ass  $($DownloadFolder)/$($ID).mp4"
-            )
-        } else {
-            Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 合并音视频" -ForegroundColor Green
-            $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c copy $($DownloadFolder)/$($ID).mp4"
-        }
+
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 合并音视频" -ForegroundColor Green
+        $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c copy $($DownloadFolder)/$($ID).mp4"
+
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - ffmpeg.exe $($ffmpegArgs)"
         Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $ffmpegArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
     } catch {
