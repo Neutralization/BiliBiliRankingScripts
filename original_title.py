@@ -5,7 +5,7 @@ from functools import reduce
 
 import requests
 
-from constant import WEEKS, UA
+from constant import WEEKS, UA, av2bv
 
 
 def getVideoTitle(aid):
@@ -35,6 +35,7 @@ def getVideoTitle(aid):
     else:
         lost = json.load(open("LostFile.json", "r", encoding="utf-8"))
         lost["name"].append(f"av{aid}")
+        lost["name"].append(f"{av2bv(aid)}")
         lost["name"] = list(set(lost["name"]))
         json.dump(lost, open("LostFile.json", "w", encoding="utf-8"))
         print(f"> av{aid} 啊叻？视频不见了？")

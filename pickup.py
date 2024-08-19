@@ -25,6 +25,8 @@ from constant import (
     STYUANTI_SC_BOLD,
     WEEKS,
     UA,
+    av2bv,
+    bv2av,
 )
 
 LOST_INFO = {
@@ -133,6 +135,7 @@ def Single(Avid):
     UpTime_X = UpTime_O - UpTime_F.getlength(UpTime) / 2
     RankPaper.text((UpTime_X, 850), UpTime, C_6D4B2B, UpTime_F)
     RankImg.save(f"./ranking/list1/av{Aid}.png")
+    RankImg.save(f"./ranking/list1/{av2bv(int(Aid))}.png")
 
 
 def text2img(name, text, font, emoji, color, size):
@@ -200,8 +203,9 @@ def Main():
         Loader=BaseLoader,
     )
     for x in ymlfile:
-        print(x[":name"][2:])
-        Single(x[":name"][2:])
+        avid = x[":name"][2:] if x[":name"][2:].isdigit() else bv2av(x[":name"])
+        print(avid)
+        Single(avid)
 
 
 if __name__ == "__main__":

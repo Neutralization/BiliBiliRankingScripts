@@ -319,6 +319,7 @@ def Single(args):
         if f"av{Aid}" in InvalidList:
             RankPaper.text((980, 734), "", C_CC0000, Invalid_F)
         RankImg.save(f"./ranking/list1/av{Aid}.png")
+        # RankImg.save(f"./ranking/list1/{Bid}.png")
         return 0
     RankPaper.text((Score_X, 376), Score, C_FFFFFF, Score_F)
 
@@ -408,6 +409,7 @@ def Single(args):
     if f"av{Aid}" in InvalidList:
         RankPaper.text((980, 734), "", C_CC0000, Invalid_F)
     RankImg.save(f"./ranking/list1/av{Aid}.png")
+    # RankImg.save(f"./ranking/list1/{Bid}.png")
 
 
 def SubRank(rtype):
@@ -697,14 +699,15 @@ def Top():
     Top_F = ImageFont.truetype(HYM2GJ, 390)
     Diff_F = ImageFont.truetype(HANNOTATESC_W5, 45)
     TopData = {
-        int(v["score_rank"]): (k, v["score"])
+        int(v["score_rank"]): (k, v["score"], v["bv"])
         for k, v in MRankData.items()
         if v["sp_type_id"] is None and int(v["score_rank"]) <= 4
     }
     for t in range(3):
         TImg = Image.open(TOPIMG)
         TPaper = ImageDraw.Draw(TImg)
-        Bid = TopData[t + 1][0]
+        Aid = TopData[t + 1][0]
+        # Bid = TopData[t + 1][2]
         Diff = int(TopData[t + 1][1].replace(",", "")) - int(
             TopData[t + 2][1].replace(",", "")
         )
@@ -715,7 +718,8 @@ def Top():
         TPaper.text(
             (609 - Diff_F.getlength(DiffText) / 2, 722), DiffText, C_FFFFFF, Diff_F
         )
-        TImg.save(f"./ranking/list1/av{Bid}_.png")
+        TImg.save(f"./ranking/list1/av{Aid}_.png")
+        # TImg.save(f"./ranking/list1/{Bid}_.png")
 
 
 def MakeYaml(file, max, min, part):
@@ -727,6 +731,7 @@ def MakeYaml(file, max, min, part):
         if x.get("info") is None and x.get("sp_type_id") != 2:
             rank = x["score_rank"] if x.get("score_rank") else x["rank"]
             name = f'av{x["wid"]}'
+            # name = f'{x["bv"].replace("bv", "BV")}'
             length = 20
             if part in (7, 11, 15):
                 length = 15
@@ -748,7 +753,7 @@ def MakeYaml(file, max, min, part):
                 doorcontent += [
                     (
                         rank,
-                        f'BV{x["bv"][2:]}',
+                        f'{x["bv"].replace("bv", "BV")}',
                         x["name"],
                     )
                 ]

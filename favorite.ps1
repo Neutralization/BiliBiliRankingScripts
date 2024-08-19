@@ -29,6 +29,65 @@ $Headers = @{
     'TE'               = 'trailers'
 }
 $Headers.Add('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0')
+
+function ABconvert {
+    param (
+        [parameter(position = 1)]$Source,
+        [parameter(position = 2)]$Target = $true
+    )
+    # 如何看待 2020 年 3 月 23 日哔哩哔哩将稿件的「av 号」变更为「BV 号」？ - mcfx的回答 - 知乎
+    # https://www.zhihu.com/question/381784377/answer/1099438784
+    #
+    # https://github.com/Colerar/abv
+    $ALPHABET = 'FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf'.ToCharArray()
+    $table = @{}
+    0..57 | ForEach-Object {
+        $table[$ALPHABET[$_]] = $_
+    }
+    $XOR_CODE = 23442827791579
+    $MASK_CODE = 2251799813685247
+    $MAX_AID = [Int64]1 -shl 51
+    $BASE = 58
+    $BV_LEN = 12
+
+    function bv2av {
+        param (
+            [string]$bvid
+        )
+        $bv_list = $bvid.ToCharArray()
+        $bv_list[3], $bv_list[9] = $bv_list[9], $bv_list[3]
+        $bv_list[4], $bv_list[7] = $bv_list[7], $bv_list[4]
+        $tmp = 0
+        foreach ($char in $bv_list[3..$BV_LEN]) {
+            $idx = $table[$char]
+            $tmp = $tmp * $BASE + $idx
+        }
+        $avid = ($tmp -band $MASK_CODE) -bxor $XOR_CODE
+        return $avid
+    }
+    function av2bv {
+        param (
+            [string]$avid
+        )
+        $bv_list = 'BV1000000000'.ToCharArray()
+        $bv_idx = $BV_LEN - 1
+        $tmp = ($MAX_AID -bor $avid) -bxor $XOR_CODE
+        while ($tmp -ne 0) {
+            $bv_list[$bv_idx] = $ALPHABET[$tmp % $BASE]
+            $tmp = [Math]::Truncate($tmp / $BASE)
+            $bv_idx -= 1
+        }
+        $bv_list[3], $bv_list[9] = $bv_list[9], $bv_list[3]
+        $bv_list[4], $bv_list[7] = $bv_list[7], $bv_list[4]
+        return -join $bv_list
+    }
+    if ($Target) {
+        return bv2av $Source
+    } else {
+        return av2bv $Source
+    }
+}
+
 function AddFavourite {
     param (
         [parameter(position = 1)]$FID,
@@ -101,9 +160,21 @@ $Files | ForEach-Object {
         }
     }
 }
-AddFavourite $FIDData['周刊一位'] $RankVideos[2].Substring(2)
+if ($RankVideos[2] -match '^[aA]') {
+    $Aid = $RankVideos[2].Substring(2)
+} else {
+    $Aid = ABconvert $RankVideos[2] $true
+}
+Write-Host $Aid
+AddFavourite $FIDData['周刊一位'] $Aid
 Start-Sleep -Seconds 1
 $RankVideos[ - ($RankVideos.Length - 3)..-1] | ForEach-Object {
-    AddFavourite $FIDData['周刊 Pickup'] $_.Substring(2)
+    if ($_ -match '^[aA]') {
+        $Aid = $_.Substring(2)
+    } else {
+        $Aid = ABconvert $_ $true
+    }
+    Write-Host $Aid
+    AddFavourite $FIDData['周刊 Pickup'] $Aid
     Start-Sleep -Seconds 1
 }
