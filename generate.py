@@ -320,6 +320,7 @@ def Single(args):
             RankPaper.text((980, 734), "", C_CC0000, Invalid_F)
         RankImg.save(f"./ranking/list1/av{Aid}.png")
         # RankImg.save(f"./ranking/list1/{Bid}.png")
+        print(f"./ranking/list1/av{Aid}.png")
         return 0
     RankPaper.text((Score_X, 376), Score, C_FFFFFF, Score_F)
 
@@ -410,6 +411,7 @@ def Single(args):
         RankPaper.text((980, 734), "", C_CC0000, Invalid_F)
     RankImg.save(f"./ranking/list1/av{Aid}.png")
     # RankImg.save(f"./ranking/list1/{Bid}.png")
+    print(f"./ranking/list1/av{Aid}.png")
 
 
 def SubRank(rtype):
@@ -537,12 +539,16 @@ def SubRank(rtype):
             SPaper.text((1244, 205 + j * 259), SLastRank, C_BCA798, SLastRank_F)
         if rtype == 1:
             SImg.save(f"./ranking/list2/{i+1:0>3}.png")
+            print(f"./ranking/list2/{i+1:0>3}.png")
         elif rtype == 2:
             SImg.save(f"./ranking/list3/tv_{i+1:0>3}.png")
+            print(f"./ranking/list3/tv_{i+1:0>3}.png")
         elif rtype == 3:
             SImg.save(f"./ranking/list4/bangumi_{i+1:0>3}.png")
+            print(f"./ranking/list4/bangumi_{i+1:0>3}.png")
         elif rtype == 4:
             SImg.save(f"./ranking/list4/bangumi_{i+4:0>3}.png")
+            print(f"./ranking/list4/bangumi_{i+4:0>3}.png")
 
 
 def Stat():
@@ -812,7 +818,7 @@ def text2img(name, text, font, emoji, color, size):
         f.write(html_content)
 
     browser.get(f'file://{abspath("TEXT.html")}')
-    print(f"./{name}.png")
+    # print(f"./{name}.png")
     browser.save_screenshot(f"./{name}.png")
     img = Image.open(f"./{name}.png")
     x, y = img.size
