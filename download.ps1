@@ -197,6 +197,7 @@ function BiliDown {
             Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 合并音视频" -ForegroundColor Green
             $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($CID)_a.m4s -i $($DownloadFolder)/$($CID)_v.m4s -c copy $($DownloadFolder)/$($ID).mp4"
         }
+        Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - ffmpeg.exe $($ffmpegArgs)"
         Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $ffmpegArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
     } catch {
         New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType 'file' -Value '' -Force
