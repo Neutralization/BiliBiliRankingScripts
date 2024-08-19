@@ -57,7 +57,7 @@ GRank = json.load(open(f"{WEEKS}_guoman_bangumi.json", "r", encoding="utf-8"))
 HRank = json.load(open(f"{WEEKS}_results_history.json", "r", encoding="utf-8"))
 SRank = json.load(open(f"{WEEKS}_stat.json", "r", encoding="utf-8"))
 Invalid = json.load(open("LostFile.json", "r", encoding="utf-8"))
-InvalidList = Invalid["name"]
+InvalidList = list(Invalid.keys())
 browser_options = Options()
 browser_options.add_argument("headless")
 browser = Chrome(options=browser_options)
@@ -317,7 +317,9 @@ def Single(args):
         RankPaper.text((Score_X, 280), Score, C_FFFFFF, Score_F)
         RankPaper.text((1495, 400), f"#{Week}", C_FFFFFF, HisRank_F)
         if f"av{Aid}" in InvalidList:
-            RankPaper.text((980, 734), "", C_CC0000, Invalid_F)
+            RankPaper.text((980, 749), Invalid[f"av{Aid}"], C_CC0000, Invalid_F)
+        if Bid in InvalidList:
+            RankPaper.text((980, 749), Invalid[Bid], C_CC0000, Invalid_F)
         RankImg.save(f"./ranking/list1/av{Aid}.png")
         # RankImg.save(f"./ranking/list1/{Bid}.png")
         print(f"./ranking/list1/av{Aid}.png")
@@ -408,7 +410,9 @@ def Single(args):
         RankPaper.text((1837, 921), DanmuRank, C_EAAA7D, BiDataRank_F)
 
     if f"av{Aid}" in InvalidList:
-        RankPaper.text((980, 734), "", C_CC0000, Invalid_F)
+        RankPaper.text((980, 749), Invalid[f"av{Aid}"], C_CC0000, Invalid_F)
+    if Bid in InvalidList:
+        RankPaper.text((980, 749), Invalid[Bid], C_CC0000, Invalid_F)
     RankImg.save(f"./ranking/list1/av{Aid}.png")
     # RankImg.save(f"./ranking/list1/{Bid}.png")
     print(f"./ranking/list1/av{Aid}.png")

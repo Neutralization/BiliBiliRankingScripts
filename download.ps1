@@ -227,7 +227,7 @@ function Main {
             }
         }
     }
-    Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json | Select-Object -ExpandProperty name | ForEach-Object {
+    (Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
         $LostVideos += $_
     }
     $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }

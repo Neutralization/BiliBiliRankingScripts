@@ -29,16 +29,22 @@ def getVideoTitle(aid):
         params=params,
     )
     result = json.loads(resp.content)
-    if result.get("code") == 0:
+    errorcode = result.get("code")
+    codemsg = {-404: "管理员锁定", 62002: "用户自删除"}
+    if errorcode == 0:
         title = result["data"]["title"]
         return {aid: title}
     else:
         lost = json.load(open("LostFile.json", "r", encoding="utf-8"))
-        lost["name"].append(f"av{aid}")
-        lost["name"].append(f"{av2bv(aid)}")
-        lost["name"] = list(set(lost["name"]))
-        json.dump(lost, open("LostFile.json", "w", encoding="utf-8"))
-        print(f"> av{aid} 啊叻？视频不见了？")
+        lost[f"av{aid}"] = codemsg.get(errorcode)
+        lost[f"{av2bv(aid)}"] = codemsg.get(errorcode)
+        json.dump(
+            lost,
+            open("LostFile.json", "w", encoding="utf-8"),
+            ensure_ascii=False,
+            indent=4,
+        )
+        print(f"> Error {errorcode} | av{aid} / {av2bv(aid)} 啊叻？视频不见了？")
         return {aid: ""}
 
 

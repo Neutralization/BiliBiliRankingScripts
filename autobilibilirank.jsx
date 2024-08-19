@@ -16,7 +16,7 @@ file = new File('LostFile.json');
 file.open('r');
 content = file.read();
 file.close();
-LostVideos = JSON.parse(content).name;
+LostVideos = JSON.parse(content);
 RankDataList = [];
 for (n = 0; n < Parts.length; n++) {
     file = new File(Prefix + WEEK_NUM + '_' + Parts[n] + '.yml');
@@ -355,7 +355,7 @@ function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, 
         }
         IsInvalid = false;
         for (key in LostVideos) {
-            if (RankData[LastRank - i][0] == LostVideos[key]) {
+            if (RankData[LastRank - i][0] == key) {
                 IsInvalid = true;
             }
         }

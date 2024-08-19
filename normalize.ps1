@@ -10,7 +10,10 @@ $FootageFolder = "$($TruePath)/ranking/list1"
 
 if (Test-Path -Path 'C:/Windows/System32/nvcuvid.dll') { $Nvdia = $true } else { $Nvdia = $false }
 if ((WMIC CPU Get Name) -match 'Intel') { $Intel = $true } else { $Intel = $false }
-$LostVideos = @(Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json | Select-Object -ExpandProperty name)
+$LostVideos = @()
+(Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
+    $LostVideos += $_
+}
 
 function Normailze {
     param (
