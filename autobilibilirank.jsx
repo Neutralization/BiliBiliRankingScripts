@@ -225,7 +225,7 @@ function AddText(Target, text, justify, boxsize, position) {
     return TLayer;
 }
 
-function TextExpression(Font, Color, Size, Leading, Tracking) {
+function TextExpression(Font, Color, Size, Leading, Tracking, SourceText) {
     return (
         'text.sourceText.createStyle().setFont("' +
         Font +
@@ -237,7 +237,9 @@ function TextExpression(Font, Color, Size, Leading, Tracking) {
         Leading +
         ').setTracking(' +
         Tracking +
-        ');'
+        ').setText("' +
+        SourceText +
+        '");'
     );
 }
 
@@ -695,7 +697,7 @@ LastRank = Math.max.apply(Math, SortRank);
 SubRankText = AddText(Part_18, (LastRank + 1) + '-' + (LastRank + 120), ParagraphJustification.CENTER_JUSTIFY, [700, 226], [605, 523]);
 SubRankText.startTime = 4;
 SubRankText.outPoint = 4 + 5.9;
-SubRankText.property('Source Text').expression = TextExpression('HYm2gj', 'FFFFFF', 216, 108, 0);
+SubRankText.property('Source Text').expression = TextExpression('HYm2gj', 'FFFFFF', 216, 108, 0, (LastRank + 1) + '-' + (LastRank + 120));
 SubRankText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.width/2+s.left, s.height/2+s.top];';
 file = new File('./ranking/2_ed/' + WEEK_NUM + '.txt');
 file.open('r');
@@ -754,12 +756,12 @@ AddLayer(CoverComp1, '投稿封面_1', 25, 0);
 AddLayer(CoverComp1, '投稿封面_2', 25, 0);
 AddLayer(CoverComp1, '投稿封面_3', 25, 0);
 AnniversaryLayer = AddText(CoverComp1, 'The 15th year', ParagraphJustification.LEFT_JUSTIFY, [540, 100], [128, 384]);
-AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60);
+AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60, 'The 15th year');
 AnniversaryLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
 AnniversaryLayer.applyPreset(new File('DropShadow.ffx'));
 AnniversaryLayer.enabled = false;
 WEEKLayer = AddText(CoverComp1, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [440, 140], [134, 254]);
-WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100);
+WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100, '#' + WEEK_NUM);
 WEEKLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
 WEEKLayer.applyPreset(new File('DropShadow.ffx'));
 CoverComp1.openInViewer();
@@ -768,12 +770,12 @@ AddLayer(CoverComp2, '投稿封面_1', 25, 0);
 AddLayer(CoverComp2, '投稿封面_2', 25, 0);
 AddLayer(CoverComp2, '投稿封面_3', 25, 0);
 AnniversaryLayer = AddText(CoverComp2, 'The 15th year', ParagraphJustification.LEFT_JUSTIFY, [540, 100], [48, 428]);
-AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60);
+AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60, 'The 15th year');
 AnniversaryLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
 AnniversaryLayer.applyPreset(new File('DropShadow.ffx'));
 AnniversaryLayer.enabled = false;
 WEEKLayer = AddText(CoverComp2, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [440, 140], [54, 298]);
-WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100);
+WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100, '#' + WEEK_NUM);
 WEEKLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
 WEEKLayer.applyPreset(new File('DropShadow.ffx'));
 CoverComp2.openInViewer();
