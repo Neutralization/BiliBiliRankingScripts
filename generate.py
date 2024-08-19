@@ -11,8 +11,8 @@ from math import log10
 import arrow
 import requests
 from PIL import Image, ImageDraw, ImageFont
-from selenium.webdriver import Edge
-from selenium.webdriver.edge.options import Options
+from selenium.webdriver import Chrome
+from selenium.webdriver.chrome.options import Options
 from yaml import dump
 
 from constant import (
@@ -60,7 +60,7 @@ Invalid = json.load(open("LostFile.json", "r", encoding="utf-8"))
 InvalidList = Invalid["name"]
 browser_options = Options()
 browser_options.add_argument("headless")
-browser = Edge(options=browser_options)
+browser = Chrome(options=browser_options)
 browser.set_window_size(4096, 500)
 browser_command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
 browser_url = browser.command_executor._url + browser_command

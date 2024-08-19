@@ -9,8 +9,8 @@ from unicodedata import combining, normalize
 import arrow
 import requests
 from PIL import Image, ImageDraw, ImageFont
-from selenium.webdriver import Edge
-from selenium.webdriver.edge.options import Options
+from selenium.webdriver import Chrome
+from selenium.webdriver.chrome.options import Options
 from yaml import BaseLoader
 from yaml import load as yload
 
@@ -40,7 +40,7 @@ LOST_INFO = {
 
 browser_options = Options()
 browser_options.add_argument("headless")
-browser = Edge(options=browser_options)
+browser = Chrome(options=browser_options)
 browser.set_window_size(4096, 500)
 browser_command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
 browser_url = browser.command_executor._url + browser_command
