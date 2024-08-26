@@ -804,7 +804,7 @@ def text2img(name, text, font, emoji, color, size):
                     font-family: Custom, Emoji, Segoe UI, Segoe UI Historic, Segoe UI Emoji, sans-serif;
                     font-size: {size}px;
                     overflow: hidden;
-                    line-height: 500px;
+                    line-height: 350px;
                     white-space: nowrap;
                     text-overflow: ellipsis;
                     text-align: left;
