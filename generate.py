@@ -87,16 +87,23 @@ MRankData = {
         "comments": format(x["comments"], ","),
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": (x["clicks"] + 1000000) / (x["clicks"] * 2),
-        "fix_b": (x["stows"] * 20 + x["yb"] * 10)
-        / (x["clicks"] + x["yb"] * 10 + x["comments"] * 50),
-        "fix_b_": (x["clicks"] * 50) / (x["clicks"] + x["comments"] * 50),
-        "fix_c": (x["comments"] * 50 + x["danmu"])
-        / (x["clicks"] * 2 + x["stows"] * 10 + x["yb"] * 20),
-        "fix_c_": (x["yb"] * 2000) / x["clicks"],
+        "fix_a": min((x["clicks"] + 1000000) / (x["clicks"] * 2), 1),
+        "fix_b": min(
+            (x["stows"] * 20 + x["yb"] * 10)
+            / (x["clicks"] + x["yb"] * 10 + x["comments"] * 50),
+            1,
+        ),
+        "fix_b_": int((x["clicks"] * 50) / (x["clicks"] + x["comments"] * 50) * 100)
+        / 100,
+        "fix_c": min(
+            (x["comments"] * 50 + x["danmu"])
+            / (x["clicks"] * 2 + x["stows"] * 10 + x["yb"] * 20),
+            1,
+        ),
+        "fix_c_": min((x["yb"] * 2000) / x["clicks"], 50),
         "fix_d": log10(max(x["comments"], 0) + max(x["danmu"], 0) + 10)
         / log10(max(x["clicks"], 0) + max(x["stows"], 0) + max(x["yb"], 0) + 10),
-        "fix_p": 4 / (x["part"] + 3),
+        "fix_p": int(4 / (x["part"] + 3) * 1000) / 1000,
         "last": str(x["last"]),
         "part": str(x["part"]),
         "pic": x["pic"],
@@ -129,16 +136,22 @@ BRankData = {
         "cover": x["cover"],
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": (x["click"] + 1000000) / (x["click"] * 2),
-        "fix_b": (x["stow"] * 20 + x["yb"] * 10)
-        / (x["click"] + x["yb"] * 10 + x["comm"] * 50),
-        "fix_b_": (x["click"] * 50) / (x["click"] + x["comm"] * 50),
-        "fix_c": (x["comm"] * 50 + x["danmu"])
-        / (x["click"] * 2 + x["stow"] * 10 + x["yb"] * 20),
-        "fix_c_": (x["yb"] * 2000) / x["click"],
+        "fix_a": min((x["click"] + 1000000) / (x["click"] * 2), 1),
+        "fix_b": min(
+            (x["stow"] * 20 + x["yb"] * 10)
+            / (x["click"] + x["yb"] * 10 + x["comm"] * 50),
+            1,
+        ),
+        "fix_b_": int((x["click"] * 50) / (x["click"] + x["comm"] * 50) * 100) / 100,
+        "fix_c": min(
+            (x["comm"] * 50 + x["danmu"])
+            / (x["click"] * 2 + x["stow"] * 10 + x["yb"] * 20),
+            1,
+        ),
+        "fix_c_": min((x["yb"] * 2000) / x["click"], 50),
         "fix_d": log10(max(x["comm"], 0) + max(x["danmu"], 0) + 10)
         / log10(max(x["click"], 0) + max(x["stow"], 0) + max(x["yb"], 0) + 10),
-        "fix_p": 4 / (x["part_count"] + 3),
+        "fix_p": int(4 / (x["part_count"] + 3) * 1000) / 1000,
         "last": str(x.get("last") if x.get("last") else 0),
         "part": str(x["part_count"]),
         "pic": x["pic"],
@@ -169,16 +182,19 @@ GRankData = {
         "cover": x["cover"],
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": (x["click"] + 1000000) / (x["click"] * 2),
+        "fix_a": min((x["click"] + 1000000) / (x["click"] * 2), 1),
         "fix_b": (x["stow"] * 20 + x["yb"] * 10)
         / (x["click"] + x["yb"] * 10 + x["comm"] * 50),
-        "fix_b_": (x["click"] * 50) / (x["click"] + x["comm"] * 50),
-        "fix_c": (x["comm"] * 50 + x["danmu"])
-        / (x["click"] * 2 + x["stow"] * 10 + x["yb"] * 20),
-        "fix_c_": (x["yb"] * 2000) / x["click"],
+        "fix_b_": int((x["click"] * 50) / (x["click"] + x["comm"] * 50) * 100) / 100,
+        "fix_c": min(
+            (x["comm"] * 50 + x["danmu"])
+            / (x["click"] * 2 + x["stow"] * 10 + x["yb"] * 20),
+            1,
+        ),
+        "fix_c_": min((x["yb"] * 2000) / x["click"], 50),
         "fix_d": log10(max(x["comm"], 0) + max(x["danmu"], 0) + 10)
         / log10(max(x["click"], 0) + max(x["stow"], 0) + max(x["yb"], 0) + 10),
-        "fix_p": 4 / (x["part_count"] + 3),
+        "fix_p": int(4 / (x["part_count"] + 3) * 1000) / 1000,
         "last": str(x.get("last") if x.get("last") else 0),
         "part": str(x["part_count"]),
         "pic": x["pic"],
