@@ -144,6 +144,26 @@ function BiliDown {
         Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 解析失败，跳过" -ForegroundColor Red
         return
     }
+    # 充电专属视频
+    if ($null -ne $VideoData.accept_description.IndexOf('试看')) {
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 充电专属视频" -ForegroundColor Green
+        $VideoMP4 = $VideoData.durl | Where-Object -Property 'order' -EQ 1 | Select-Object -ExpandProperty 'url'
+        Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 试看视频 $($VideoMP4)"
+        try {
+            $aria2cArgs = -join @('-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none '
+                "--summary-interval=0 --download-result=hide --console-log-level=notice ""$($VideoMP4)"" "
+                "--header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($ID).mp4"
+            )
+            Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - aria2c.exe $($aria2cArgs)"
+            Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 开始下载试看视频" -ForegroundColor Green
+            Start-Process -NoNewWindow -Wait -FilePath 'aria2c.exe' -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($CID)_.log"
+        } catch {
+            New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType 'file' -Value '' -Force
+        }
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 清理临时文件`n" -ForegroundColor Green
+        Remove-Item "$($DownloadFolder)/$($CID)_*.*"
+        return
+    }
     $AudioID = $VideoData.dash.audio.id | Measure-Object -Maximum | Select-Object -ExpandProperty 'Maximum'
     $AudioDASH = $VideoData.dash.audio | Where-Object -Property 'id' -EQ $AudioID | Select-Object -ExpandProperty 'baseUrl'
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 音频流 $($AudioID) $($AudioDASH)"
