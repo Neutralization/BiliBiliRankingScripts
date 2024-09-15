@@ -438,8 +438,8 @@ def SubRank(rtype):
     if rtype == 1:
         LastRankNum = int(MRank[0]["rank_from"])
         SScoreRankData = {
-            int(v["score_rank"]): v
-            for v in MRankData.values()
+            n + 1: v
+            for n, v in enumerate(MRankData.values())
             if v["sp_type_id"] is None and int(v["score_rank"]) > LastRankNum
         }
         PageNum = 30
