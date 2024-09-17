@@ -767,6 +767,8 @@ AddVideoProperty(SubRankText, 1, 0.6, 4, 1);
 AddVideoProperty(SubRankText, 1, 0.6, 9.3, 2);
 AddVideoProperty(EDInfoText, 1, 0.6, 4, 1);
 AddVideoProperty(EDInfoText, 1, 0.6, 9.3, 2);
+AddVideoProperty(EDInfoTextShadow, 1, 0.6, 4, 1);
+AddVideoProperty(EDInfoTextShadow, 1, 0.6, 9.3, 2);
 AddrLayer = AddLayer(Part_18, '插入素材', 5, EDAudioLength - 10);
 AddVideoProperty(AddrLayer, 1, 0.6, EDAudioLength - 10, 1);
 AddVideoProperty(AddrLayer, 1, 0.6, EDAudioLength - 5.6, 2);
