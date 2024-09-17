@@ -90,13 +90,15 @@ function EDNormalize {
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($AudioData)"
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($Source)"
-    $VideoArg = -join @(
+    $EncodeArg = -join @(
         "-y -hide_banner -loglevel error -i ""./ranking/2_ed/$($FileName)"" "
+        '-i "./ranking/2_ed/Cover.jpg" -map 0:0 -map 1:0 '
+        '-id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" '
         "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "
         '-c:a libmp3lame -q:a 0 "./ranking/2_ed/ed.mp3"'
     )
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 音频标准化" -ForegroundColor Green
-    Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $VideoArg
+    Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $EncodeArg
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 操作完成`n" -ForegroundColor Green
 }
 
