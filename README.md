@@ -8,8 +8,8 @@
     > 支持版本 CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/2019/2020/2021/2022/2023/2024  
     需要在 AE 首选项中打开`允许脚本写入文件和访问网络`
 - [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) / [Voukoder Pro / Classic](https://www.voukoder.org/forum/thread/783-downloads-instructions/) & Adobe Aftereffects Connector
-- [aria2c](https://aria2.github.io/) / [FFmpeg](https://ffmpeg.org/) / [Edge WebDriver](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/)
-    > [winget](https://github.com/microsoft/winget-cli) install aria2.aria2 Gyan.FFmpeg.Shared Microsoft.EdgeDriver  
+- [aria2c](https://aria2.github.io/) / [FFmpeg](https://ffmpeg.org/) / [ChromeDriver](https://developer.chrome.com/docs/chromedriver/downloads?hl=zh-cn)
+    > [winget](https://github.com/microsoft/winget-cli) install aria2.aria2 Gyan.FFmpeg.Shared Chromium.ChromeDriver  
     > 其他方式需添加 `aria2c` `ffmpeg` `edgedriver` 路径到系统 `$PATH` 变量
 - [PowerShell](https://docs.microsoft.com/zh-cn/powershell/)
     > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块  
