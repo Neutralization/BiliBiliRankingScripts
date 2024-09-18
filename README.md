@@ -10,7 +10,7 @@
 - [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) / [Voukoder Pro / Classic](https://www.voukoder.org/forum/thread/783-downloads-instructions/) & Adobe Aftereffects Connector
 - [aria2c](https://aria2.github.io/) / [FFmpeg](https://ffmpeg.org/) / [ChromeDriver](https://developer.chrome.com/docs/chromedriver/downloads?hl=zh-cn)
     > [winget](https://github.com/microsoft/winget-cli) install aria2.aria2 Gyan.FFmpeg.Shared Chromium.ChromeDriver  
-    > 其他方式需添加 `aria2c` `ffmpeg` `edgedriver` 路径到系统 `$PATH` 变量
+    > 其他方式需添加 `aria2c` `ffmpeg` `chromedriver` 路径到系统 `$PATH` 变量
 - [PowerShell](https://docs.microsoft.com/zh-cn/powershell/)
     > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块  
     > Install-Module -Name powershell-yaml
