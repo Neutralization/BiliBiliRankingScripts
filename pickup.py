@@ -41,9 +41,10 @@ LOST_INFO = {
 }
 
 browser_options = Options()
-browser_options.add_argument("headless")
+browser_options.add_argument("--headless")
+browser_options.add_argument("--window-size=4096,500")
+browser_options.add_argument("--window-position=-2400,-2400")
 browser = Chrome(options=browser_options)
-browser.set_window_size(4096, 500)
 browser_command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
 browser_url = browser.command_executor._url + browser_command
 browser_data = json.dumps(
