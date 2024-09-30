@@ -3,3 +3,4 @@ Pillow
 PyYAML
 requests
 selenium
+webdriver-manager

@@ -13,6 +13,8 @@ import requests
 from PIL import Image, ImageDraw, ImageFont
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
 from yaml import dump
 
 from constant import (
@@ -62,7 +64,9 @@ browser_options = Options()
 browser_options.add_argument("--headless")
 browser_options.add_argument("--window-size=4096,500")
 browser_options.add_argument("--window-position=-2400,-2400")
-browser = Chrome(options=browser_options)
+browser = Chrome(
+    service=ChromeService(ChromeDriverManager().install()), options=browser_options
+)
 browser_command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
 browser_url = browser.command_executor._url + browser_command
 browser_data = json.dumps(
@@ -824,7 +828,9 @@ def text2img(name, text, font, emoji, color, size):
                     text-overflow: ellipsis;
                     text-align: left;
                     color: {color};
-                    padding: 0px 20px 0px 20px;
+                    margin: 0px;
+                    padding: 10px;
+                    display: block;
                 }}
             </style>
         </head>

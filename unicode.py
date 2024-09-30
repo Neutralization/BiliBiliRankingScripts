@@ -5,8 +5,12 @@ from os import remove
 from os.path import abspath
 
 from PIL import Image
-from selenium.webdriver import Edge
-from selenium.webdriver.edge.options import Options
+from selenium.webdriver import Chrome
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+
+from constant import SEGOE_UI_EMOJI, STYUAN
 
 
 def text2img(browser, name, text, font, emoji, color, size):
@@ -30,7 +34,9 @@ def text2img(browser, name, text, font, emoji, color, size):
                     text-overflow: ellipsis;
                     text-align: left;
                     color: {color};
-                    padding: 0px 20px 0px 20px;
+                    margin: 0px;
+                    padding: 10px;
+                    display: block;
                 }}
             </style>
         </head>
@@ -66,9 +72,12 @@ def crop(name):
 
 def main(filename, content, font, color, size):
     browser_options = Options()
-    browser_options.add_argument("headless")
-    browser = Edge(options=browser_options)
-    browser.set_window_size(2560, 500)
+    browser_options.add_argument("--headless")
+    browser_options.add_argument("--window-size=2560,500")
+    browser_options.add_argument("--window-position=-2400,-2400")
+    browser = Chrome(
+        service=ChromeService(ChromeDriverManager().install()), options=browser_options
+    )
     command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
     url = browser.command_executor._url + command
     data = json.dumps(
@@ -79,7 +88,7 @@ def main(filename, content, font, color, size):
     )
     browser.command_executor._request("POST", url, data)
 
-    emoji_font = abspath("./footage/Noto Emoji.ttf").replace("\\", "/")
+    emoji_font = abspath(SEGOE_UI_EMOJI).replace("\\", "/")
     text_font = abspath(font).replace("\\", "/")
     text2img(browser, filename, content, text_font, emoji_font, color, size)
     crop(filename)
@@ -92,7 +101,7 @@ if __name__ == "__main__":
     main(
         "test",
         "【𝟒𝐊 𝟔𝟎𝐅𝐏𝐒】这首《𝑭𝒂𝒍𝒍𝒊𝒏𝒈 𝑨𝒈𝒂𝒊𝒏》如今治愈了多少人！！! ℳ₯㎕-沉 沦",
-        "./footage/华文圆体粗体_[STYuanBold].ttf",
+        STYUAN,
         "#6D4B2B",
         54,
     )
