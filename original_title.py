@@ -5,7 +5,7 @@ from functools import reduce
 
 import requests
 
-from constant import WEEKS, UA, av2bv
+from constant import UA, WEEKS, av2bv
 
 
 def getVideoTitle(aid):
