@@ -2,12 +2,11 @@
 
 import re
 from math import ceil
+from os import remove
+from os.path import abspath
+from unicodedata import combining, normalize
 
 import arrow
-from os import remove
-from generate import text2img
-from unicodedata import combining, normalize
-from os.path import abspath
 import requests
 from PIL import Image, ImageDraw, ImageFont
 from yaml import BaseLoader
@@ -18,15 +17,16 @@ from constant import (
     C_6D4B2B,
     C_FFFFFF,
     CONTROL,
-    HANNOTATESC_W5,
-    HUAWENYUANTI_BOLD,
-    HYQIHEI_AZEJ,
+    HANNOTATE_SC,
+    HYQIHEI_105J,
     REDFM,
     SEGOE_UI_EMOJI,
-    STYUANTI_SC_BOLD,
+    STYUAN,
     TOP100IMG,
+    YUANTI_SC,
     YUME,
 )
+from generate import text2img
 
 LOST_INFO = {
     "443580160": {
@@ -92,12 +92,12 @@ def GetInfo(aid):
 
 
 def Single(Avid, Week):
-    Author_F = ImageFont.truetype(HANNOTATESC_W5, 32)
-    Bid_F = ImageFont.truetype(STYUANTI_SC_BOLD, 42)
-    Cata_F = ImageFont.truetype(STYUANTI_SC_BOLD, 36)
-    Week_F = ImageFont.truetype(HYQIHEI_AZEJ, 41)
-    YearCount_F = ImageFont.truetype(HYQIHEI_AZEJ, 20)
-    RankTime_F = ImageFont.truetype(HUAWENYUANTI_BOLD, 38)
+    Author_F = ImageFont.truetype(HANNOTATE_SC, 32)
+    Bid_F = ImageFont.truetype(YUANTI_SC, 42)
+    Cata_F = ImageFont.truetype(YUANTI_SC, 36)
+    Week_F = ImageFont.truetype(HYQIHEI_105J, 41)
+    YearCount_F = ImageFont.truetype(HYQIHEI_105J, 20)
+    RankTime_F = ImageFont.truetype(STYUAN, 38)
     UpTime_F = Cata_F
     AllData = GetInfo(Avid)
     if AllData is None:
@@ -133,7 +133,7 @@ def Single(Avid, Week):
     TImg = text2img(
         Aid,
         RegexTitle,
-        abspath(HUAWENYUANTI_BOLD).replace("\\", "/"),
+        abspath(STYUAN).replace("\\", "/"),
         abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
         C_6D4B2B,
         54,

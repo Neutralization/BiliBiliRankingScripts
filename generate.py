@@ -28,12 +28,11 @@ from constant import (
     CONTROL,
     DOWNIMG,
     DRAWIMG,
-    FZY4K_GBK1_0,
-    HANNOTATESC_W5,
+    FZCUYUAN_M03,
+    HANNOTATE_SC,
     HISTORYRANKIMG,
     HISTORYRECORDIMG,
-    HUAWENYUANTI_BOLD,
-    HYM2GJ,
+    HYHEIMIJ,
     LONGIMG,
     LONGTIMEIMG,
     MAINRANKIMG,
@@ -42,12 +41,13 @@ from constant import (
     STATONEIMG,
     STATTHREEIMG,
     STATTWOIMG,
-    STYUANTI_SC_BOLD,
+    STYUAN,
     SUBBANGUMIRANKIMG,
     SUBRANKIMG,
     TOPIMG,
     UPIMG,
     WEEKS,
+    YUANTI_SC,
     av2bv,
 )
 
@@ -250,16 +250,16 @@ def Resource(bid, link, name):
 
 def Single(args):
     bid, rtype = args
-    Author_F = ImageFont.truetype(HANNOTATESC_W5, 32)
-    Bid_F = ImageFont.truetype(STYUANTI_SC_BOLD, 42)
-    BiDataRank_F = ImageFont.truetype(HANNOTATESC_W5, 26)
-    Cata_F = ImageFont.truetype(STYUANTI_SC_BOLD, 36)
-    DataFix_F = ImageFont.truetype(STYUANTI_SC_BOLD, 32)
-    HisRank_F = ImageFont.truetype(STYUANTI_SC_BOLD, 72)
-    Invalid_F = ImageFont.truetype(FZY4K_GBK1_0, 48)
-    LastRank_F = ImageFont.truetype(HANNOTATESC_W5, 36)
-    Score_F = ImageFont.truetype(STYUANTI_SC_BOLD, 52)
-    ScoreRank_F = ImageFont.truetype(HYM2GJ, 150)
+    Author_F = ImageFont.truetype(HANNOTATE_SC, 32)
+    Bid_F = ImageFont.truetype(YUANTI_SC, 42)
+    BiDataRank_F = ImageFont.truetype(HANNOTATE_SC, 26)
+    Cata_F = ImageFont.truetype(YUANTI_SC, 36)
+    DataFix_F = ImageFont.truetype(YUANTI_SC, 32)
+    HisRank_F = ImageFont.truetype(YUANTI_SC, 72)
+    Invalid_F = ImageFont.truetype(FZCUYUAN_M03, 48)
+    LastRank_F = ImageFont.truetype(HANNOTATE_SC, 36)
+    Score_F = ImageFont.truetype(YUANTI_SC, 52)
+    ScoreRank_F = ImageFont.truetype(HYHEIMIJ, 150)
     Part_F = BiDataRank_F
     Data_F = UpTime_F = Cata_F
     Aid = AllData[bid]["av"]
@@ -299,7 +299,7 @@ def Single(args):
     TImg = text2img(
         Aid,
         RegexTitle,
-        abspath(HUAWENYUANTI_BOLD).replace("\\", "/"),
+        abspath(STYUAN).replace("\\", "/"),
         abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
         C_6D4B2B,
         54,
@@ -414,9 +414,7 @@ def Single(args):
 
     if rtype:
         RankPaper.text((1710, 983), BFix_, C_EAAA7D, DataFix_F)
-        RankPaper.text(
-            (1810, 418), DFix, C_FFFFFF, ImageFont.truetype(STYUANTI_SC_BOLD, 22)
-        )
+        RankPaper.text((1810, 418), DFix, C_FFFFFF, ImageFont.truetype(YUANTI_SC, 22))
     RankPaper.text((1837, 492), ClickRank, C_EAAA7D, BiDataRank_F)
     RankPaper.text((1837, 635), CommentRank, C_EAAA7D, BiDataRank_F)
     if rtype:
@@ -472,13 +470,13 @@ def SubRank(rtype):
         SImg = Image.open(SUBRANKIMG) if rtype <= 2 else Image.open(SUBBANGUMIRANKIMG)
         SPaper = ImageDraw.Draw(SImg)
         for j in range(4):
-            SBid_F = ImageFont.truetype(STYUANTI_SC_BOLD, 32)
-            SBiDataRank_F = ImageFont.truetype(STYUANTI_SC_BOLD, 32)
-            SData_F = ImageFont.truetype(STYUANTI_SC_BOLD, 40)
-            SLastRank_F = ImageFont.truetype(STYUANTI_SC_BOLD, 34)
-            SScore_F = ImageFont.truetype(STYUANTI_SC_BOLD, 45)
-            SScoreRank_F = ImageFont.truetype(HYM2GJ, 48)
-            SUpTime_F = ImageFont.truetype(STYUANTI_SC_BOLD, 37)
+            SBid_F = ImageFont.truetype(YUANTI_SC, 32)
+            SBiDataRank_F = ImageFont.truetype(YUANTI_SC, 32)
+            SData_F = ImageFont.truetype(YUANTI_SC, 40)
+            SLastRank_F = ImageFont.truetype(YUANTI_SC, 34)
+            SScore_F = ImageFont.truetype(YUANTI_SC, 45)
+            SScoreRank_F = ImageFont.truetype(HYHEIMIJ, 48)
+            SUpTime_F = ImageFont.truetype(YUANTI_SC, 37)
             k = LastRankNum + 4 * i + j + 1
             if SScoreRankData.get(k) is None:
                 continue
@@ -517,7 +515,7 @@ def SubRank(rtype):
             STImg = text2img(
                 SBid,
                 SRegexTitle,
-                abspath(HUAWENYUANTI_BOLD).replace("\\", "/"),
+                abspath(STYUAN).replace("\\", "/"),
                 abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
                 C_6D4B2B,
                 52,
@@ -573,10 +571,10 @@ def SubRank(rtype):
 
 
 def Stat():
-    ACata_F = ImageFont.truetype(FZY4K_GBK1_0, 43)
-    ALastStat_F = ImageFont.truetype(STYUANTI_SC_BOLD, 31)
-    ARank_F = ImageFont.truetype(STYUANTI_SC_BOLD, 35)
-    AStat_F = ImageFont.truetype(STYUANTI_SC_BOLD, 38)
+    ACata_F = ImageFont.truetype(FZCUYUAN_M03, 43)
+    ALastStat_F = ImageFont.truetype(YUANTI_SC, 31)
+    ARank_F = ImageFont.truetype(YUANTI_SC, 35)
+    AStat_F = ImageFont.truetype(YUANTI_SC, 38)
     AScore_F = ARank_F
     AImg_1 = Image.open(STATONEIMG)
     AImg_2 = Image.open(STATTWOIMG)
@@ -678,8 +676,8 @@ def MainRank():
 
 
 def Opening():
-    MTitle_F = ImageFont.truetype(HYM2GJ, 52)
-    MWeek_F = ImageFont.truetype(HYM2GJ, 128)
+    MTitle_F = ImageFont.truetype(HYHEIMIJ, 52)
+    MWeek_F = ImageFont.truetype(HYHEIMIJ, 128)
     MTitle = f"{MRank[0]['name']}"
     MWeek = f"#{MRank[0]['id']}"
     MImg = Image.open(MAINTITLEIMG)
@@ -692,8 +690,8 @@ def Opening():
 
 
 def LongTerm():
-    LTitle_F = ImageFont.truetype(HYM2GJ, 216)
-    LongTerm_F = ImageFont.truetype(HANNOTATESC_W5, 45)
+    LTitle_F = ImageFont.truetype(HYHEIMIJ, 216)
+    LongTerm_F = ImageFont.truetype(HANNOTATE_SC, 45)
     LastRankNum = int(MRank[0]["rank_from"])
     LTitle = f"{LastRankNum}-21"
     LongTerm_ = (
@@ -709,8 +707,8 @@ def LongTerm():
 
 
 def History():
-    HUpTime_F = ImageFont.truetype(HANNOTATESC_W5, 44)
-    HCount_F = ImageFont.truetype(HANNOTATESC_W5, 45)
+    HUpTime_F = ImageFont.truetype(HANNOTATE_SC, 44)
+    HCount_F = ImageFont.truetype(HANNOTATE_SC, 45)
     HCount = f"该期集计投稿数：{format(HRank[0]['count'], ',')}"
     HUpTime = f"{HRank[0]['name']} (av{HRank[0]['wid']})"
     HImg = Image.open(HISTORYRECORDIMG)
@@ -723,8 +721,8 @@ def History():
 
 
 def Top():
-    Top_F = ImageFont.truetype(HYM2GJ, 390)
-    Diff_F = ImageFont.truetype(HANNOTATESC_W5, 45)
+    Top_F = ImageFont.truetype(HYHEIMIJ, 390)
+    Diff_F = ImageFont.truetype(HANNOTATE_SC, 45)
     TopData = {
         int(v["score_rank"]): (k, v["score"], v["bv"])
         for k, v in MRankData.items()

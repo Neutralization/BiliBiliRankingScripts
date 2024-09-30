@@ -18,13 +18,13 @@ from constant import (
     C_6D4B2B,
     C_FFFFFF,
     CONTROL,
-    HANNOTATESC_W5,
-    HUAWENYUANTI_BOLD,
+    HANNOTATE_SC,
     PICKUPIMG,
     SEGOE_UI_EMOJI,
-    STYUANTI_SC_BOLD,
-    WEEKS,
+    STYUAN,
     UA,
+    WEEKS,
+    YUANTI_SC,
     av2bv,
     bv2av,
 )
@@ -87,9 +87,9 @@ def GetInfo(aid):
 
 
 def Single(Avid):
-    Author_F = ImageFont.truetype(HANNOTATESC_W5, 32)
-    Bid_F = ImageFont.truetype(STYUANTI_SC_BOLD, 42)
-    Cata_F = ImageFont.truetype(STYUANTI_SC_BOLD, 36)
+    Author_F = ImageFont.truetype(HANNOTATE_SC, 32)
+    Bid_F = ImageFont.truetype(YUANTI_SC, 42)
+    Cata_F = ImageFont.truetype(YUANTI_SC, 36)
     UpTime_F = Cata_F
     AllData = GetInfo(Avid)
     if AllData is None:
@@ -111,7 +111,7 @@ def Single(Avid):
     TImg = text2img(
         Aid,
         RegexTitle,
-        abspath(HUAWENYUANTI_BOLD).replace("\\", "/"),
+        abspath(STYUAN).replace("\\", "/"),
         abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
         C_6D4B2B,
         54,
