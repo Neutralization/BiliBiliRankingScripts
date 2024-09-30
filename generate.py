@@ -3,10 +3,10 @@
 import csv
 import json
 import re
+from math import log10
 from os import remove
 from os.path import abspath, exists
 from unicodedata import combining, normalize
-from math import log10
 
 import arrow
 import requests

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import arrow
 from math import floor
+
+import arrow
 
 YUME = 1277009809
 WEEKS = floor(
