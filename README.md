@@ -5,9 +5,9 @@
 ## 工作环境 (Windows 10/11)
 
 - [Adobe After Effects](https://www.adobe.com/products/aftereffects.html)
-    > 支持版本 CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/2019/2020/2021/2022/2023/2024  
+    > 支持版本 CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/2019/2020/2021/2022/2023/2024/2025  
     需要在 AE 首选项中打开`允许脚本写入文件和访问网络`
-- [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) / [Voukoder Pro / Classic](https://www.voukoder.org/forum/thread/783-downloads-instructions/) & Adobe Aftereffects Connector
+- [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) / [Voukoder](https://www.voukoder.org/forum/thread/783-downloads-instructions/)
 - [aria2c](https://aria2.github.io/) / [FFmpeg](https://ffmpeg.org/) / [ChromeDriver](https://developer.chrome.com/docs/chromedriver/downloads?hl=zh-cn)
     > [winget](https://github.com/microsoft/winget-cli) install aria2.aria2 Gyan.FFmpeg.Shared Chromium.ChromeDriver  
     > 其他方式需添加 `aria2c` `ffmpeg` `chromedriver` 路径到系统 `$PATH` 变量
