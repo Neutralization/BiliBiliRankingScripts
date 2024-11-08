@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
 import re
 from os import remove
 from os.path import abspath
@@ -49,15 +48,10 @@ browser_options.add_argument("--window-position=-2400,-2400")
 browser = Chrome(
     service=ChromeService(ChromeDriverManager().install()), options=browser_options
 )
-browser_command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
-browser_url = browser.command_executor._url + browser_command
-browser_data = json.dumps(
-    {
-        "cmd": "Emulation.setDefaultBackgroundColorOverride",
-        "params": {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
-    }
+browser.execute_cdp_cmd(
+    "Emulation.setDefaultBackgroundColorOverride",
+    {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
 )
-browser.command_executor._request("POST", browser_url, browser_data)
 
 
 def GetInfo(aid):

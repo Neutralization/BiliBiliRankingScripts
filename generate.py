@@ -67,15 +67,10 @@ browser_options.add_argument("--window-position=-2400,-2400")
 browser = Chrome(
     service=ChromeService(ChromeDriverManager().install()), options=browser_options
 )
-browser_command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
-browser_url = browser.command_executor._url + browser_command
-browser_data = json.dumps(
-    {
-        "cmd": "Emulation.setDefaultBackgroundColorOverride",
-        "params": {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
-    }
+browser.execute_cdp_cmd(
+    "Emulation.setDefaultBackgroundColorOverride",
+    {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
 )
-browser.command_executor._request("POST", browser_url, browser_data)
 
 MRankData = {
     x["wid"]: {
@@ -561,17 +556,17 @@ def SubRank(rtype):
             SPaper.text((820, 205 + j * 259), SUpTime, C_BCA798, SUpTime_F)
             SPaper.text((1244, 205 + j * 259), SLastRank, C_BCA798, SLastRank_F)
         if rtype == 1:
-            SImg.save(f"./ranking/list2/{i+1:0>3}.png")
-            print(f"./ranking/list2/{i+1:0>3}.png")
+            SImg.save(f"./ranking/list2/{i + 1:0>3}.png")
+            print(f"./ranking/list2/{i + 1:0>3}.png")
         elif rtype == 2:
-            SImg.save(f"./ranking/list3/tv_{i+1:0>3}.png")
-            print(f"./ranking/list3/tv_{i+1:0>3}.png")
+            SImg.save(f"./ranking/list3/tv_{i + 1:0>3}.png")
+            print(f"./ranking/list3/tv_{i + 1:0>3}.png")
         elif rtype == 3:
-            SImg.save(f"./ranking/list4/bangumi_{i+1:0>3}.png")
-            print(f"./ranking/list4/bangumi_{i+1:0>3}.png")
+            SImg.save(f"./ranking/list4/bangumi_{i + 1:0>3}.png")
+            print(f"./ranking/list4/bangumi_{i + 1:0>3}.png")
         elif rtype == 4:
-            SImg.save(f"./ranking/list4/bangumi_{i+4:0>3}.png")
-            print(f"./ranking/list4/bangumi_{i+4:0>3}.png")
+            SImg.save(f"./ranking/list4/bangumi_{i + 4:0>3}.png")
+            print(f"./ranking/list4/bangumi_{i + 4:0>3}.png")
 
 
 def Stat():
@@ -740,9 +735,9 @@ def Top():
         Diff = int(TopData[t + 1][1].replace(",", "")) - int(
             TopData[t + 2][1].replace(",", "")
         )
-        DiffText = f"比第{t+2}名高出{format(Diff, ',')}pts."
+        DiffText = f"比第{t + 2}名高出{format(Diff, ',')}pts."
         TPaper.text(
-            (603 - Top_F.getlength(f"{t+1}") / 2, 318), f"{t+1}", C_FFFFFF, Top_F
+            (603 - Top_F.getlength(f"{t + 1}") / 2, 318), f"{t + 1}", C_FFFFFF, Top_F
         )
         TPaper.text(
             (609 - Diff_F.getlength(DiffText) / 2, 722), DiffText, C_FFFFFF, Diff_F
@@ -789,7 +784,7 @@ def MakeYaml(file, max, min, part):
 
     # print(dump(yamlcontent[::-1], sort_keys=False))
     with open(f"./ranking/list1/{WEEKS}_{part}.yml", "w") as f:
-        f.write(f"---\n{dump(yamlcontent[::-1],sort_keys=False)}")
+        f.write(f"---\n{dump(yamlcontent[::-1], sort_keys=False)}")
 
     with open(f"./{WEEKS}_rankdoor.csv", "a", newline="", encoding="utf-8-sig") as f:
         writer = csv.writer(f)

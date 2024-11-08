@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
 from os import remove
 from os.path import abspath
 
@@ -78,15 +77,10 @@ def main(filename, content, font, color, size):
     browser = Chrome(
         service=ChromeService(ChromeDriverManager().install()), options=browser_options
     )
-    command = f"/session/{browser.session_id}/chromium/send_command_and_get_result"
-    url = browser.command_executor._url + command
-    data = json.dumps(
-        {
-            "cmd": "Emulation.setDefaultBackgroundColorOverride",
-            "params": {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
-        }
+    browser.execute_cdp_cmd(
+        "Emulation.setDefaultBackgroundColorOverride",
+        {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
     )
-    browser.command_executor._request("POST", url, data)
 
     emoji_font = abspath(SEGOE_UI_EMOJI).replace("\\", "/")
     text_font = abspath(font).replace("\\", "/")
