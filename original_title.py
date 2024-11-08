@@ -30,7 +30,7 @@ def getVideoTitle(aid):
     )
     result = json.loads(resp.content)
     errorcode = result.get("code")
-    codemsg = {-404: "管理员锁定", 62002: "用户自删除"}
+    codemsg = {-404: "管理员锁定", 62002: "用户自删除", 62012: "用户仅自见"}
     if errorcode == 0:
         title = result["data"]["title"]
         return {aid: title}
