@@ -113,7 +113,7 @@ function BiliDown {
     $CID = $Pages.data | Where-Object -Property 'page' -EQ $Part | Select-Object -ExpandProperty 'cid'
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 获取 CID $($CID)"
     
-    $CCsub = "https://api.bilibili.com/x/player/v2?aid=$($AID)&cid=$($CID)"
+    $CCsub = "https://api.bilibili.com/x/player/wbi/v2?aid=$($AID)&cid=$($CID)&isGaiaAvoided=false"
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - API $($CCsub)"
     $SubData = Invoke-WebRequest -UseBasicParsing -Uri $CCsub -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     if ($null -ne $SubData.data.subtitle.subtitles[0].subtitle_url -and $SubData.data.subtitle.subtitles[0].lan -notmatch 'ai-') {
