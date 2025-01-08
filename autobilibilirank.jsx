@@ -28,7 +28,8 @@ for (n = 0; n < Parts.length; n++) {
     RankDataList[RankDataList.length] = JSON.parse(RankList);
 }
 app.newProject();
-app.project.workingSpace = 'Rec.709 Gamma 2.4';
+app.project.expressionEngine = 'javascript-1.0';
+app.project.workingSpace = 'sRGB IEC61966-2.1';
 app.project.bitsPerChannel = 8;
 FinalComp = app.project.items.addComp('周刊哔哩哔哩排行榜#' + WEEK_NUM, CompSize[0], CompSize[1], 1, 1, CompFPS);
 Part_1 = app.project.items.addComp('Part_1', CompSize[0], CompSize[1], 1, 40.5, CompFPS);
