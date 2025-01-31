@@ -387,6 +387,32 @@ function Set-MasterPiece {
     }
 }
 
+function Set-TopVideo {
+    param (
+        [parameter(position = 1)]$AVID
+    )
+    $AID = $AVID.Substring(2)
+    $Body = @{
+        'aid'    = $AID
+        'reason' = ''
+        'csrf'   = $CSRF
+    }
+    $Result = (
+        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/top/arc/set' `
+            -Method Post `
+            -WebSession $Session `
+            -Headers $Headers `
+            -ContentType 'application/x-www-form-urlencoded' `
+            -Body $Body
+    ).Content | ConvertFrom-Json
+    if ($Result.message -ne 0) {
+        Write-Host $Result.message
+        return 1
+    } else {
+        Write-Host "设置空间置顶 av$($AID) 成功"
+    }
+}
+
 function Main {
     $FIDData = Get-FIDList
     $SelfAID = Get-SelfAID
@@ -398,6 +424,7 @@ function Main {
         Add-Favourite $FIDData['周刊 Pickup'] $_
     }
     Set-MasterPiece $SelfAID
+    Set-TopVideo $SelfAID
     $RankList = Get-RankList
     $ROOT = Add-Reply $SelfAID '0' $RankList[0]
     Start-Sleep -Seconds 1
