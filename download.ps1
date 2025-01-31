@@ -28,7 +28,7 @@ $Headers = @{
     'User-Agent' = $UserAgent
 }
 
-function ABconvert {
+function ConvertTo-AID {
     param (
         [parameter(position = 1)]$Source,
         [parameter(position = 2)]$Target = $true
@@ -94,11 +94,11 @@ function BiliDown {
 
     if ($ID -match '^[aA]') {
         $AID = $ID.Substring(2)
-        $BID = ABconvert $AID $false
+        $BID = ConvertTo-AID $AID $false
         $ID = "av$($AID)"
     } elseif ($ID -match '^[bB]') {
-        $AID = ABconvert $ID $true
-        $BID = ABconvert $AID $false
+        $AID = ConvertTo-AID $ID $true
+        $BID = ConvertTo-AID $AID $false
         $ID = $BID
     } else {
         exit
