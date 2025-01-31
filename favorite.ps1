@@ -25,6 +25,7 @@ if (Test-Path $CookieFile) {
 }
 $CSRF = $Session.Cookies.GetCookies('https://www.bilibili.com')['bili_jct'].Value
 $Headers = @{'User-Agent' = $UserAgent }
+$MID = 398300398
 
 function ConvertTo-AID {
     param (
@@ -121,8 +122,7 @@ function Add-TimeStamp {
             -WebSession $Session `
             -Headers $Headers `
             -ContentType 'application/x-www-form-urlencoded' `
-            -Body $Body `
-
+            -Body $Body
     ).Content | ConvertFrom-Json
     if ($Result.message -ne 0) {
         Write-Host $Result.message
@@ -135,7 +135,7 @@ function Add-TimeStamp {
 function Get-FIDList {
     $FIDData = @{}
     $Result = (
-        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=398300398&jsonp=jsonp' `
+        Invoke-WebRequest -Uri "https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=$($MID)&jsonp=jsonp" `
             -Headers $Headers
     ).Content | ConvertFrom-Json
     $Result.data.list | ForEach-Object {
@@ -145,10 +145,6 @@ function Get-FIDList {
 }
 
 function Get-SelfAID {
-    param (
-        [string]$RankNum = [Math]::Floor(
-        ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
-    )
     $Body = @{
         'status'      = 'is_pubing,pubed,not_pubed'
         'pn'          = '1'
@@ -328,6 +324,69 @@ function Get-RankList {
     return $RankList
 }
 
+function Set-MasterPiece {
+    param (
+        [parameter(position = 1)]$AVID
+    )
+    $AID = $AVID.Substring(2)
+    $Body = @{
+        'vmid' = $MID
+    }
+    $Result = (
+        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/masterpiece' `
+            -Body $Body `
+            -WebSession $Session `
+            -Headers $Headers
+    ).Content | ConvertFrom-Json
+    if ($Result.message -ne 0) {
+        Write-Host $Result.message
+        return 1
+    } else {
+        $BeforeAID = $Result.data | Where-Object -Property 'title' -Like '*周刊哔哩哔哩排行榜*' | Select-Object -ExpandProperty 'aid'
+        if ($null -eq $BeforeAID) {
+            Write-Host '目前没有代表作'
+        } else {
+            Write-Host "目前代表作 av$($BeforeAID)"
+            $Body = @{
+                'aid'  = $BeforeAID
+                'csrf' = $CSRF
+            }
+            $Result = (
+                Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/masterpiece/cancel' `
+                    -Method Post `
+                    -WebSession $Session `
+                    -Headers $Headers `
+                    -ContentType 'application/x-www-form-urlencoded' `
+                    -Body $Body
+            ).Content | ConvertFrom-Json
+            if ($Result.message -ne 0) {
+                Write-Host $Result.message
+                return 1
+            } else {
+                Write-Host "取消代表作 av$($BeforeAID) 成功"
+            }
+        }
+        $Body = @{
+            'aid'  = $AID
+            'csrf' = $CSRF
+        }
+        $Result = (
+            Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/masterpiece/add' `
+                -Method Post `
+                -WebSession $Session `
+                -Headers $Headers `
+                -ContentType 'application/x-www-form-urlencoded' `
+                -Body $Body
+        ).Content | ConvertFrom-Json
+        if ($Result.message -ne 0) {
+            Write-Host $Result.message
+            return 1
+        } else {
+            Write-Host "设置新代表作 av$($AID) 成功"
+        }
+    }
+}
+
 function Main {
     $FIDData = Get-FIDList
     $SelfAID = Get-SelfAID
@@ -338,6 +397,7 @@ function Main {
     Get-Ranking 3 | ForEach-Object {
         Add-Favourite $FIDData['周刊 Pickup'] $_
     }
+    Set-MasterPiece $SelfAID
     $RankList = Get-RankList
     $ROOT = Add-Reply $SelfAID '0' $RankList[0]
     Start-Sleep -Seconds 1
