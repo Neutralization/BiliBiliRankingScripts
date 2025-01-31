@@ -3,34 +3,30 @@ param (
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 )
 $ProgressPreference = 'SilentlyContinue'
+$TruePath = Split-Path $MyInvocation.MyCommand.Path
+$CookieFile = "$($TruePath)/cookies.txt"
+$StampFile = "$($TruePath)/stamp.json"
+$ReplyFile = "$($TruePath)/$($RankNum)_rankdoor.csv"
+$UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-$Cookie = Get-Content -Path './cookies.txt'
-$Cookie | ForEach-Object {
-    if (!$_.StartsWith('#') -and $_.StartsWith('.bilibili.com')) {
-        $Single = $_.Split("`t")
-        $SingleCookie = New-Object System.Net.Cookie
-        $SingleCookie.Name = $Single[5]
-        $SingleCookie.Value = $Single[6]
-        $SingleCookie.Domain = "member$($Single[0])"
-        $Session.Cookies.Add($SingleCookie)
+$Session.UserAgent = $UserAgent
+if (Test-Path $CookieFile) {
+    $Cookies = Get-Content -Path $CookieFile
+    $Cookies | ForEach-Object {
+        if (!$_.StartsWith('#') -and $_.StartsWith('.bilibili.com')) {
+            $Cookie = $_.Split("`t")
+            $Name = $Cookie[5]
+            $Value = $Cookie[6]
+            $Path = $Cookie[2]
+            $Domain = $Cookie[0]
+            $Session.Cookies.Add((New-Object System.Net.Cookie($Name, $Value, $Path, $Domain)))
+        }
     }
 }
-$Headers = @{
-    'Accept'           = 'application/json, text/javascript, */*; q=0.01'
-    'Accept-Language'  = 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2'
-    'Accept-Encoding'  = 'gzip, deflate, br'
-    'X-Requested-With' = 'XMLHttpRequest'
-    'DNT'              = '1'
-    'Connection'       = 'keep-alive'
-    'Referer'          = 'https://member.bilibili.com/platform/upload-manager/article'
-    'Sec-Fetch-Dest'   = 'empty'
-    'Sec-Fetch-Mode'   = 'cors'
-    'Sec-Fetch-Site'   = 'same-origin'
-    'TE'               = 'trailers'
-}
-$Headers.Add('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0')
+$CSRF = $Session.Cookies.GetCookies('https://www.bilibili.com')['bili_jct'].Value
+$Headers = @{'User-Agent' = $UserAgent }
 
-function ABconvert {
+function ConvertTo-AID {
     param (
         [parameter(position = 1)]$Source,
         [parameter(position = 2)]$Target = $true
@@ -88,33 +84,102 @@ function ABconvert {
     }
 }
 
-function AddFavourite {
+function Add-TimeStamp {
+    param (
+        [parameter(position = 1)]$AVID
+    )
+    $AID = $AVID.Substring(2)
+    $Body = @{
+        'aid' = $AID
+    }
+    $Result = (
+        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/web-interface/view' `
+            -Headers $Headers `
+            -Body $Body
+    ).Content | ConvertFrom-Json
+    if ($Result.message -ne 0) {
+        Write-Host $Result.message
+        return 1
+    } else {
+        $CID = $Result.data.pages[0].cid
+        Write-Host "取得视频 CID $($CID)"
+    }
+    $Stamp = Get-Content $StampFile -Encoding 'GB2312'
+    $StampString = $Stamp | ConvertFrom-Json | ConvertTo-Json -Compress
+    Write-Debug $StampString
+    $Body = @{
+        'aid'       = $AID
+        'cid'       = $CID
+        'type'      = '2'
+        'cards'     = $StampString
+        'permanent' = 'false'
+        'csrf'      = $CSRF
+    }
+    $Result = (
+        Invoke-WebRequest -Uri 'https://member.bilibili.com/x/web/card/submit' `
+            -Method Post `
+            -WebSession $Session `
+            -Headers $Headers `
+            -ContentType 'application/x-www-form-urlencoded' `
+            -Body $Body `
+
+    ).Content | ConvertFrom-Json
+    if ($Result.message -ne 0) {
+        Write-Host $Result.message
+        return 1
+    } else {
+        Write-Host '添加视频分段章节成功'
+    }
+}
+
+function Get-FIDList {
+    $FIDData = @{}
+    $Result = (
+        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=398300398&jsonp=jsonp' `
+            -Headers $Headers
+    ).Content | ConvertFrom-Json
+    $Result.data.list | ForEach-Object {
+        $FIDData[$_.title] = $_.id
+    }
+    return $FIDData
+}
+
+function Get-SelfAID {
+    param (
+        [string]$RankNum = [Math]::Floor(
+        ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
+    )
+    $Body = @{
+        'status'      = 'is_pubing,pubed,not_pubed'
+        'pn'          = '1'
+        'ps'          = '10'
+        'keyword'     = "周刊哔哩哔哩排行榜#$($RankNum)"
+        'coop'        = '1'
+        'interactive' = '1'
+    }
+    $Result = (
+        Invoke-WebRequest -Uri 'https://member.bilibili.com/x/web/archives' `
+            -WebSession $Session `
+            -Headers $Headers `
+            -Body $Body
+    ).Content | ConvertFrom-Json
+    Write-Host "周刊哔哩哔哩排行榜#$($RankNum) - $($Result.data.arc_audits[0].Archive.bvid)"
+    $SelfAID = "av$($Result.data.arc_audits[0].Archive.aid)"
+    return $SelfAID
+}
+
+function Add-Favourite {
     param (
         [parameter(position = 1)]$FID,
         [parameter(position = 2)]$AVID
     )
-    $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-    $Cookie = Get-Content -Path './cookies.txt'
-    $CookieString = ''
-    $Cookie | ForEach-Object {
-        if (!$_.StartsWith('#') -and $_.StartsWith('.bilibili.com')) {
-            $Single = $_.Split("`t")
-            $SingleCookie = New-Object System.Net.Cookie
-            $SingleCookie.Name = $Single[5]
-            $SingleCookie.Value = $Single[6]
-            $SingleCookie.Domain = $Single[0]
-            $CookieString += "$($Single[5])=$($Single[6]); "
-            $Session.Cookies.Add($SingleCookie)
-        }
+    if ($AVID -match '^[aA]') {
+        $AID = $AVID.Substring(2)
+    } else {
+        $AID = ConvertTo-AID $AVID $true
     }
-    $Headers = @{}
-    $Headers.Add('Cookie', $CookieString)
-    $Headers.Add('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0')
-    $Headers.Add('Referer', 'https://www.bilibili.com')
-
-    $CSRF = $Session.Cookies.GetCookies('https://www.bilibili.com')['bili_jct'].Value
-    $Params = @{
-        'rid'           = $AVID
+    $Body = @{
+        'rid'           = $AID
         'type'          = '2'
         'add_media_ids' = $FID
         'del_media_ids' = ''
@@ -125,56 +190,162 @@ function AddFavourite {
         'gaia_source'   = 'web_normal'
         'csrf'          = $CSRF
     }
-    $Result = (Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v3/fav/resource/deal' -Method 'POST' -Headers $Headers -Body $Params).Content | ConvertFrom-Json
-    Write-Host $Result
+    $Result = (
+        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v3/fav/resource/deal' `
+            -Method POST `
+            -WebSession $Session `
+            -Headers $Headers `
+            -Body $Body
+    ).Content | ConvertFrom-Json
+    if ($Result.message -ne 0) {
+        Write-Host $Result.message
+        return 1
+    } else {
+        Write-Host "收藏视频 av$($AID) 成功"
+    }
 }
 
-$FIDData = @{}
-$FIDList = (Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid=398300398&jsonp=jsonp' -Headers $Headers).Content | ConvertFrom-Json
-$FIDList.data.list | ForEach-Object {
-    $FIDData[$_.title] = $_.id
-}
-
-$Body = @{
-    'status'      = 'is_pubing,pubed,not_pubed'
-    'pn'          = '1'
-    'ps'          = '10'
-    'keyword'     = "周刊哔哩哔哩排行榜#$($RankNum)"
-    'coop'        = '1'
-    'interactive' = '1'
-}
-$Self = (Invoke-WebRequest -Uri 'https://member.bilibili.com/x/web/archives' -Headers $Headers -Body $Body -WebSession $Session).Content | ConvertFrom-Json
-Write-Host $Self.data.arc_audits[0].Archive.bvid
-AddFavourite $FIDData['周刊合集'] $Self.data.arc_audits[0].Archive.aid
-Start-Sleep -Seconds 1
-$Parts = @(16, 3)
-$Files = @()
-$RankVideos = @()
-$Parts | ForEach-Object {
-    $Files += Get-Content -Raw "./ranking/list1/$($RankNum)_$($_).yml"
-}
-$Files | ForEach-Object {
-    ConvertFrom-Yaml $_ | ForEach-Object {
-        $_ | ForEach-Object {
-            $RankVideos += $_. ':name'
+function Get-Ranking {
+    param (
+        [parameter(position = 1)]$Part
+    )
+    $RankVideos = @()
+    $File = Get-Content -Raw "$($TruePath)/ranking/list1/$($RankNum)_$($Part).yml"
+    $File | ForEach-Object {
+        ConvertFrom-Yaml $_ | ForEach-Object {
+            $_ | ForEach-Object {
+                $RankVideos += $_.':name'
+            }
         }
     }
+    return $RankVideos
 }
-if ($RankVideos[2] -match '^[aA]') {
-    $Aid = $RankVideos[2].Substring(2)
-} else {
-    $Aid = ABconvert $RankVideos[2] $true
-}
-Write-Host $Aid
-AddFavourite $FIDData['周刊一位'] $Aid
-Start-Sleep -Seconds 1
-$RankVideos[ - ($RankVideos.Length - 3)..-1] | ForEach-Object {
-    if ($_ -match '^[aA]') {
-        $Aid = $_.Substring(2)
-    } else {
-        $Aid = ABconvert $_ $true
+
+function Set-TopReply {
+    param (
+        [parameter(position = 1)]$AVID,
+        [parameter(position = 2)]$RPID
+    )
+    $AID = $AVID.Substring(2)
+    $Body = @{
+        'oid'    = $AID
+        'type'   = '1'
+        'rpid'   = $RPID
+        'action' = '1'
+        'csrf'   = $CSRF
     }
-    Write-Host $Aid
-    AddFavourite $FIDData['周刊 Pickup'] $Aid
-    Start-Sleep -Seconds 1
+    $Result = (
+        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v2/reply/top' `
+            -Method Post `
+            -WebSession $Session `
+            -Headers $Headers `
+            -ContentType 'application/x-www-form-urlencoded' `
+            -Body $Body
+    ).Content | ConvertFrom-Json
+    if ($Result.message -ne 0) {
+        Write-Host $Result.message
+        return 1
+    } else {
+        Write-Host "评论置顶成功`nhttps://www.bilibili.com/video/av$($AID)#reply$($RPID)"
+    }
 }
+
+function Add-Reply {
+    param (
+        [parameter(position = 1)]$AVID,
+        [parameter(position = 2)]$Parent,
+        [parameter(position = 3)]$Message
+    )
+    $AID = $AVID.Substring(2)
+    $Body = @{
+        'plat'           = '1'
+        'oid'            = $AID
+        'type'           = '1'
+        'message'        = $Message
+        'root'           = $Parent
+        'parent'         = $Parent
+        'at_name_to_mid' = '{}'
+        'gaia_source'    = 'main_web'
+        'csrf'           = $CSRF
+        'statistics'     = "{'appId':100,'platform':5}"
+    }
+    $Result = (
+        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v2/reply/add' `
+            -Method Post `
+            -WebSession $Session `
+            -Headers $Headers `
+            -ContentType 'application/x-www-form-urlencoded' `
+            -Body $Body
+    ).Content | ConvertFrom-Json
+    if ($Result.message -ne 0) {
+        Write-Host $Result.message
+        return 1
+    } else {
+        $RPID = $Result.data.rpid
+        Write-Host "评论发送成功`nhttps://www.bilibili.com/video/av$($AID)#reply$($RPID)"
+        return $RPID
+    }
+}
+
+function Get-RankList {
+    function Join-RankList {
+        param (
+            [array]$LineList
+        )
+        $Strings = @()
+        $LineList | ForEach-Object {
+            if ($null -eq $_.Split(',')[1]) {
+                $CurrentLine = "$($_.Split(',')[0])"
+            } else {
+                $CurrentLine = "$($_.Split(',')[0])`t$($_.Split(',')[1])"
+            }
+            $Strings += $CurrentLine
+        }
+        $RankString = $Strings -join "`n"
+        return $RankString
+    }
+
+    if ((Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount 25)[-1] -eq '主榜') {
+        $SplitNum = 24
+    } else {
+        $RankNum = (Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount 25)[-1].Split(',')[0]
+        try {
+            $null = [convert]::ToInt32($RankNum)
+            if ($RankNum -gt 10) {
+                $SplitNum = 24 + ($RankNum - 10)
+            } else {
+                $SplitNum = 24 - (11 - $RankNum)
+            }
+        } catch { return $false }
+    }
+    $RankList = @()
+    $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount $SplitNum | Select-Object -Skip 0
+    $RankList += Join-RankList $SplitList
+    $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount ($SplitNum + 18) | Select-Object -Skip $SplitNum
+    $RankList += Join-RankList $SplitList
+    $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' | Select-Object -Skip ($SplitNum + 18)
+    $RankList += Join-RankList $SplitList
+    return $RankList
+}
+
+function Main {
+    $FIDData = Get-FIDList
+    $SelfAID = Get-SelfAID
+    Add-TimeStamp $SelfAID
+    Add-Favourite $FIDData['周刊合集'] $SelfAID
+    $Top1 = (Get-Ranking 16)[-1]
+    Add-Favourite $FIDData['周刊一位'] $Top1
+    Get-Ranking 3 | ForEach-Object {
+        Add-Favourite $FIDData['周刊 Pickup'] $_
+    }
+    $RankList = Get-RankList
+    $ROOT = Add-Reply $SelfAID '0' $RankList[0]
+    Start-Sleep -Seconds 1
+    $null = Add-Reply $SelfAID $ROOT $RankList[1]
+    Start-Sleep -Seconds 1
+    $null = Add-Reply $SelfAID $ROOT $RankList[2]
+    Start-Sleep -Seconds 1
+    Set-TopReply $SelfAID $ROOT
+}
+
+Main
