@@ -421,7 +421,7 @@ function Main {
     $Top1 = (Get-Ranking 16)[-1]
     Add-Favourite $FIDData['周刊一位'] $Top1
     Get-Ranking 3 | ForEach-Object {
-        Add-Favourite $FIDData['周刊 Pickup'] $_
+        Add-Favourite $FIDData['周刊 Pickup 2'] $_
     }
     Set-MasterPiece $SelfAID
     Set-TopVideo $SelfAID
