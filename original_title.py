@@ -33,7 +33,8 @@ def getVideoTitle(aid):
     codemsg = {-404: "管理员锁定", 62002: "用户自删除", 62012: "用户仅自见"}
     if errorcode == 0:
         title = result["data"]["title"]
-        return {aid: title}
+        tname = result["data"]["tname"]
+        return {aid: {"title": title, "tname": tname}}
     else:
         lost = json.load(open("LostFile.json", "r", encoding="utf-8"))
         lost[f"av{aid}"] = codemsg.get(errorcode)
@@ -45,7 +46,7 @@ def getVideoTitle(aid):
             indent=4,
         )
         print(f"> Error {errorcode} | av{aid} / {av2bv(aid)} 啊叻？视频不见了？")
-        return {aid: ""}
+        return {aid: {"title": "", "tname": ""}}
 
 
 def main():
@@ -61,15 +62,19 @@ def main():
         VideoTitleDict = reduce(lambda x, y: {**x, **y}, map(getVideoTitle, ranks))
         for rank in content:
             if rank.get("wid"):
-                if VideoTitleDict[rank.get("wid")] != "":
-                    rank["name"] = VideoTitleDict[rank.get("wid")]
+                if VideoTitleDict[rank.get("wid")]["title"] != "":
+                    rank["name"] = VideoTitleDict[rank.get("wid")]["title"]
+                else:
+                    pass
+                if VideoTitleDict[rank.get("wid")]["tname"] != "":
+                    rank["tname"] = VideoTitleDict[rank.get("wid")]["tname"]
                 else:
                     pass
         json.dump(
             content,
             open(rankfile, "w", encoding="utf-8"),
-            # ensure_ascii=True,
-            # indent=4,
+            ensure_ascii=False,
+            indent=4,
         )
 
 
