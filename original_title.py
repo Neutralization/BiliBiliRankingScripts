@@ -33,7 +33,7 @@ def getVideoTitle(aid):
     codemsg = {-404: "管理员锁定", 62002: "用户自删除", 62012: "用户仅自见"}
     if errorcode == 0:
         title = result["data"]["title"]
-        tname = result["data"]["tname"]
+        tname = result["data"]["tname_v2"]
         return {aid: {"title": title, "tname": tname}}
     else:
         lost = json.load(open("LostFile.json", "r", encoding="utf-8"))
@@ -67,7 +67,7 @@ def main():
                 else:
                     pass
                 if VideoTitleDict[rank.get("wid")]["tname"] != "":
-                    rank["tname"] = VideoTitleDict[rank.get("wid")]["tname"]
+                    rank["wtype"] = VideoTitleDict[rank.get("wid")]["tname"]
                 else:
                     pass
         json.dump(
