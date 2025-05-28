@@ -136,7 +136,7 @@ BRankData = {
         "cover": x["cover"],
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": min((x["click"] + 1000000) / (x["click"] * 2), 1),
+        "fix_a": min((x["click"] + 200000) / (x["click"] * 2), 1),
         "fix_b": min(
             (x["stow"] * 20 + x["yb"] * 10)
             / (x["click"] + x["yb"] * 10 + x["comm"] * 50),
@@ -182,7 +182,7 @@ GRankData = {
         "cover": x["cover"],
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": min((x["click"] + 1000000) / (x["click"] * 2), 1),
+        "fix_a": min((x["click"] + 200000) / (x["click"] * 2), 1),
         "fix_b": (x["stow"] * 20 + x["yb"] * 10)
         / (x["click"] + x["yb"] * 10 + x["comm"] * 50),
         "fix_b_": int((x["click"] * 50) / (x["click"] + x["comm"] * 50) * 100) / 100,
