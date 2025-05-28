@@ -84,7 +84,7 @@ def GetInfo(aid):
         return infodata
 
 
-def Single(Avid):
+def Single(Avid, RankNum):
     Author_F = ImageFont.truetype(HANNOTATE_SC, 32)
     Bid_F = ImageFont.truetype(YUANTI_SC, 42)
     Cata_F = ImageFont.truetype(YUANTI_SC, 36)
@@ -133,8 +133,8 @@ def Single(Avid):
     UpTime_O = 933
     UpTime_X = UpTime_O - UpTime_F.getlength(UpTime) / 2
     RankPaper.text((UpTime_X, 850), UpTime, C_6D4B2B, UpTime_F)
-    RankImg.save(f"./ranking/list1/av{Aid}.png")
-    RankImg.save(f"./ranking/list1/{av2bv(int(Aid))}.png")
+    # RankImg.save(f"./ranking/list1/av{Aid}.png")
+    RankImg.save(f"./ranking/list1/{RankNum:0>2}_{av2bv(int(Aid))}.png")
 
 
 def text2img(name, text, font, emoji, color, size):
@@ -171,7 +171,7 @@ def text2img(name, text, font, emoji, color, size):
     with open("TEXT.html", "w", encoding="utf-8-sig") as f:
         f.write(html_content)
 
-    browser.get(f'file://{abspath("TEXT.html")}')
+    browser.get(f"file://{abspath('TEXT.html')}")
     print(f"./{name}.png")
     browser.save_screenshot(f"./{name}.png")
     img = Image.open(f"./{name}.png")
@@ -203,8 +203,9 @@ def Main():
     )
     for x in ymlfile:
         avid = x[":name"][2:] if x[":name"][2:].isdigit() else bv2av(x[":name"])
+        rank = x[":rank"]
         print(avid)
-        Single(avid)
+        Single(avid, rank)
 
 
 if __name__ == "__main__":

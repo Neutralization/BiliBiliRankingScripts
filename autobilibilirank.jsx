@@ -162,7 +162,8 @@ for (n = 0; n < RankDataList.length; n++) {
     // IMPORT VIDEO
     for (key in RankDataList[n]) {
         FileBaseName = RankDataList[n][key][0];
-        FileFullPath = Prefix + FileBaseName + '.mp4';
+        Rank = parseInt(key) < 10 ? '0' + key : key;
+        FileFullPath = Prefix + Rank + '_' + FileBaseName + '.mp4';
         FootageFile = new ImportOptions(File(FileFullPath));
         FootageFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(FootageFile);
@@ -172,15 +173,16 @@ for (n = 0; n < RankDataList.length; n++) {
     // IMPORT IMAGE
     for (key in RankDataList[n]) {
         FileBaseName = RankDataList[n][key][0];
+        Rank = parseInt(key) < 10 ? '0' + key : key;
         if (n == 7) {
-            FileFullPath = Prefix + FileBaseName + '_.png';
+            FileFullPath = Prefix + Rank + '_' + FileBaseName + '_.png';
             FootageFile = new ImportOptions(File(FileFullPath));
             FootageFile.ImportAs = ImportAsType.FOOTAGE;
             FileItem = app.project.importFile(FootageFile);
             FileItem.name = RankDataList[n][key][0] + '_m';
             FileItem.parentFolder = WeeklyFolder;
         }
-        FileFullPath = Prefix + FileBaseName + '.png';
+        FileFullPath = Prefix + Rank + '_' + FileBaseName + '.png';
         FootageFile = new ImportOptions(File(FileFullPath));
         FootageFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(FootageFile);

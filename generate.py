@@ -274,7 +274,9 @@ def Single(args):
     RankImg = (
         Image.open(HISTORYRANKIMG)
         if ishistory
-        else Image.open(MAINRANKIMG) if rtype else Image.open(BANGUMIRANKIMG)
+        else Image.open(MAINRANKIMG)
+        if rtype
+        else Image.open(BANGUMIRANKIMG)
     )
     RankPaper = ImageDraw.Draw(RankImg)
 
@@ -336,9 +338,9 @@ def Single(args):
             RankPaper.text((980, 749), Invalid[f"av{Aid}"], C_CC0000, Invalid_F)
         if Bid in InvalidList:
             RankPaper.text((980, 749), Invalid[Bid], C_CC0000, Invalid_F)
-        RankImg.save(f"./ranking/list1/av{Aid}.png")
-        # RankImg.save(f"./ranking/list1/{Bid}.png")
-        print(f"./ranking/list1/av{Aid}.png")
+        # RankImg.save(f"./ranking/list1/{ScoreRank}_av{Aid}.png")
+        RankImg.save(f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png")
+        print(f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png")
         return 0
     RankPaper.text((Score_X, 376), Score, C_FFFFFF, Score_F)
 
@@ -427,9 +429,9 @@ def Single(args):
         RankPaper.text((980, 749), Invalid[f"av{Aid}"], C_CC0000, Invalid_F)
     if Bid in InvalidList:
         RankPaper.text((980, 749), Invalid[Bid], C_CC0000, Invalid_F)
-    RankImg.save(f"./ranking/list1/av{Aid}.png")
-    # RankImg.save(f"./ranking/list1/{Bid}.png")
-    print(f"./ranking/list1/av{Aid}.png")
+    # RankImg.save(f"./ranking/list1/{ScoreRank}_av{Aid}.png")
+    RankImg.save(f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png")
+    print(f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png")
 
 
 def SubRank(rtype):
@@ -730,8 +732,8 @@ def Top():
     for t in range(3):
         TImg = Image.open(TOPIMG)
         TPaper = ImageDraw.Draw(TImg)
-        Aid = TopData[t + 1][0]
-        # Bid = TopData[t + 1][2]
+        # Aid = TopData[t + 1][0]
+        Bid = TopData[t + 1][2]
         Diff = int(TopData[t + 1][1].replace(",", "")) - int(
             TopData[t + 2][1].replace(",", "")
         )
@@ -742,8 +744,8 @@ def Top():
         TPaper.text(
             (609 - Diff_F.getlength(DiffText) / 2, 722), DiffText, C_FFFFFF, Diff_F
         )
-        TImg.save(f"./ranking/list1/av{Aid}_.png")
-        # TImg.save(f"./ranking/list1/{Bid}_.png")
+        # TImg.save(f"./ranking/list1/{t + 1}_av{Aid}_.png")
+        TImg.save(f"./ranking/list1/{t + 1:0>2}_{Bid}_.png")
 
 
 def MakeYaml(file, max, min, part):
@@ -754,8 +756,8 @@ def MakeYaml(file, max, min, part):
     for x in content:
         if x.get("info") is None and x.get("sp_type_id") != 2:
             rank = x["score_rank"] if x.get("score_rank") else x["rank"]
-            name = f'av{x["wid"]}'
-            # name = f'{x["bv"].replace("bv", "BV")}'
+            name = f"av{x['wid']}"
+            name = f"{x['bv'].replace('bv', 'BV')}"
             length = 20
             if part in (7, 11, 15):
                 length = 15
@@ -777,7 +779,7 @@ def MakeYaml(file, max, min, part):
                 doorcontent += [
                     (
                         rank,
-                        f'{x["bv"].replace("bv", "BV")}',
+                        f"{x['bv'].replace('bv', 'BV')}",
                         x["name"],
                     )
                 ]
@@ -788,16 +790,14 @@ def MakeYaml(file, max, min, part):
 
     with open(f"./{WEEKS}_rankdoor.csv", "a", newline="", encoding="utf-8-sig") as f:
         writer = csv.writer(f)
-        writer.writerow(
-            [
-                {
-                    "results": "主榜",
-                    "results_history": "历史",
-                    "guoman_bangumi": "国创",
-                    "results_bangumi": "番剧",
-                }.get(file)
-            ]
-        )
+        writer.writerow([
+            {
+                "results": "主榜",
+                "results_history": "历史",
+                "guoman_bangumi": "国创",
+                "results_bangumi": "番剧",
+            }.get(file)
+        ])
         writer.writerows(sorted(doorcontent, reverse=True))
 
 
@@ -837,7 +837,7 @@ def text2img(name, text, font, emoji, color, size):
     with open("TEXT.html", "w", encoding="utf-8-sig") as f:
         f.write(html_content)
 
-    browser.get(f'file://{abspath("TEXT.html")}')
+    browser.get(f"file://{abspath('TEXT.html')}")
     # print(f"./{name}.png")
     browser.save_screenshot(f"./{name}.png")
     img = Image.open(f"./{name}.png")

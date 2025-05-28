@@ -17,17 +17,19 @@ $LostVideos = @()
 
 function Normailze {
     param (
-        [parameter(position = 1)]$FileName,
-        [parameter(position = 2)]$Offset,
-        [parameter(position = 3)]$Length
+        [parameter(position = 1)]$Rank,
+        [parameter(position = 2)]$FileName,
+        [parameter(position = 3)]$Offset,
+        [parameter(position = 4)]$Length
     )
+    $Rank = $Rank.ToString().PadLeft(2, '0')
     if ($LostVideos -contains $FileName) {
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 视频已失效，生成占位视频"
         $FakeArg = -join @(
             '-n -hide_banner -t 40 -f lavfi -i anullsrc -f lavfi '
             '-i color=size=1280x720:duration=60:rate=60:color=AntiqueWhite '
             "-vf drawtext=fontfile=MiSans-Medium.ttf:fontsize=147:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text='$($FileName)' "
-            "$($FootageFolder)/$($FileName).mp4"
+            "$($FootageFolder)/$($Rank)_$($FileName).mp4"
         )
         Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $FakeArg
         return $null
@@ -49,7 +51,7 @@ function Normailze {
             "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i $($DownloadFolder)/$($FileName).mp4 "
             "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "
             "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "
-            "-c:v h264_nvenc -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($FileName).mp4"
+            "-c:v h264_nvenc -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($Rank)_$($FileName).mp4"
         )
     } else {
         # x264
@@ -58,7 +60,7 @@ function Normailze {
             "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i $($DownloadFolder)/$($FileName).mp4 "
             "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "
             "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "
-            "-c:v libx264 -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($FileName).mp4"
+            "-c:v libx264 -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($Rank)_$($FileName).mp4"
         )
     }
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 截取视频并标准化音频" -ForegroundColor Green
@@ -108,19 +110,19 @@ function Main {
     $Files | ForEach-Object {
         ConvertFrom-Yaml $_ | ForEach-Object {
             $_ | ForEach-Object {
-                $RankVideos += @{n = $_.':name'; o = $_.':offset'; l = $_.':length' }
+                $RankVideos += @{r = $_.':rank'; f = $_.':name'; o = $_.':offset'; l = $_.':length' }
             }
         }
     }
     $RankVideos | ForEach-Object {
         if ($Part.Contains('*')) {
             if (($LocalVideos -notcontains $_.n) -or ((Get-Item "$($FootageFolder)/$($_.n).mp4").length -eq 0)) {
-                Normailze $_.n $_.o $_.l # -Debug
+                Normailze $_.r $_.f $_.o $_.l # -Debug
             } else {
                 Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($_.n) 已存在，跳过处理" -ForegroundColor Green
             }
         } else {
-            Normailze $_.n $_.o $_.l -Debug
+            Normailze $_.r $_.f $_.o $_.l -Debug
         }
     }
     Add-Type -AssemblyName Microsoft.VisualBasic
