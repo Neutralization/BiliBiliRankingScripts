@@ -8,8 +8,8 @@ $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $DownloadFolder = "$($TruePath)/ranking/list0"
 $FootageFolder = "$($TruePath)/ranking/list1"
 
-Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_nvenc -f null -' -RedirectStandardError '.\NUL'
-if (-not $LastExitCode) { $Nvdia = $true } else { $Nvdia = $false }
+$tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_nvenc -f null -' -RedirectStandardError '.\NUL'
+if ($tmp.ExitCode -eq 0 ) { $Nvdia = $true } else { $Nvdia = $false }
 $LostVideos = @()
 (Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
     $LostVideos += $_
