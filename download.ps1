@@ -122,22 +122,21 @@ function BiliDown {
         Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 下载 CC 字幕 $($ID).json" -ForegroundColor Green
         Invoke-WebRequest -Uri "http:$($SubData.data.subtitle.subtitles[0].subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "$($DownloadFolder)/../list1/$ID.json"
     }
-
-    $RedirectTest = Invoke-WebRequest "https://www.bilibili.com/video/$($BID)/" -MaximumRedirection 0 -ErrorAction SilentlyContinue -SkipHttpErrorCheck
-    if ($RedirectTest.Headers.Location -match 'bangumi/play') {
-        $SourceUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
-    } else {
+    $PGCTest = Invoke-WebRequest -Uri "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1" -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
+    if (-404 -eq $PGCTest.code){
         $SourceUrl = "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
+    } else {
+        $SourceUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
     }
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - API $($SourceUrl)"
     $Headers.referer = "https://www.bilibili.com/video/av$($AID)/"
     $Headers.path = $SourceUrl.Substring('https://api.bilibili.com'.Length)
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 解析视频链接" -ForegroundColor Green
     $VideoInfo = Invoke-WebRequest -UseBasicParsing -Uri $SourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
-    if ($RedirectTest.Headers.Location -match 'bangumi/play') {
-        $VideoData = $VideoInfo.result.video_info
-    } else {
+    if (-404 -eq $PGCTest.code) {
         $VideoData = $VideoInfo.data
+    } else {
+        $VideoData = $VideoInfo.result.video_info
     }
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($VideoData)"
     if ($null -eq $VideoData) {
