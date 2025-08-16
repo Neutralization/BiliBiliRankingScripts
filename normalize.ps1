@@ -110,19 +110,20 @@ function Main {
     $Files | ForEach-Object {
         ConvertFrom-Yaml $_ | ForEach-Object {
             $_ | ForEach-Object {
-                $RankVideos += @{r = $_.':rank'; f = $_.':name'; o = $_.':offset'; l = $_.':length' }
+                $RankVideos += @{r = $_.':rank'; n = $_.':name'; o = $_.':offset'; l = $_.':length' }
             }
         }
     }
     $RankVideos | ForEach-Object {
         if ($Part.Contains('*')) {
-            if (($LocalVideos -notcontains $_.n) -or ((Get-Item "$($FootageFolder)/$($_.n).mp4").length -eq 0)) {
-                Normailze $_.r $_.f $_.o $_.l # -Debug
+            $f = "$($_.r.ToString().PadLeft(2, '0'))_$($_.n)"
+            if (($LocalVideos -notcontains $f) -or ((Get-Item "$($FootageFolder)/$($f).mp4").length -eq 0)) {
+                Normailze $_.r $_.n $_.o $_.l # -Debug
             } else {
                 Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($_.n) 已存在，跳过处理" -ForegroundColor Green
             }
         } else {
-            Normailze $_.r $_.f $_.o $_.l -Debug
+            Normailze $_.r $_.n $_.o $_.l -Debug
         }
     }
     Add-Type -AssemblyName Microsoft.VisualBasic
