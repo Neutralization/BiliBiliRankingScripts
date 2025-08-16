@@ -77,7 +77,9 @@ MRankData = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
         "bv": (
-            x["bv"].replace("bv", "BV") if "bv1" in x["bv"] else av2bv(int(x["bv"][3:]))
+            re.sub(r"^bv", "BV", x["bv"])
+            if "bv1" in x["bv"]
+            else av2bv(int(x["bv"][3:]))
         ),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "changqi": x["changqi"],
@@ -126,7 +128,9 @@ BRankData = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
         "bv": (
-            x["bv"].replace("bv", "BV") if "bv1" in x["bv"] else av2bv(int(x["bv"][3:]))
+            re.sub(r"^bv", "BV", x["bv"])
+            if "bv1" in x["bv"]
+            else av2bv(int(x["bv"][3:]))
         ),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "clicks_rank": format(x["click_rank"], ","),
@@ -172,7 +176,9 @@ GRankData = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
         "bv": (
-            x["bv"].replace("bv", "BV") if "bv1" in x["bv"] else av2bv(int(x["bv"][3:]))
+            re.sub(r"^bv", "BV", x["bv"])
+            if "bv1" in x["bv"]
+            else av2bv(int(x["bv"][3:]))
         ),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "clicks_rank": format(x["click_rank"], ","),
@@ -215,7 +221,9 @@ HRankData = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
         "bv": (
-            x["bv"].replace("bv", "BV") if "bv1" in x["bv"] else av2bv(int(x["bv"][3:]))
+            re.sub(r"^bv", "BV", x["bv"])
+            if "bv1" in x["bv"]
+            else av2bv(int(x["bv"][3:]))
         ),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "score": format(x["score"], ","),
@@ -757,7 +765,7 @@ def MakeYaml(file, max, min, part):
         if x.get("info") is None and x.get("sp_type_id") != 2:
             rank = x["score_rank"] if x.get("score_rank") else x["rank"]
             name = f"av{x['wid']}"
-            name = f"{x['bv'].replace('bv', 'BV')}"
+            name = f"{re.sub(r'^bv', 'BV', x['bv'])}"
             length = 20
             if part in (7, 11, 15):
                 length = 15
@@ -779,7 +787,7 @@ def MakeYaml(file, max, min, part):
                 doorcontent += [
                     (
                         rank,
-                        f"{x['bv'].replace('bv', 'BV')}",
+                        f"{re.sub(r'^bv', 'BV', x['bv'])}",
                         x["name"],
                     )
                 ]
