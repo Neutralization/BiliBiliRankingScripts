@@ -837,13 +837,13 @@ CoverComp2.openInViewer();
 
 renderQueue = app.project.renderQueue;
 render = renderQueue.items.add(CoverComp1);
-render.outputModules[1].applyTemplate('带有 Alpha 的 TIFF 序列 ');
-render.outputModules[1].file = new File('./封面_169_[#].tif');
+render.outputModules[1].applyTemplate('JPEG 序列');
+render.outputModules[1].file = new File('./封面_169_[#].jpg');
 render = renderQueue.items.add(CoverComp2);
-render.outputModules[1].applyTemplate('带有 Alpha 的 TIFF 序列 ');
-render.outputModules[1].file = new File('./封面_43_[#].tif');
+render.outputModules[1].applyTemplate('JPEG 序列');
+render.outputModules[1].file = new File('./封面_43_[#].jpg');
 render = renderQueue.items.add(FinalComp);
-render.outputModules[1].applyTemplate('H.264 - 匹配渲染设置 - 5 Mbps');
+render.outputModules[1].applyTemplate('Voukoder Classic MP4');
 render.outputModules[1].file = new File('./周刊哔哩哔哩排行榜#' + WEEK_NUM + '.mp4');
 
 app.project.consolidateFootage();
