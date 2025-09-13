@@ -6,6 +6,7 @@ import re
 from math import log10
 from os import remove
 from os.path import abspath, exists
+from shutil import make_archive
 from unicodedata import combining, normalize
 
 import arrow
@@ -881,6 +882,7 @@ def Main():
     Top()
     for i in range(4):
         SubRank(i + 1)
+    make_archive(f"{WEEKS}_list1", "zip", "./ranking", "list1")
 
 
 if __name__ == "__main__":
