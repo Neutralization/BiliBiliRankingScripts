@@ -48,6 +48,7 @@ from constant import (
     SUBBANGUMIRANKIMG,
     SUBRANKIMG,
     TOPIMG,
+    UA,
     UPIMG,
     WEEKS,
     YUANTI_SC,
@@ -250,7 +251,7 @@ def Resource(bid, link, name):
     if len(link) == 0:
         return "./footage/cover_lost.png"
     if not exists(f"./pic/{bid}_{name}.{ext}"):
-        resp = requests.get(link)
+        resp = requests.get(link, headers={"User-Agent": UA})
         with open(f"./pic/{bid}_{name}.{ext}", "wb") as f:
             f.write(resp.content)
     return f"./pic/{bid}_{name}.{ext}"
