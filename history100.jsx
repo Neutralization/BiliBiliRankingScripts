@@ -13,7 +13,7 @@ DirectoryPrefix = './ranking/list100/';
 LostFile = '404_tv';
 regex = /- :rank: (\d+)\n {2}:name: (\w+)\n {2}:length: (\d+)\n {2}:offset: (\d+)(\n {2}:short: \d+)?(\n {2}:no_pause: true)?/gm;
 subst = '$1: ["$2", $3, $4],';
-parts = [700];
+parts = [800];
 RankDataList = [];
 for (n = 0; n < parts.length; n++) {
     file = new File(DirectoryPrefix + parts[n] + '.yml');
@@ -240,6 +240,7 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
         }
         if (CheckLost == true) {
             VideoOffset = 0;
+            NewVideoLayer.enabled = false;
             LostVideoLayer = AddLayer(MasterComposition, LostFile, VideoDuration, GlobalOffset);
             LostVideoLayer.inPoint = GlobalOffset;
             LostVideoLayer.outPoint = GlobalOffset + VideoDuration;
@@ -249,7 +250,7 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
             LostTextDocument.fontSize = 48;
             LostTextDocument.fillColor = [0.8, 0, 0];
             LostTextDocument.applyFill = true;
-            LostTextDocument.font = '方正粗圆_GBK';
+            // LostTextDocument.font = '方正粗圆_GBK';
             LostTextDocument.justification = ParagraphJustification.CENTER_JUSTIFY;
             LostTextLayer.inPoint = GlobalOffset;
             LostTextLayer.outPoint = GlobalOffset + VideoDuration;
@@ -288,7 +289,7 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
                 AddVideoProperty(LostTextLayer, 1, LostTextLayer.outPoint - 0.6, 0.6, 2);
             }
             AddVideoProperty(NewVideoLayer, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
-            AddVideoProperty(NewVideoLayer_mask, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
+            //AddVideoProperty(NewVideoLayer_mask, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
             GlobalOffset = GlobalOffset + VideoDuration;
         }
     }

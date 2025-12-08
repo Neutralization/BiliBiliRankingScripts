@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 import re
 from math import ceil
 from os import remove
@@ -23,12 +24,37 @@ from constant import (
     SEGOE_UI_EMOJI,
     STYUAN,
     TOP100IMG,
+    UA,
     YUANTI_SC,
     YUME,
 )
 from generate import text2img
 
 LOST_INFO = {
+    "1906108321": {
+        "aid": "1906108321",
+        "bvid": "BV1fKCzYWEkU",
+        "tname": "短片",
+        "pubdate": "2024-07-07 11:47:38",
+        "owner": "麦克阿瑟传奇纪录片",
+        "title": "大型纪录片《兄弟致富路》",
+    },
+    "113718872510574": {
+        "aid": "113718872510574",
+        "bvid": "BV1fKCzYWEkU",
+        "tname": "同人·手书",
+        "pubdate": "2024-12-26 19:28:38",
+        "owner": "刘师兄_liujun",
+        "title": "零经费 自拍《三体2：黑暗森林》（自制动画）第05集",
+    },
+    "1151699647": {
+        "aid": "1151699647",
+        "bvid": "BV1NZ421h7yv",
+        "tname": "娱乐杂谈",
+        "pubdate": "2024-03-10 12:00:00",
+        "owner": "吃瓜郭昱麟",
+        "title": "邪淫，抽卡，小团团被抓，大司马撤编。斗鱼直播帝国因何而崩塌？",
+    },
     "443580160": {
         "aid": "443580160",
         "bvid": "BV1iL411z76f",
@@ -73,9 +99,24 @@ LOST_INFO = {
 
 
 def GetInfo(aid):
-    result = requests.get(
-        f"https://api.bilibili.com/x/web-interface/view?aid={aid}"
-    ).json()
+    resp = requests.get(
+        f"https://api.bilibili.com/x/web-interface/view?aid={aid}",
+        headers={
+            "User-Agent": UA,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "cross-site",
+        },
+    )
+    try:
+        result = json.loads(resp.content)
+    except json.decoder.JSONDecodeError:
+        print(resp.content)
     if result["code"] != 0:
         return None
     else:
@@ -109,7 +150,9 @@ def Single(Avid, Week):
     Title = AllData["title"]
     UpTime = arrow.get(AllData["pubdate"]).format("YYYY-MM-DD HH:mm")
     RankDate = arrow.get(Week * 7 * 24 * 3600 + YUME).shift(days=-1)
-    RankTime = f"{RankDate.format('YYYY年M月')}第{ceil(int(RankDate.format('D'))/7)}周"
+    RankTime = (
+        f"{RankDate.format('YYYY年M月')}第{ceil(int(RankDate.format('D')) / 7)}周"
+    )
     RankImg = Image.open(TOP100IMG)
     RankPaper = ImageDraw.Draw(RankImg)
 
@@ -168,7 +211,7 @@ def Single(Avid, Week):
 def Main():
     ymlfile = yload(
         open(
-            "./ranking/list100/700.yml",
+            "./ranking/list100/800.yml",
             "r",
             encoding="utf-8-sig",
         ),
