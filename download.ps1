@@ -144,7 +144,7 @@ function BiliDown {
         return
     }
     # 充电专属视频
-    if ('-1' -ne $VideoData.accept_description.IndexOf('试看')) {
+    if ($null -ne $VideoData.durl) {
         Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 充电专属视频" -ForegroundColor Green
         $VideoMP4 = $VideoData.durl | Where-Object -Property 'order' -EQ 1 | Select-Object -ExpandProperty 'url'
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 试看视频 $($VideoMP4)"
