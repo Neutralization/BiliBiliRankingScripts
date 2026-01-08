@@ -98,7 +98,7 @@ function Add-TimeStamp {
             -Headers $Headers `
             -Body $Body
     ).Content | ConvertFrom-Json
-    if ($Result.message -ne 0) {
+    if ($Result.code -ne 0) {
         Write-Host $Result.message
         return 1
     } else {
@@ -124,7 +124,7 @@ function Add-TimeStamp {
             -ContentType 'application/x-www-form-urlencoded' `
             -Body $Body
     ).Content | ConvertFrom-Json
-    if ($Result.message -ne 0) {
+    if ($Result.code -ne 0) {
         Write-Host $Result.message
         return 1
     } else {
@@ -193,7 +193,7 @@ function Add-Favourite {
             -Headers $Headers `
             -Body $Body
     ).Content | ConvertFrom-Json
-    if ($Result.message -ne 0) {
+    if ($Result.code -ne 0) {
         Write-Host $Result.message
         return 1
     } else {
@@ -238,7 +238,7 @@ function Set-TopReply {
             -ContentType 'application/x-www-form-urlencoded' `
             -Body $Body
     ).Content | ConvertFrom-Json
-    if ($Result.message -ne 0) {
+    if ($Result.code -ne 0) {
         Write-Host $Result.message
         return 1
     } else {
@@ -273,7 +273,7 @@ function Add-Reply {
             -ContentType 'application/x-www-form-urlencoded' `
             -Body $Body
     ).Content | ConvertFrom-Json
-    if ($Result.message -ne 0) {
+    if ($Result.code -ne 0) {
         Write-Host $Result.message
         return 1
     } else {
@@ -338,7 +338,7 @@ function Set-MasterPiece {
             -WebSession $Session `
             -Headers $Headers
     ).Content | ConvertFrom-Json
-    if ($Result.message -ne 0) {
+    if ($Result.code -ne 0) {
         Write-Host $Result.message
         return 1
     } else {
@@ -359,7 +359,7 @@ function Set-MasterPiece {
                     -ContentType 'application/x-www-form-urlencoded' `
                     -Body $Body
             ).Content | ConvertFrom-Json
-            if ($Result.message -ne 0) {
+            if ($Result.code -ne 0) {
                 Write-Host $Result.message
                 return 1
             } else {
@@ -378,7 +378,7 @@ function Set-MasterPiece {
                 -ContentType 'application/x-www-form-urlencoded' `
                 -Body $Body
         ).Content | ConvertFrom-Json
-        if ($Result.message -ne 0) {
+        if ($Result.code -ne 0) {
             Write-Host $Result.message
             return 1
         } else {
@@ -405,7 +405,7 @@ function Set-TopVideo {
             -ContentType 'application/x-www-form-urlencoded' `
             -Body $Body
     ).Content | ConvertFrom-Json
-    if ($Result.message -ne 0) {
+    if ($Result.code -ne 0) {
         Write-Host $Result.message
         return 1
     } else {
