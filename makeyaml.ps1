@@ -54,6 +54,31 @@ function ConvertTo-AID {
     if ($Reverse) { return av2bv $Source } else { return bv2av $Source }
 }
 
+function Get-Cover {
+    param (
+        [string]$Id,
+        [string]$Link,
+        [string]$Name
+    )
+    if ([string]::IsNullOrWhiteSpace($Link)) {
+        return './footage/cover_lost.png'
+    }
+    $ext = ($Link -split '\.')[-1]
+    $folderPath = './pic'
+    $fileName = "$($Id)_$($Name).$($ext)"
+    $destination = Join-Path $folderPath $fileName
+    if (-not (Test-Path $destination)) {
+        if (-not (Test-Path $folderPath)) {
+            New-Item -ItemType Directory -Path $folderPath | Out-Null
+        }
+        try {
+            Invoke-WebRequest -Uri $Link -OutFile $destination -UserAgent $UA
+        } catch {
+            Write-Error "下载失败: $_"
+        }
+    }
+}
+
 function Get-VideoTitle {
     param ([int64]$Aid)
 
@@ -142,10 +167,22 @@ function Main {
                 $info = Get-VideoTitle -Aid $item.wid
                 if ($null -ne $info) {
                     if ($info.title -ne '' -and $info.title -ne $item.name) {
-                        Write-Host "> 正在更新标题: $($item.wid) / $($info.title)" -ForegroundColor Cyan
+                        Write-Host "> 正在更新标题：原 $($item.wid) / $($item.name)" -ForegroundColor Yellow
+                        Write-Host "> 正在更新标题: 现 $($info.title)" -ForegroundColor Yellow
                         $item.name = $info.title
                     }
                     if ($info.tname -ne '' -and $item.wtype -ne $info.tname) { $item.wtype = $info.tname }
+                }
+                $pic = $item.pic
+                $cover = $item.cover
+                $id = ConvertTo-AID -Source $item.wid -Reverse $true
+                if ($null -ne $pic) {
+                    Write-Host "> 正在下载封面: $($pic)" -ForegroundColor Cyan
+                    Get-Cover -Id $id -Link $pic -Name 'pic'
+                }
+                if ($null -ne $cover) {
+                    Write-Host "> 正在下载封面: $($cover)" -ForegroundColor Cyan
+                    Get-Cover -Id $id -Link $cover -Name 'cover'
                 }
             }
         }
