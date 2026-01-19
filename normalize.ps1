@@ -10,12 +10,14 @@ $FootageFolder = "$($TruePath)/ranking/list1"
 
 $tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_nvenc -f null -' -RedirectStandardError '.\NUL'
 if ($tmp.ExitCode -eq 0 ) { $Nvdia = $true } else { $Nvdia = $false }
+$tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_qsv -f null -' -RedirectStandardError '.\NUL'
+if ($tmp.ExitCode -eq 0 ) { $Intel = $true } else { $Intel = $false }
 $LostVideos = @()
 (Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
     $LostVideos += $_
 }
 
-function Normailze {
+function Normalize {
     param (
         [parameter(position = 1)]$Rank,
         [parameter(position = 2)]$FileName,
@@ -26,12 +28,12 @@ function Normailze {
     if ($LostVideos -contains $FileName) {
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 视频已失效，生成占位视频"
         $FakeArg = -join @(
-            '-n -hide_banner -t 40 -f lavfi -i anullsrc -f lavfi '
-            '-i color=size=1280x720:duration=60:rate=60:color=AntiqueWhite '
-            "-vf drawtext=fontfile=MiSans-Medium.ttf:fontsize=147:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text='$($FileName)' "
+            "-n -hide_banner -t $($Length) -f lavfi -i anullsrc -f lavfi "
+            "-i smptebars=duration=$($Length):size=1280x720:rate=1 "
+            "-vf drawtext=fontfile=C\\:\\\\Windows\\\\Fonts\\\\msyh.ttc:fontsize=100:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text='$($FileName)' "
             "$($FootageFolder)/$($Rank)_$($FileName).mp4"
         )
-        Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $FakeArg
+        Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $FakeArg -RedirectStandardError $null -RedirectStandardOutput $null
         return $null
     }
     $Target = 'loudnorm=I=-23.0:LRA=+7.0:tp=-1.0'
@@ -44,25 +46,15 @@ function Normailze {
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($AudioData)"
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($Source)"
-    if ($Nvdia) {
-        # Nvidia CUDA
-        Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 使用 Nvidia CUDA 加速转码"
-        $VideoArg = -join @(
-            "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i $($DownloadFolder)/$($FileName).mp4 "
-            "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "
-            "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "
-            "-c:v h264_nvenc -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($Rank)_$($FileName).mp4"
-        )
-    } else {
-        # x264
-        Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 使用 CPU x264 转码"
-        $VideoArg = -join @(
-            "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i $($DownloadFolder)/$($FileName).mp4 "
-            "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "
-            "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "
-            "-c:v libx264 -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($Rank)_$($FileName).mp4"
-        )
-    }
+    $Method = if ($Nvdia) { 'Nvidia CUDA' } else { if ($Intel) { 'Intel QSV' } else { 'CPU x264' } }
+    $Encoder = if ($Nvdia) { 'h264_nvenc' } else { if ($Intel) { 'h264_qsv' } else { 'libx264' } }
+    Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 使用 $($Method) 转码"
+    $VideoArg = -join @(
+        "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i $($DownloadFolder)/$($FileName).mp4 "
+        "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "
+        "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "
+        "-c:v $($Encoder) -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($Rank)_$($FileName).mp4"
+    )
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 截取视频并标准化音频" -ForegroundColor Green
     Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $VideoArg
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 操作完成`n" -ForegroundColor Green
@@ -115,15 +107,11 @@ function Main {
         }
     }
     $RankVideos | ForEach-Object {
-        if ($Part.Contains('*')) {
-            $f = "$($_.r.ToString().PadLeft(2, '0'))_$($_.n)"
-            if (($LocalVideos -notcontains $f) -or ((Get-Item "$($FootageFolder)/$($f).mp4").length -eq 0)) {
-                Normailze $_.r $_.n $_.o $_.l # -Debug
-            } else {
-                Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($_.n) 已存在，跳过处理" -ForegroundColor Green
-            }
+        $f = "$($_.r.ToString().PadLeft(2, '0'))_$($_.n)"
+        if (($LocalVideos -notcontains $f) -or ((Get-Item "$($FootageFolder)/$($f).mp4").length -eq 0)) {
+            Normalize $_.r $_.n $_.o $_.l # -Debug
         } else {
-            Normailze $_.r $_.n $_.o $_.l -Debug
+            Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($_.n) 已存在，跳过处理" -ForegroundColor Green
         }
     }
     Add-Type -AssemblyName Microsoft.VisualBasic
