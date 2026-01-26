@@ -27,13 +27,15 @@ function Normalize {
     $Rank = $Rank.ToString().PadLeft(2, '0')
     if ($LostVideos -contains $FileName) {
         Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 视频已失效，生成占位视频"
-        $FakeArg = -join @(
-            "-n -hide_banner -t $($Length) -f lavfi -i anullsrc -f lavfi "
-            "-i smptebars=duration=$($Length):size=1280x720:rate=1 "
-            "-vf drawtext=fontfile=C\\:\\\\Windows\\\\Fonts\\\\msyh.ttc:fontsize=100:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:text='$($FileName)' "
+        $fakeArgs = @(
+            '-n', '-hide_banner',
+            '-t', "$($Length)",
+            '-f', 'lavfi', '-i', 'anullsrc',
+            '-f', 'lavfi', '-i', "smptebars=duration=$($Length):size=1280x720:rate=1",
+            '-vf', "drawtext=fontfile='C\:/Windows/Fonts/msyh.ttc':fontsize=100:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:text='$($FileName)'",
             "$($FootageFolder)/$($Rank)_$($FileName).mp4"
         )
-        Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $FakeArg -RedirectStandardError $null -RedirectStandardOutput $null
+        & ffmpeg.exe @fakeArgs 2> $null
         return $null
     }
     $Target = 'loudnorm=I=-23.0:LRA=+7.0:tp=-1.0'
@@ -49,14 +51,19 @@ function Normalize {
     $Method = if ($Nvdia) { 'Nvidia CUDA' } else { if ($Intel) { 'Intel QSV' } else { 'CPU x264' } }
     $Encoder = if ($Nvdia) { 'h264_nvenc' } else { if ($Intel) { 'h264_qsv' } else { 'libx264' } }
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 使用 $($Method) 转码"
-    $VideoArg = -join @(
-        "-y -hide_banner -loglevel error -ss $($Offset) -t $($Length) -i $($DownloadFolder)/$($FileName).mp4 "
-        "-vf scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "
-        "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "
-        "-c:v $($Encoder) -b:v 10M -c:a aac -b:a 320k -r 60 $($FootageFolder)/$($Rank)_$($FileName).mp4"
+    $VideoArg = @(
+        '-y', '-hide_banner', '-loglevel error',
+        '-ss', "$($Offset)",
+        '-t', "$($Length)",
+        '-i', "$($DownloadFolder)/$($FileName).mp4 "
+        '-vf', "scale='ceil((min(1,gt(iw,1920)+gt(ih,1080))*(gte(a,1920/1080)*1920+lt(a,1920/1080)*((1080*iw)/ih))+not(min(1,gt(iw,1920)+gt(ih,1080)))*iw)/2)*2:ceil((min(1,gt(iw,1920)+gt(ih,1080))*(lte(a,1920/1080)*1080+gt(a,1920/1080)*((1920*ih)/iw))+not(min(1,gt(iw,1920)+gt(ih,1080)))*ih)/2)*2' "
+        '-af', "$($Target):print_format=summary:linear=true:$($Source)", '-ar', '48000 '
+        '-c:v', "$($Encoder)", '-b:v', '10M',
+        '-c:a', 'aac', '-b:a', '320k', '-r', '60',
+        "$($FootageFolder)/$($Rank)_$($FileName).mp4"
     )
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 截取视频并标准化音频" -ForegroundColor Green
-    Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $VideoArg
+    & ffmpeg.exe @VideoArg 2> $null
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 操作完成`n" -ForegroundColor Green
 }
 
@@ -74,15 +81,19 @@ function EDNormalize {
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($AudioData)"
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
     Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($Source)"
-    $EncodeArg = -join @(
-        "-y -hide_banner -loglevel error -i ""./ranking/2_ed/$($FileName)"" "
-        '-i "./ranking/2_ed/Cover.jpg" -map 0:0 -map 1:0 '
-        '-id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" '
-        "-af $($Target):print_format=summary:linear=true:$($Source) -ar 48000 "
-        '-c:a libmp3lame -q:a 0 "./ranking/2_ed/ed.mp3"'
+    $EncodeArg = @(
+        '-y', '-hide_banner', '-loglevel', 'error',
+        '-i', "./ranking/2_ed/$($FileName)",
+        '-i', './ranking/2_ed/Cover.jpg',
+        '-map', '0:0', '-map', '1:0',
+        '-id3v2_version', '3',
+        '-metadata:s:v', "title='Album cover'", '-metadata:s:v', "comment='Cover (front)'",
+        '-af', "$($Target):print_format=summary:linear=true:$($Source)", '-ar', '48000',
+        '-c:a', 'libmp3lame', '-q:a', '0',
+        './ranking/2_ed/ed.mp3'
     )
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 音频标准化" -ForegroundColor Green
-    Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $EncodeArg
+    & ffmpeg.exe @EncodeArg 2> $null
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 操作完成`n" -ForegroundColor Green
 }
 
@@ -106,9 +117,17 @@ function Main {
             }
         }
     }
-    $RankVideos | ForEach-Object {
+    $normalizeDef = ${Function:Normalize}.ToString()
+    $RankVideos | ForEach-Object -ThrottleLimit 4 -Parallel {
         $f = "$($_.r.ToString().PadLeft(2, '0'))_$($_.n)"
+        $FootageFolder = $using:FootageFolder
+        $DownloadFolder = $using:DownloadFolder
+        $LocalVideos = $using:LocalVideos
+        $LostVideos = $using:LostVideos
+        $Nvdia = $using:Nvdia
+        $Intel = $using:Intel
         if (($LocalVideos -notcontains $f) -or ((Get-Item "$($FootageFolder)/$($f).mp4").length -eq 0)) {
+            ${Function:Normalize} = [ScriptBlock]::Create($using:normalizeDef)
             Normalize $_.r $_.n $_.o $_.l # -Debug
         } else {
             Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($_.n) 已存在，跳过处理" -ForegroundColor Green
