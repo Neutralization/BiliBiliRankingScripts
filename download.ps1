@@ -209,22 +209,17 @@ function Main {
     $LocalVideos = @()
     $LostVideos = @()
     $RankVideos = @()
-    $ExistVideos = @()
-    $LostVideos = @()
-    if ($Part.Contains('*')) {
-        $Files = Get-Content -Raw "$($DownloadFolder)/../list1/$($RankNum)_*.yml"
-        Get-ChildItem "$($DownloadFolder)/*.mp4" | ForEach-Object { $ExistVideos += $_.BaseName }
-    } else {
-        $Part | ForEach-Object {
-            $Files += Get-Content -Raw "$($DownloadFolder)/../list1/$($RankNum)_$($_).yml"
-        }
+
+    if ($null -eq $Part) {
+        Get-ChildItem "$($DownloadFolder)/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
     }
-    $Files | ForEach-Object {
-        ConvertFrom-Yaml $_ | ForEach-Object {
-            $_ | ForEach-Object {
-                $RankVideos += $_.':name'
-            }
-        }
+    $Part = if ($null -ne $Part) { $Part } else { @('*') }
+    foreach ($p in $Part) {
+        $Files += Get-Content -Raw "$($FootageFolder)/$($RankNum)_$($p).yml"
+    }
+    foreach ($content in $Files) {
+        $items = (ConvertFrom-Yaml $content) | ForEach-Object { $_ } | ForEach-Object { $_.':name' }
+        $RankVideos += $items
     }
     (Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
         $LostVideos += $_
@@ -232,9 +227,6 @@ function Main {
     $TaskQueue = $RankVideos | Where-Object { $LocalVideos -notcontains $_ } | Where-Object { $LostVideos -notcontains $_ }
     $OldVideos = $LocalVideos | Where-Object { $RankVideos -notcontains $_ }
 
-    $RankVideos | Where-Object { $ExistVideos -contains $_ } | ForEach-Object {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($_) 已存在，跳过下载" -ForegroundColor Green
-    }
     Add-Type -AssemblyName Microsoft.VisualBasic
     $OldVideos | ForEach-Object {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
@@ -242,10 +234,20 @@ function Main {
     }
     Get-ChildItem "$($DownloadFolder)/*" -Exclude *.mp4, *.m4s | ForEach-Object {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            "$($_)", 'OnlyErrorDialogs', 'SendToRecycleBin')
+            (Resolve-Path "$($_)"), 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
-    $NeedVideos | ForEach-Object {
-        BiliDown $_ # -Debug
+
+    $bilidownDef = ${Function:BiliDown}.ToString()
+    $converttoaidDef = ${Function:ConvertTo-AID}.ToString()
+    $TaskQueue | ForEach-Object -ThrottleLimit 4 -Parallel {
+        $Headers = $using:Headers
+        $Session = $using:Session
+        $UserAgent = $using:UserAgent
+        $DownloadFolder = $using:DownloadFolder
+        $FootageFolder = $using:FootageFolder
+        ${Function:BiliDown} = [ScriptBlock]::Create($using:bilidownDef)
+        ${Function:ConvertTo-AID} = [ScriptBlock]::Create($using:converttoaidDef)
+        BiliDown $_
     }
 }
 
