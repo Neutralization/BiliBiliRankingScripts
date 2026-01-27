@@ -13,6 +13,7 @@ function ConvertTo-AID {
         [string]$Source,
         [bool]$Reverse = $false
     )
+    # https://github.com/Colerar/abv
     $ALPHABET = 'FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf'.ToCharArray()
     $table = @{}
     0..57 | ForEach-Object { $table[$ALPHABET[$_]] = $_ }
@@ -25,11 +26,11 @@ function ConvertTo-AID {
 
     function bv2av {
         param ([string]$Bvid)
-        $bv_list = $Bvid.ToCharArray()
-        $bv_list[3], $bv_list[9] = $bv_list[9], $bv_list[3]
-        $bv_list[4], $bv_list[7] = $bv_list[7], $bv_list[4]
+        $bvList = $Bvid.ToCharArray()
+        $bvList[3], $bvList[9] = $bvList[9], $bvList[3]
+        $bvList[4], $bvList[7] = $bvList[7], $bvList[4]
         $tmp = [int64]0
-        foreach ($char in $bv_list[3..($BV_LEN - 1)]) {
+        foreach ($char in $bvList[3..($BV_LEN - 1)]) {
             $idx = $table[$char]
             $tmp = $tmp * $BASE + $idx
         }
@@ -37,18 +38,18 @@ function ConvertTo-AID {
     }
 
     function av2bv {
-        param ([int64]$avid)
-        $bv_list = 'BV1000000000'.ToCharArray()
-        $bv_idx = $BV_LEN - 1
-        $tmp = ($MAX_AID -bor $avid) -bxor $XOR_CODE
+        param ([int64]$Avid)
+        $bvList = 'BV1000000000'.ToCharArray()
+        $bvIdx = $BV_LEN - 1
+        $tmp = ($MAX_AID -bor $Avid) -bxor $XOR_CODE
         while ($tmp -ne 0) {
-            $bv_list[$bv_idx] = $ALPHABET[$tmp % $BASE]
+            $bvList[$bvIdx] = $ALPHABET[$tmp % $BASE]
             $tmp = [Math]::Truncate($tmp / $BASE)
-            $bv_idx -= 1
+            $bvIdx -= 1
         }
-        $bv_list[3], $bv_list[9] = $bv_list[9], $bv_list[3]
-        $bv_list[4], $bv_list[7] = $bv_list[7], $bv_list[4]
-        return -join $bv_list
+        $bvList[3], $bvList[9] = $bvList[9], $bvList[3]
+        $bvList[4], $bvList[7] = $bvList[7], $bvList[4]
+        return -join $bvList
     }
 
     if ($Reverse) { return av2bv $Source } else { return bv2av $Source }

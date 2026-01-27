@@ -30,18 +30,14 @@ $Headers = @{
 
 function ConvertTo-AID {
     param (
-        [parameter(position = 1)]$Source,
-        [parameter(position = 2)]$Target = $true
+        [string]$Source,
+        [bool]$Reverse = $false
     )
-    # 如何看待 2020 年 3 月 23 日哔哩哔哩将稿件的「av 号」变更为「BV 号」？ - mcfx的回答 - 知乎
-    # https://www.zhihu.com/question/381784377/answer/1099438784
-    #
     # https://github.com/Colerar/abv
     $ALPHABET = 'FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf'.ToCharArray()
     $table = @{}
-    0..57 | ForEach-Object {
-        $table[$ALPHABET[$_]] = $_
-    }
+    0..57 | ForEach-Object { $table[$ALPHABET[$_]] = $_ }
+    
     $XOR_CODE = 23442827791579
     $MASK_CODE = 2251799813685247
     $MAX_AID = [Int64]1 -shl 51
@@ -49,41 +45,34 @@ function ConvertTo-AID {
     $BV_LEN = 12
 
     function bv2av {
-        param (
-            [string]$bvid
-        )
-        $bv_list = $bvid.ToCharArray()
-        $bv_list[3], $bv_list[9] = $bv_list[9], $bv_list[3]
-        $bv_list[4], $bv_list[7] = $bv_list[7], $bv_list[4]
-        $tmp = 0
-        foreach ($char in $bv_list[3..$BV_LEN]) {
+        param ([string]$Bvid)
+        $bvList = $Bvid.ToCharArray()
+        $bvList[3], $bvList[9] = $bvList[9], $bvList[3]
+        $bvList[4], $bvList[7] = $bvList[7], $bvList[4]
+        $tmp = [int64]0
+        foreach ($char in $bvList[3..($BV_LEN - 1)]) {
             $idx = $table[$char]
             $tmp = $tmp * $BASE + $idx
         }
-        $avid = ($tmp -band $MASK_CODE) -bxor $XOR_CODE
-        return $avid
+        return ($tmp -band $MASK_CODE) -bxor $XOR_CODE
     }
+
     function av2bv {
-        param (
-            [string]$avid
-        )
-        $bv_list = 'BV1000000000'.ToCharArray()
-        $bv_idx = $BV_LEN - 1
-        $tmp = ($MAX_AID -bor $avid) -bxor $XOR_CODE
+        param ([int64]$Avid)
+        $bvList = 'BV1000000000'.ToCharArray()
+        $bvIdx = $BV_LEN - 1
+        $tmp = ($MAX_AID -bor $Avid) -bxor $XOR_CODE
         while ($tmp -ne 0) {
-            $bv_list[$bv_idx] = $ALPHABET[$tmp % $BASE]
+            $bvList[$bvIdx] = $ALPHABET[$tmp % $BASE]
             $tmp = [Math]::Truncate($tmp / $BASE)
-            $bv_idx -= 1
+            $bvIdx -= 1
         }
-        $bv_list[3], $bv_list[9] = $bv_list[9], $bv_list[3]
-        $bv_list[4], $bv_list[7] = $bv_list[7], $bv_list[4]
-        return -join $bv_list
+        $bvList[3], $bvList[9] = $bvList[9], $bvList[3]
+        $bvList[4], $bvList[7] = $bvList[7], $bvList[4]
+        return -join $bvList
     }
-    if ($Target) {
-        return bv2av $Source
-    } else {
-        return av2bv $Source
-    }
+
+    if ($Reverse) { return av2bv $Source } else { return bv2av $Source }
 }
 
 function BiliDown {
@@ -94,11 +83,11 @@ function BiliDown {
 
     if ($ID -match '^[aA]') {
         $AID = $ID.Substring(2)
-        $BID = ConvertTo-AID $AID $false
+        $BID = ConvertTo-AID $AID $true
         $ID = "av$($AID)"
     } elseif ($ID -match '^[bB]') {
-        $AID = ConvertTo-AID $ID $true
-        $BID = ConvertTo-AID $AID $false
+        $AID = ConvertTo-AID $ID
+        $BID = ConvertTo-AID $AID $true
         $ID = $BID
     } else {
         exit
@@ -123,7 +112,7 @@ function BiliDown {
         Invoke-WebRequest -Uri "http:$($SubData.data.subtitle.subtitles[0].subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "$($DownloadFolder)/../list1/$ID.json"
     }
     $PGCTest = Invoke-WebRequest -Uri "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1" -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
-    if (-404 -eq $PGCTest.code){
+    if (-404 -eq $PGCTest.code) {
         $SourceUrl = "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
     } else {
         $SourceUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
