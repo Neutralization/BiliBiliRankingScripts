@@ -1,7 +1,7 @@
 param (
     [string]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7),
-    [array]$Part = @('*')
+    [array]$Part = $null
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
@@ -12,6 +12,7 @@ $tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -Argume
 if ($tmp.ExitCode -eq 0 ) { $Nvdia = $true } else { $Nvdia = $false }
 $tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_qsv -f null -' -RedirectStandardError '.\NUL'
 if ($tmp.ExitCode -eq 0 ) { $Intel = $true } else { $Intel = $false }
+$Encoder = if ($Nvdia) { 'h264_nvenc' } else { if ($Intel) { 'h264_qsv' } else { 'libx264' } }
 $LostVideos = @()
 (Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
     $LostVideos += $_
@@ -24,9 +25,8 @@ function Normalize {
         [parameter(position = 3)]$Offset,
         [parameter(position = 4)]$Length
     )
-    $Rank = $Rank.ToString().PadLeft(2, '0')
     if ($LostVideos -contains $FileName) {
-        Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 视频已失效，生成占位视频"
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 视频已失效，生成占位视频"
         $fakeArgs = @(
             '-n', '-hide_banner',
             '-t', "$($Length)",
@@ -40,17 +40,18 @@ function Normalize {
     }
     $Target = 'loudnorm=I=-23.0:LRA=+7.0:tp=-1.0'
     $Length = $Length + 5
-    $AudioArg = "-y -hide_banner -ss $($Offset) -t $($Length) -i $($DownloadFolder)/$($FileName).mp4 -af $($Target):print_format=json -f null -"
+    $AudioArg = @(
+        '-y', '-hide_banner',
+        '-ss', "$($Offset)",
+        '-t', "$($Length)",
+        '-i', "$($DownloadFolder)/$($FileName).mp4",
+        '-af', "$($Target):print_format=json",
+        '-f', 'null', '-'
+    )
     $AudioInfo = "$($DownloadFolder)/$($FileName).log"
-    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 分析 $($FileName) 音频数据" -ForegroundColor Green
-    Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -RedirectStandardError $AudioInfo -ArgumentList $AudioArg
+    & ffmpeg.exe $AudioArg 2> $AudioInfo
     $AudioData = [Regex]::Match((Get-Content -Raw $AudioInfo), '(?s)({.+?})\r?\n').Value | ConvertFrom-Json
-    Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($AudioData)"
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
-    Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($Source)"
-    $Method = if ($Nvdia) { 'Nvidia CUDA' } else { if ($Intel) { 'Intel QSV' } else { 'CPU x264' } }
-    $Encoder = if ($Nvdia) { 'h264_nvenc' } else { if ($Intel) { 'h264_qsv' } else { 'libx264' } }
-    Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - 使用 $($Method) 转码"
     $VideoArg = @(
         '-y', '-hide_banner', '-loglevel', 'error',
         '-ss', "$($Offset)",
@@ -62,9 +63,8 @@ function Normalize {
         '-c:a', 'aac', '-b:a', '320k', '-r', '60',
         "$($FootageFolder)/$($Rank)_$($FileName).mp4"
     )
-    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 截取视频并标准化音频" -ForegroundColor Green
+    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 截取视频并标准化音频音量" -ForegroundColor Green
     & ffmpeg.exe @VideoArg 2> $null
-    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 操作完成`n" -ForegroundColor Green
 }
 
 
@@ -73,14 +73,16 @@ function EDNormalize {
         [parameter(position = 1)]$FileName
     )
     $Target = 'loudnorm=I=-23.0:LRA=+7.0:tp=-1.0'
-    $AudioArg = "-y -hide_banner -i ""./ranking/2_ed/$($FileName)"" -af $($Target):print_format=json -f null -"
+    $AudioArg = @(
+        '-y', '-hide_banner',
+        '-i', "./ranking/2_ed/$($FileName)",
+        '-af', "$($Target):print_format=json",
+        '-f', 'null', '-'
+    )
     $AudioInfo = './ranking/2_ed/ed.log'
-    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 分析 $($FileName) 音频数据"
-    Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -RedirectStandardError $AudioInfo -ArgumentList $AudioArg
+    & ffmpeg.exe $AudioArg 2> $AudioInfo
     $AudioData = [Regex]::Match((Get-Content -Raw $AudioInfo), '(?s)({.+?})\r?\n').Value | ConvertFrom-Json
-    Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($AudioData)"
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
-    Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($Source)"
     $EncodeArg = @(
         '-y', '-hide_banner', '-loglevel', 'error',
         '-i', "./ranking/2_ed/$($FileName)",
@@ -92,9 +94,8 @@ function EDNormalize {
         '-c:a', 'libmp3lame', '-q:a', '0',
         './ranking/2_ed/ed.mp3'
     )
-    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 音频标准化" -ForegroundColor Green
+    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 标准化音频音量" -ForegroundColor Green
     & ffmpeg.exe @EncodeArg 2> $null
-    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($FileName) 操作完成`n" -ForegroundColor Green
 }
 
 function Main {
@@ -102,35 +103,36 @@ function Main {
     $Files = @()
     $LocalVideos = @()
     $RankVideos = @()
-    if ($Part.Contains('*')) {
-        $Files = Get-Content -Raw "$($FootageFolder)/$($RankNum)_*.yml"
+    if ($null -eq $Part) {
         Get-ChildItem "$($FootageFolder)/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
-    } else {
-        $Part | ForEach-Object {
-            $Files += Get-Content -Raw "$($FootageFolder)/$($RankNum)_$($_).yml"
-        }
     }
-    $Files | ForEach-Object {
-        ConvertFrom-Yaml $_ | ForEach-Object {
-            $_ | ForEach-Object {
-                $RankVideos += @{r = $_.':rank'; n = $_.':name'; o = $_.':offset'; l = $_.':length' }
-            }
-        }
+    $Part = if ($null -ne $Part) { $Part } else { @('*') }
+    foreach ($p in $Part) {
+        $Files += Get-Content -Raw "$($FootageFolder)/$($RankNum)_$($p).yml"
     }
+    
+    foreach ($content in $Files) {
+        $items = (ConvertFrom-Yaml $content) | ForEach-Object { $_ } | ForEach-Object { $_ }
+        $RankVideos += $items
+    }
+
     $normalizeDef = ${Function:Normalize}.ToString()
     $RankVideos | ForEach-Object -ThrottleLimit 4 -Parallel {
-        $f = "$($_.r.ToString().PadLeft(2, '0'))_$($_.n)"
+        $rank = $_.':rank'.ToString().PadLeft(2, '0')
+        $name = $_.':name'
+        $offset = $_.':offset'
+        $length = [int]$_.':length'
+        $video = "$($rank)_$($name)"
         $FootageFolder = $using:FootageFolder
         $DownloadFolder = $using:DownloadFolder
         $LocalVideos = $using:LocalVideos
         $LostVideos = $using:LostVideos
-        $Nvdia = $using:Nvdia
-        $Intel = $using:Intel
-        if (($LocalVideos -notcontains $f) -or ((Get-Item "$($FootageFolder)/$($f).mp4").length -eq 0)) {
+        $Encoder = $using:Encoder
+        if (($LocalVideos -notcontains $video) -or ((Get-Item "$($FootageFolder)/$($video).mp4").length -eq 0)) {
             ${Function:Normalize} = [ScriptBlock]::Create($using:normalizeDef)
-            Normalize $_.r $_.n $_.o $_.l # -Debug
+            Normalize $rank $name $offset $length
         } else {
-            Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($_.n) 已存在，跳过处理" -ForegroundColor Green
+            Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($name) 已存在，跳过处理" -ForegroundColor Green
         }
     }
     Add-Type -AssemblyName Microsoft.VisualBasic
