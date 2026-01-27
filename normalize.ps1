@@ -13,10 +13,6 @@ if ($tmp.ExitCode -eq 0 ) { $Nvdia = $true } else { $Nvdia = $false }
 $tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_qsv -f null -' -RedirectStandardError '.\NUL'
 if ($tmp.ExitCode -eq 0 ) { $Intel = $true } else { $Intel = $false }
 $Encoder = if ($Nvdia) { 'h264_nvenc' } else { if ($Intel) { 'h264_qsv' } else { 'libx264' } }
-$LostVideos = @()
-(Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
-    $LostVideos += $_
-}
 
 function Normalize {
     param (
@@ -102,7 +98,9 @@ function Main {
     Import-Module powershell-yaml
     $Files = @()
     $LocalVideos = @()
+    $LostVideos = @()
     $RankVideos = @()
+
     if ($null -eq $Part) {
         Get-ChildItem "$($FootageFolder)/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
     }
@@ -114,6 +112,9 @@ function Main {
     foreach ($content in $Files) {
         $items = (ConvertFrom-Yaml $content) | ForEach-Object { $_ } | ForEach-Object { $_ }
         $RankVideos += $items
+    }
+    (Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
+        $LostVideos += $_
     }
 
     $normalizeDef = ${Function:Normalize}.ToString()

@@ -1,11 +1,12 @@
 param (
     [string]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7),
-    [array]$Part = @('*')
+    [array]$Part = $null
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $DownloadFolder = "$($TruePath)/ranking/list0"
+$FootageFolder = "$($TruePath)/ranking/list1"
 $CookieFile = "$($TruePath)/bilibili.com_cookies.txt"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
@@ -205,6 +206,8 @@ function BiliDown {
 function Main {
     Import-Module powershell-yaml
     $Files = @()
+    $LocalVideos = @()
+    $LostVideos = @()
     $RankVideos = @()
     $ExistVideos = @()
     $LostVideos = @()
@@ -226,9 +229,8 @@ function Main {
     (Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
         $LostVideos += $_
     }
-    $NeedVideos = $RankVideos | Where-Object { $ExistVideos -notcontains $_ }
-    $NeedVideos = $NeedVideos | Where-Object { $LostVideos -notcontains $_ }
-    $OldVideos = $ExistVideos | Where-Object { $RankVideos -notcontains $_ }
+    $TaskQueue = $RankVideos | Where-Object { $LocalVideos -notcontains $_ } | Where-Object { $LostVideos -notcontains $_ }
+    $OldVideos = $LocalVideos | Where-Object { $RankVideos -notcontains $_ }
 
     $RankVideos | Where-Object { $ExistVideos -contains $_ } | ForEach-Object {
         Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($_) 已存在，跳过下载" -ForegroundColor Green

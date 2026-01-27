@@ -2,9 +2,11 @@
     [string]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 )
-$UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-$LOST_FILE = './LostFile.json'
-$DestDir = './ranking/list1'
+$ProgressPreference = 'SilentlyContinue'
+$TruePath = Split-Path $MyInvocation.MyCommand.Path
+$FootageFolder = "$($TruePath)/ranking/list1"
+$LOST_FILE = "$($TruePath)/LostFile.json"
+$UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
 Write-Host ">>> 周刊哔哩哔哩排行榜#$($RankNum)" -ForegroundColor Cyan
 
@@ -73,7 +75,7 @@ function Get-Cover {
             New-Item -ItemType Directory -Path $folderPath | Out-Null
         }
         try {
-            Invoke-WebRequest -Uri $Link -OutFile $destination -UserAgent $UA
+            Invoke-WebRequest -Uri $Link -OutFile $destination -UserAgent $UserAgent
         } catch {
             Write-Error "下载失败: $_"
         }
@@ -84,7 +86,7 @@ function Get-VideoTitle {
     param ([int64]$Aid)
 
     $url = 'https://api.bilibili.com/x/web-interface/view'
-    $headers = @{ 'User-Agent' = $UA; 'DNT' = '1' }
+    $headers = @{ 'User-Agent' = $UserAgent; 'DNT' = '1' }
     
     try {
         $resp = Invoke-RestMethod -Uri "$($url)?aid=$($Aid)" -Headers $headers -Method Get
@@ -139,8 +141,6 @@ function Write-YamlList {
         }
     }
 
-    # if (-not (Test-Path $DestDir)) { New-Item -ItemType Directory -Path $DestDir -Force | Out-Null }
-    
     $yamlStr = New-Object System.Collections.Generic.List[string]
     $yamlStr.Add('---')
     for ($i = $yamlList.Count - 1; $i -ge 0; $i--) {
@@ -150,8 +150,8 @@ function Write-YamlList {
         $yamlStr.Add("  :length: $($item.length)")
         $yamlStr.Add('  :offset: 0')
     }
-    $yamlStr | Set-Content -Path "$($DestDir)/$($RankNum)_$($Part).yml" -Encoding UTF8
-    Write-Host "> 已生成 YAML: $($DestDir)/$($RankNum)_$($Part).yml" -ForegroundColor Cyan
+    $yamlStr | Set-Content -Path "$($FootageFolder)/$($RankNum)_$($Part).yml" -Encoding UTF8
+    Write-Host "> 已生成 YAML: $($FootageFolder)/$($RankNum)_$($Part).yml" -ForegroundColor Cyan
 }
 
 function Main {
@@ -197,7 +197,7 @@ function Main {
     Write-YamlList -Suffix 'results' -Max 10 -Min 4 -Part 13
     Write-YamlList -Suffix 'results_history' -Max 5 -Min 1 -Part 15
     Write-YamlList -Suffix 'results' -Max 3 -Min 1 -Part 16
-    Compress-Archive -Path "$($DestDir)\$($RankNum)*.yml" -DestinationPath ".\$($RankNum)_list1.zip" -Update
+    Compress-Archive -Path "$($FootageFolder)/$($RankNum)*.yml" -DestinationPath "$($TruePath)/$($RankNum)_list1.zip" -Update
 }
 
 Main
