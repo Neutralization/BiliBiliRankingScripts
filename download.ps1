@@ -122,13 +122,15 @@ function BiliDown {
     if ($null -ne $videoData.durl) {
         $singleMp4 = $videoData.durl | Where-Object -Property 'order' -EQ 1 | Select-Object -ExpandProperty 'url'
         try {
-            $aria2cArgs = -join @('-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none '
-                "--summary-interval=0 --download-result=hide --console-log-level=notice ""$($singleMp4)"" "
-                "--header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($ID).mp4"
+            $aria2cArgs = @(
+                '--conf-path=aria2.conf',
+                "$($singleMp4)",
+                "--header=User-Agent: $($UserAgent)",
+                "--header=Referer: $($Headers.referer)",
+                "--dir=$($DownloadFolder)", 
+                '--out', "$($ID).mp4"
             )
-            Write-Debug "$(Get-Date -Format 'MM/dd HH:mm:ss') - aria2c.exe $($aria2cArgs)"
-            Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 开始下载试看视频" -ForegroundColor Green
-            Start-Process -NoNewWindow -Wait -FilePath 'aria2c.exe' -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($ID)_.log"
+            & aria2c.exe @aria2cArgs 1>> "$($DownloadFolder)/$($ID)_.log"
         } catch {
             New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType 'file' -Value '' -Force
         }
@@ -146,21 +148,36 @@ function BiliDown {
     $videoDash = $videoData.dash.video | Where-Object -Property 'id' -EQ $videoId | Where-Object -Property 'codecs' -Match 'avc' | Select-Object -ExpandProperty 'baseUrl'
 
     try {
-        $aria2cArgs = -join @('-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none '
-            "--summary-interval=0 --download-result=hide --console-log-level=notice ""$($audioDash)"" "
-            "--header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($ID)_a.m4s"
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($BID) 正在下载" -ForegroundColor Cyan
+        $aria2cArgs = @(
+            '--conf-path=aria2.conf',
+            "$($audioDash)",
+            "--header=User-Agent: $($UserAgent)",
+            "--header=Referer: $($Headers.referer)",
+            "--dir=$($DownloadFolder)", '--out', "$($ID)_a.m4s"
         )
-        Start-Process -NoNewWindow -Wait -FilePath 'aria2c.exe' -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($ID)_.log"
-        $aria2cArgs = -join @('-x16 -s12 -j20 -k1M --continue --check-certificate=false --file-allocation=none '
-            "--summary-interval=0 --download-result=hide --console-log-level=notice ""$($videoDash)"" "
-            "--header=""User-Agent: $($UserAgent)"" --header=""Referer: $($Headers.referer)"" --dir=$($DownloadFolder) --out $($ID)_v.m4s"
+        & aria2c.exe @aria2cArgs 1>> "$($DownloadFolder)/$($ID)_.log"
+        
+        $aria2cArgs = @(
+            '--conf-path=aria2.conf',
+            "$($videoDash)",
+            "--header=User-Agent: $($UserAgent)",
+            "--header=Referer: $($Headers.referer)",
+            "--dir=$($DownloadFolder)", '--out', "$($ID)_v.m4s"
         )
-        Start-Process -NoNewWindow -Wait -FilePath 'aria2c.exe' -ArgumentList $aria2cArgs -RedirectStandardError "$($DownloadFolder)/$($ID)_.log"
+        & aria2c.exe @aria2cArgs 1>> "$($DownloadFolder)/$($ID)_.log"
 
-        $ffmpegArgs = "-y -hide_banner -i $($DownloadFolder)/$($ID)_a.m4s -i $($DownloadFolder)/$($ID)_v.m4s -c copy $($DownloadFolder)/$($ID).mp4"
-
-        Start-Process -NoNewWindow -Wait -FilePath 'ffmpeg.exe' -ArgumentList $ffmpegArgs -RedirectStandardError "$($DownloadFolder)/$($ID)_.log"
+        $ffmpegArgs = @(
+            '-y', '-hide_banner',
+            '-i', "$($DownloadFolder)/$($ID)_a.m4s",
+            '-i', "$($DownloadFolder)/$($ID)_v.m4s",
+            '-c', 'copy',
+            "$($DownloadFolder)/$($ID).mp4"
+        )
+        & ffmpeg.exe @ffmpegArgs 2>> "$($DownloadFolder)/$($ID)_.log"
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($BID) 下载完成" -ForegroundColor Green
     } catch {
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($BID) 出现错误" -ForegroundColor Red
         New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType 'file' -Value '' -Force
     }
 }
