@@ -164,6 +164,9 @@ function Main {
         $data = Get-Content $file -Raw | ConvertFrom-Json
         
         foreach ($item in $data) {
+            if ($null -ne $item.info) {
+                continue
+            }
             if ($null -ne $item.wid) {
                 $info = Get-VideoTitle -Aid $item.wid
                 if ($null -ne $info) {
