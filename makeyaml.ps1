@@ -59,7 +59,6 @@ function ConvertTo-AID {
 
 function Get-Cover {
     param (
-        [string]$Id,
         [string]$Link,
         [string]$Name
     )
@@ -181,11 +180,11 @@ function Main {
                 $cover = $item.cover
                 $id = ConvertTo-AID -Source $item.wid -Reverse $true
                 if ($null -ne $pic) {
-                    Write-Host "> 正在下载封面: ${pic}" -ForegroundColor Cyan
+                    Write-Host "> 正在下载封面: ${pic} > ${id}_pic" -ForegroundColor Cyan
                     Get-Cover -Id $id -Link $pic -Name 'pic'
                 }
                 if ($null -ne $cover) {
-                    Write-Host "> 正在下载封面: ${cover}" -ForegroundColor Cyan
+                    Write-Host "> 正在下载封面: ${cover} > ${id}_cover" -ForegroundColor Cyan
                     Get-Cover -Id $id -Link $cover -Name 'cover'
                 }
             }
