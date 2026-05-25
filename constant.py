@@ -7,13 +7,13 @@ YUME = 1277009809
 WEEKS = floor(
     (int(arrow.now("Asia/Shanghai").timestamp()) - YUME + 133009) / 3600 / 24 / 7
 )
-FZCUYUAN_M03 = "./footage/方正粗圆_GBK_[FZY4K--GBK1-0].ttf"
-HANNOTATE_SC = "./footage/手札体-简_[HannotateSC-W5].ttf"
-STYUAN = "./footage/华文圆体粗体_[STYuanBold].ttf"
-HYHEIMIJ = "./footage/汉仪黑咪体简_[HYm2gj].ttf"
-HYQIHEI_105J = "./footage/汉仪旗黑 105简繁_[HYQiHei_105JF].ttf"
-SEGOE_UI_EMOJI = "./footage/Segoe UI Emoji_[SegoeUIEmoji].ttf"
-YUANTI_SC = "./footage/华文圆体 Bold_[STYuanti-SC-Bold].ttf"
+FZCUYUAN_M03 = "./footage/方正粗圆_GBK_Regular.ttf"
+HANNOTATE_SC = "./footage/手札体-简_标准体.ttf"
+STYUAN = "./footage/华文圆体粗体_Bold.ttf"
+HYHEIMIJ = "./footage/汉仪黑咪体简_Regular.ttf"
+HYQIHEI_105J = "./footage/汉仪旗黑 105简繁_Regular.ttf"
+SEGOE_UI_EMOJI = "./footage/Segoe UI Emoji_Normal.ttf"
+YUANTI_SC = "./footage/华文圆体 Bold_粗体.ttf"
 BANGUMIRANKIMG = "./footage/BANGUMIRANKIMG.png"
 DOWNIMG = "./footage/DOWNIMG.png"
 DRAWIMG = "./footage/DRAWIMG.png"
