@@ -5,9 +5,9 @@ param (
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
-$DownloadFolder = "$($TruePath)/ranking/list0"
-$FootageFolder = "$($TruePath)/ranking/list1"
-$CookieFile = "$($TruePath)/bilibili.com_cookies.txt"
+$DownloadFolder = "${TruePath}/ranking/list0"
+$FootageFolder = "${TruePath}/ranking/list1"
+$CookieFile = "${TruePath}/bilibili.com_cookies.txt"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
@@ -85,7 +85,7 @@ function BiliDown {
     if ($ID -match '^[aA]') {
         $AID = $ID.Substring(2)
         $BID = ConvertTo-AID $AID $true
-        $ID = "av$($AID)"
+        $ID = "av${AID}"
     } elseif ($ID -match '^[bB]') {
         $AID = ConvertTo-AID $ID
         $BID = ConvertTo-AID $AID $true
@@ -93,23 +93,23 @@ function BiliDown {
     } else {
         return
     }
-    $pageUrl = "https://api.bilibili.com/x/player/pagelist?aid=$($AID)&jsonp=jsonp"
-    $Headers.referer = "https://www.bilibili.com/video/av$($AID)/"
-    $Headers.path = "/x/player/pagelist?aid=$($AID)&jsonp=jsonp"
+    $pageUrl = "https://api.bilibili.com/x/player/pagelist?aid=${AID}&jsonp=jsonp"
+    $Headers.referer = "https://www.bilibili.com/video/av${AID}/"
+    $Headers.path = "/x/player/pagelist?aid=${AID}&jsonp=jsonp"
     $pages = Invoke-WebRequest -UseBasicParsing -Uri $pageUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $CID = $pages.data | Where-Object -Property 'page' -EQ $Part | Select-Object -ExpandProperty 'cid'
     
-    $ccUrl = "https://api.bilibili.com/x/player/wbi/v2?aid=$($AID)&cid=$($CID)&isGaiaAvoided=false"
+    $ccUrl = "https://api.bilibili.com/x/player/wbi/v2?aid=${AID}&cid=${CID}&isGaiaAvoided=false"
     $ccData = Invoke-WebRequest -UseBasicParsing -Uri $ccUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $subtitle = $ccData.data.subtitle.subtitles[0]
     if ($null -ne $subtitle.subtitle_url -and $subtitle.lan -notmatch 'ai-') {
-        Invoke-WebRequest -Uri "http:$($subtitle.subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "$($FootageFolder)/$ID.json"
+        Invoke-WebRequest -Uri "http:$($subtitle.subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "${FootageFolder}/${ID}.json"
     }
 
-    $sourceUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1"
+    $sourceUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=${AID}&bvid=${BID}&cid=${CID}&qn=120&fnver=0&fnval=4048&fourk=1"
     $pgcTest = Invoke-WebRequest -UseBasicParsing -Uri $sourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
-    $sourceUrl = if (-404 -eq $pgcTest.code) { "https://api.bilibili.com/x/player/playurl?avid=$($AID)&bvid=$($BID)&cid=$($CID)&qn=120&fnver=0&fnval=4048&fourk=1" } else { $sourceUrl }
-    $Headers.referer = "https://www.bilibili.com/video/av$($AID)/"
+    $sourceUrl = if (-404 -eq $pgcTest.code) { "https://api.bilibili.com/x/player/playurl?avid=${AID}&bvid=${BID}&cid=${CID}&qn=120&fnver=0&fnval=4048&fourk=1" } else { $sourceUrl }
+    $Headers.referer = "https://www.bilibili.com/video/av${AID}/"
     $Headers.path = $sourceUrl.Substring('https://api.bilibili.com'.Length)
     $videoInfo = Invoke-WebRequest -UseBasicParsing -Uri $sourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $videoData = if (-404 -eq $pgcTest.code) { $videoInfo.data } else { $videoInfo.result.video_info }
@@ -124,15 +124,15 @@ function BiliDown {
         try {
             $aria2cArgs = @(
                 '--conf-path=aria2.conf',
-                "$($singleMp4)",
-                "--header=User-Agent: $($UserAgent)",
+                "${singleMp4}",
+                "--header=User-Agent: ${UserAgent}",
                 "--header=Referer: $($Headers.referer)",
-                "--dir=$($DownloadFolder)", 
-                '--out', "$($ID).mp4"
+                "--dir=${DownloadFolder}", 
+                '--out', "${ID}.mp4"
             )
-            & aria2c.exe @aria2cArgs 1>> "$($DownloadFolder)/$($ID)_.log"
+            & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
         } catch {
-            New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType 'file' -Value '' -Force
+            New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force
         }
         return
     }
@@ -148,37 +148,37 @@ function BiliDown {
     $videoDash = $videoData.dash.video | Where-Object -Property 'id' -EQ $videoId | Where-Object -Property 'codecs' -Match 'avc' | Select-Object -ExpandProperty 'baseUrl'
 
     try {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($BID) 正在下载" -ForegroundColor Cyan
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 正在下载" -ForegroundColor Cyan
         $aria2cArgs = @(
             '--conf-path=aria2.conf',
-            "$($audioDash)",
-            "--header=User-Agent: $($UserAgent)",
+            "${audioDash}",
+            "--header=User-Agent: ${UserAgent}",
             "--header=Referer: $($Headers.referer)",
-            "--dir=$($DownloadFolder)", '--out', "$($ID)_a.m4s"
+            "--dir=${DownloadFolder}", '--out', "${ID}_a.m4s"
         )
-        & aria2c.exe @aria2cArgs 1>> "$($DownloadFolder)/$($ID)_.log"
+        & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
         
         $aria2cArgs = @(
             '--conf-path=aria2.conf',
-            "$($videoDash)",
-            "--header=User-Agent: $($UserAgent)",
+            "${videoDash}",
+            "--header=User-Agent: ${UserAgent}",
             "--header=Referer: $($Headers.referer)",
-            "--dir=$($DownloadFolder)", '--out', "$($ID)_v.m4s"
+            "--dir=${DownloadFolder}", '--out', "${ID}_v.m4s"
         )
-        & aria2c.exe @aria2cArgs 1>> "$($DownloadFolder)/$($ID)_.log"
+        & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
 
         $ffmpegArgs = @(
             '-y', '-hide_banner',
-            '-i', "$($DownloadFolder)/$($ID)_a.m4s",
-            '-i', "$($DownloadFolder)/$($ID)_v.m4s",
+            '-i', "${DownloadFolder}/${ID}_a.m4s",
+            '-i', "${DownloadFolder}/${ID}_v.m4s",
             '-c', 'copy',
-            "$($DownloadFolder)/$($ID).mp4"
+            "${DownloadFolder}/${ID}.mp4"
         )
-        & ffmpeg.exe @ffmpegArgs 2>> "$($DownloadFolder)/$($ID)_.log"
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($BID) 下载完成" -ForegroundColor Green
+        & ffmpeg.exe @ffmpegArgs 2>> "${DownloadFolder}/${ID}_.log"
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 下载完成" -ForegroundColor Green
     } catch {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - $($BID) 出现错误" -ForegroundColor Red
-        New-Item -Path "$($DownloadFolder)" -Name "$($BID).txt" -ItemType 'file' -Value '' -Force
+        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 出现错误" -ForegroundColor Red
+        New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force
     }
 }
 
@@ -190,17 +190,17 @@ function Main {
     $RankVideos = @()
 
     if ($null -eq $Part) {
-        Get-ChildItem "$($DownloadFolder)/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
+        Get-ChildItem "${DownloadFolder}/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
     }
     $Part = if ($null -ne $Part) { $Part } else { @('*') }
     foreach ($p in $Part) {
-        $Files += Get-Content -Raw "$($FootageFolder)/$($RankNum)_$($p).yml"
+        $Files += Get-Content -Raw "${FootageFolder}/${RankNum}_${p}.yml"
     }
     foreach ($content in $Files) {
         $items = (ConvertFrom-Yaml $content) | ForEach-Object { $_ } | ForEach-Object { $_.':name' }
         $RankVideos += $items
     }
-    (Get-Content "$($TruePath)/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
+    (Get-Content "${TruePath}/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
         $LostVideos += $_
     }
     $TaskQueue = $RankVideos | Where-Object { $LocalVideos -notcontains $_ } | Where-Object { $LostVideos -notcontains $_ }
@@ -209,11 +209,11 @@ function Main {
     Add-Type -AssemblyName Microsoft.VisualBasic
     $OldVideos | ForEach-Object {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            (Resolve-Path "$($DownloadFolder)/$($_).mp4"), 'OnlyErrorDialogs', 'SendToRecycleBin')
+            (Resolve-Path "${DownloadFolder}/${_}.mp4"), 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
-    Get-ChildItem "$($DownloadFolder)/*" -Exclude *.mp4, *.m4s | ForEach-Object {
+    Get-ChildItem "${DownloadFolder}/*" -Exclude *.mp4, *.m4s | ForEach-Object {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            (Resolve-Path "$($_)"), 'OnlyErrorDialogs', 'SendToRecycleBin')
+            (Resolve-Path "${_}"), 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
 
     $bilidownDef = ${Function:BiliDown}.ToString()
@@ -228,9 +228,9 @@ function Main {
         ${Function:ConvertTo-AID} = [ScriptBlock]::Create($using:converttoaidDef)
         BiliDown $_
     }
-    Get-ChildItem "$($DownloadFolder)/*" -Include *.log, *.m4s | ForEach-Object {
+    Get-ChildItem "${DownloadFolder}/*" -Include *.log, *.m4s | ForEach-Object {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            (Resolve-Path "$($_)"), 'OnlyErrorDialogs', 'SendToRecycleBin')
+            (Resolve-Path "${_}"), 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
 }
 
