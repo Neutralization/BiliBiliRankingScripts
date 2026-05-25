@@ -789,7 +789,7 @@ def MakeYaml(file, max, min, part):
                     (
                         rank,
                         f"{re.sub(r'^bv', 'BV', x['bv'])}",
-                        x["name"],
+                        # x["name"],
                     )
                 ]
 
@@ -799,14 +799,16 @@ def MakeYaml(file, max, min, part):
 
     with open(f"./{WEEKS}_rankdoor.csv", "a", newline="", encoding="utf-8-sig") as f:
         writer = csv.writer(f)
-        writer.writerow([
-            {
-                "results": "主榜",
-                "results_history": "历史",
-                "guoman_bangumi": "国创",
-                "results_bangumi": "番剧",
-            }.get(file)
-        ])
+        writer.writerow(
+            [
+                {
+                    "results": "主榜",
+                    "results_history": "历史",
+                    "guoman_bangumi": "国创",
+                    "results_bangumi": "番剧",
+                }.get(file)
+            ]
+        )
         writer.writerows(sorted(doorcontent, reverse=True))
 
 
