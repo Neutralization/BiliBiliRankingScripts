@@ -4,11 +4,11 @@
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
-$FootageFolder = "$($TruePath)/ranking/list1"
-$LOST_FILE = "$($TruePath)/LostFile.json"
+$FootageFolder = "${TruePath}/ranking/list1"
+$LOST_FILE = "${TruePath}/LostFile.json"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
-Write-Host ">>> 周刊哔哩哔哩排行榜#$($RankNum)" -ForegroundColor Cyan
+Write-Host ">>> 周刊哔哩哔哩排行榜#${RankNum}" -ForegroundColor Cyan
 
 function ConvertTo-AID {
     param (
@@ -68,7 +68,7 @@ function Get-Cover {
     }
     $ext = ($Link -split '\.')[-1]
     $folderPath = './pic'
-    $fileName = "$($Id)_$($Name).$($ext)"
+    $fileName = "${Id}_${Name}.${ext}"
     $destination = Join-Path $folderPath $fileName
     if (-not (Test-Path $destination)) {
         if (-not (Test-Path $folderPath)) {
@@ -89,7 +89,7 @@ function Get-VideoTitle {
     $headers = @{ 'User-Agent' = $UserAgent; 'DNT' = '1' }
     
     try {
-        $resp = Invoke-RestMethod -Uri "$($url)?aid=$($Aid)" -Headers $headers -Method Get
+        $resp = Invoke-RestMethod -Uri "${url}?aid=${Aid}" -Headers $headers -Method Get
         if ($resp.code -eq 0) {
             return @{ title = $resp.data.title; tname = $resp.data.tname_v2 }
         } else {
@@ -101,7 +101,7 @@ function Get-VideoTitle {
             $Bvid = ConvertTo-AID -Source $Aid -Reverse $true
             $lost["av$Aid"] = $msg; $lost["$Bvid"] = $msg
             $lost | ConvertTo-Json -Depth 10 | Set-Content $LOST_FILE -Encoding UTF8
-            Write-Host "> 视频失效: av$($Aid) ($($msg))" -ForegroundColor Red
+            Write-Host "> 视频失效: av${Aid} (${msg})" -ForegroundColor Red
             return $null
         }
     } catch { return $null }
@@ -115,7 +115,7 @@ function Write-YamlList {
         [int]$Part
     )
 
-    $jsonPath = "./$($RankNum)_$($Suffix).json"
+    $jsonPath = "./${RankNum}_${Suffix}.json"
     if (-not (Test-Path $jsonPath)) { return }
     $content = Get-Content $jsonPath -Raw | ConvertFrom-Json
     $rankFrom = $content[0].rank_from
@@ -150,15 +150,15 @@ function Write-YamlList {
         $yamlStr.Add("  :length: $($item.length)")
         $yamlStr.Add('  :offset: 0')
     }
-    $yamlStr | Set-Content -Path "$($FootageFolder)/$($RankNum)_$($Part).yml" -Encoding UTF8
-    Write-Host "> 已生成 YAML: $($FootageFolder)/$($RankNum)_$($Part).yml" -ForegroundColor Cyan
+    $yamlStr | Set-Content -Path "${FootageFolder}/${RankNum}_${Part}.yml" -Encoding UTF8
+    Write-Host "> 已生成 YAML: ${FootageFolder}/${RankNum}_${Part}.yml" -ForegroundColor Cyan
 }
 
 function Main {
     $targetFiles = @('results_bangumi', 'guoman_bangumi', 'results_history', 'results' )
     
     foreach ($suffix in $targetFiles) {
-        $file = "./$($RankNum)_$($suffix).json"
+        $file = "./${RankNum}_${suffix}.json"
         if (-not (Test-Path $file)) { continue }
         Write-Host "> 正在处理文件: $file" -ForegroundColor Cyan
         $data = Get-Content $file -Raw | ConvertFrom-Json
@@ -178,11 +178,11 @@ function Main {
                 $cover = $item.cover
                 $id = ConvertTo-AID -Source $item.wid -Reverse $true
                 if ($null -ne $pic) {
-                    Write-Host "> 正在下载封面: $($pic)" -ForegroundColor Cyan
+                    Write-Host "> 正在下载封面: ${pic}" -ForegroundColor Cyan
                     Get-Cover -Id $id -Link $pic -Name 'pic'
                 }
                 if ($null -ne $cover) {
-                    Write-Host "> 正在下载封面: $($cover)" -ForegroundColor Cyan
+                    Write-Host "> 正在下载封面: ${cover}" -ForegroundColor Cyan
                     Get-Cover -Id $id -Link $cover -Name 'cover'
                 }
             }
@@ -197,7 +197,7 @@ function Main {
     Write-YamlList -Suffix 'results' -Max 10 -Min 4 -Part 13
     Write-YamlList -Suffix 'results_history' -Max 5 -Min 1 -Part 15
     Write-YamlList -Suffix 'results' -Max 3 -Min 1 -Part 16
-    Compress-Archive -Path "$($FootageFolder)/$($RankNum)*.yml" -DestinationPath "$($TruePath)/$($RankNum)_list1.zip" -Update
+    Compress-Archive -Path "${FootageFolder}/${RankNum}*.yml" -DestinationPath "${TruePath}/${RankNum}_list1.zip" -Update
 }
 
 Main
