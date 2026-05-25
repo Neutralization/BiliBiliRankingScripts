@@ -301,26 +301,27 @@ function Get-RankList {
         return $RankString
     }
 
-    if ((Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount 25)[-1] -eq '主榜') {
-        $SplitNum = 24
-    } else {
-        $RankNum = (Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount 25)[-1].Split(',')[0]
-        try {
-            $null = [convert]::ToInt32($RankNum)
-            if ($RankNum -gt 10) {
-                $SplitNum = 24 + ($RankNum - 10)
-            } else {
-                $SplitNum = 24 - (11 - $RankNum)
-            }
-        } catch { return $false }
-    }
+    # if ((Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount 25)[-1] -eq '主榜') {
+    #     $SplitNum = 24
+    # } else {
+    #     $RankNum = (Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount 25)[-1].Split(',')[0]
+    #     try {
+    #         $null = [convert]::ToInt32($RankNum)
+    #         if ($RankNum -gt 10) {
+    #             $SplitNum = 24 + ($RankNum - 10)
+    #         } else {
+    #             $SplitNum = 24 - (11 - $RankNum)
+    #         }
+    #     } catch { return $false }
+    # }
     $RankList = @()
-    $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount $SplitNum | Select-Object -Skip 0
+    # $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount $SplitNum | Select-Object -Skip 0
+    $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' | Select-Object -Skip 0
     $RankList += Join-RankList $SplitList
-    $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount ($SplitNum + 18) | Select-Object -Skip $SplitNum
-    $RankList += Join-RankList $SplitList
-    $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' | Select-Object -Skip ($SplitNum + 18)
-    $RankList += Join-RankList $SplitList
+    # $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount ($SplitNum + 18) | Select-Object -Skip $SplitNum
+    # $RankList += Join-RankList $SplitList
+    # $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' | Select-Object -Skip ($SplitNum + 18)
+    # $RankList += Join-RankList $SplitList
     return $RankList
 }
 
@@ -426,11 +427,7 @@ function Main {
     Set-MasterPiece $SelfAID
     Set-TopVideo $SelfAID
     $RankList = Get-RankList
-    $ROOT = Add-Reply $SelfAID '0' $RankList[0]
-    Start-Sleep -Seconds 1
-    $null = Add-Reply $SelfAID $ROOT $RankList[1]
-    Start-Sleep -Seconds 1
-    $null = Add-Reply $SelfAID $ROOT $RankList[2]
+    $ROOT = Add-Reply $SelfAID '0' $RankList
     Start-Sleep -Seconds 1
     Set-TopReply $SelfAID $ROOT
 }
