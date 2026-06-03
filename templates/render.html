@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8">
+  <title>Bilibili Ranking Render Debug</title>
+  <style>
+    @font-face {
+      font-family: YuanTi;
+      src: url("../footage/华文圆体 Bold_粗体.ttf");
+    }
+
+    @font-face {
+      font-family: HanNote;
+      src: url("../footage/手札体-简_标准体.ttf");
+    }
+
+    @font-face {
+      font-family: HYHeiMi;
+      src: url("../footage/汉仪黑咪体简_Regular.ttf");
+    }
+
+    @font-face {
+      font-family: FZCuYuan;
+      src: url("../footage/方正粗圆_GBK_Regular.ttf");
+    }
+
+    @font-face {
+      font-family: Emoji;
+      src: url("../footage/Segoe UI Emoji_Normal.ttf");
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+    }
+
+    body {
+      overflow: hidden;
+      font-family: YuanTi, Emoji, "Segoe UI", "Segoe UI Emoji", sans-serif;
+    }
+
+    body.debug {
+      min-width: 1920px;
+      overflow: auto;
+      background:
+        linear-gradient(90deg, rgba(32, 32, 32, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(32, 32, 32, 0.08) 1px, transparent 1px),
+        #2d3138;
+      background-size: 40px 40px;
+    }
+
+    #debug-panel {
+      display: none;
+    }
+
+    body.debug #debug-panel {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      align-items: center;
+      padding: 10px 14px;
+      color: #f4efe6;
+      background: rgba(18, 22, 28, 0.94);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      font: 14px/1.4 "Segoe UI", sans-serif;
+    }
+
+    #debug-panel label {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    #debug-panel select,
+    #debug-panel input {
+      accent-color: #d9975b;
+    }
+
+    #debug-info {
+      flex-basis: 100%;
+      color: #c9d0d8;
+      font-size: 12px;
+    }
+
+    body.debug #canvas {
+      margin: 18px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+    }
+
+    #canvas {
+      position: relative;
+      overflow: hidden;
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      color: #6D4B2B;
+    }
+
+    #canvas.rank-main {
+      background-image: url("../footage/MAINRANKIMG.png");
+    }
+
+    #canvas.rank-bangumi {
+      background-image: url("../footage/BANGUMIRANKIMG.png");
+    }
+
+    #canvas.rank-history {
+      background-image: url("../footage/HISTORYRANKIMG.png");
+    }
+
+    #canvas.rank-pickup {
+      background-image: url("../footage/PICKUPIMG.png");
+    }
+
+    #canvas.sub-main {
+      background-image: url("../footage/SUBRANKIMG.png");
+    }
+
+    #canvas.sub-bangumi {
+      background-image: url("../footage/SUBBANGUMIRANKIMG.png");
+    }
+
+    #canvas.stat-1 {
+      background-image: url("../footage/STATONEIMG.png");
+    }
+
+    #canvas.stat-2 {
+      background-image: url("../footage/STATTWOIMG.png");
+    }
+
+    #canvas.stat-3 {
+      background-image: url("../footage/STATTHREEIMG.png");
+    }
+
+    #canvas.simple-opening {
+      background-image: url("../footage/MAINTITLEIMG.png");
+    }
+
+    #canvas.simple-long-term {
+      background-image: url("../footage/LONGIMG.png");
+    }
+
+    #canvas.simple-history-record {
+      background-image: url("../footage/HISTORYRECORDIMG.png");
+    }
+
+    #canvas.simple-top-diff {
+      background-image: url("../footage/TOPIMG.png");
+    }
+
+    #canvas.debug-grid::before {
+      position: absolute;
+      inset: 0;
+      z-index: 9;
+      pointer-events: none;
+      content: "";
+      background:
+        linear-gradient(90deg, rgba(255, 0, 0, 0.32) 1px, transparent 1px),
+        linear-gradient(rgba(255, 0, 0, 0.32) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+      background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+    }
+
+    #canvas.debug-boxes .field,
+    #canvas.debug-boxes .img {
+      outline: 1px solid rgba(0, 255, 255, 0.85);
+      background-color: rgba(0, 255, 255, 0.08);
+    }
+
+    .debug-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      object-fit: fill;
+    }
+
+    .field,
+    .img {
+      position: absolute;
+    }
+
+    .field {
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .center {
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    .right {
+      width: max-content;
+      text-align: right;
+      transform: translateX(-100%);
+    }
+
+    .shadow-white {
+      color: #FFFFFF;
+      text-shadow: 2px 2px 0 #000000, 1px 1px 0 #818181;
+    }
+
+    .cover {
+      object-fit: cover;
+    }
+
+    .sub-cover {
+      object-fit: contain;
+    }
+
+    .contain {
+      object-fit: contain;
+    }
+
+    .asset {
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+    }
+
+    .trend-up {
+      background-image: url("../footage/UPIMG.png");
+    }
+
+    .trend-down {
+      background-image: url("../footage/DOWNIMG.png");
+    }
+
+    .trend-draw {
+      background-image: url("../footage/DRAWIMG.png");
+    }
+
+    .longtime-mark {
+      left: 11px;
+      top: 11px;
+      width: 180px;
+      height: 180px;
+      background-image: url("../footage/LONGTIMEIMG.png");
+    }
+
+    .title {
+      overflow: hidden;
+      text-overflow: clip;
+      font-family: YuanTi, Emoji, "Segoe UI Emoji", sans-serif;
+    }
+
+    .font-note {
+      font-family: HanNote, Emoji, "Segoe UI Emoji", sans-serif;
+    }
+
+    .font-rank {
+      font-family: HYHeiMi, Emoji, "Segoe UI Emoji", sans-serif;
+    }
+
+    .font-round {
+      font-family: YuanTi, Emoji, "Segoe UI Emoji", sans-serif;
+    }
+
+    .font-fz {
+      font-family: FZCuYuan, Emoji, "Segoe UI Emoji", sans-serif;
+    }
+
+    .rank-title {
+      left: 32px;
+      top: 979px;
+      width: 1443px;
+      color: #6D4B2B;
+      font-size: 54px;
+      line-height: 56px;
+    }
+
+    .rank-bangumi .rank-title {
+      left: 192px;
+      width: 1283px;
+    }
+
+    .rank-author {
+      left: 31px;
+      top: 937px;
+      color: #6D4B2B;
+      font-size: 32px;
+    }
+
+    .rank-bangumi .rank-author {
+      left: 189px;
+    }
+
+    .rank-cover {
+      left: 35px;
+      top: 930px;
+      width: 115px;
+      height: 115px;
+    }
+
+    .rank-bv {
+      left: 195px;
+      top: 858px;
+      color: #FFFFFF;
+      font-size: 42px;
+    }
+
+    .rank-category {
+      left: 580px;
+      top: 860px;
+      color: #6D4B2B;
+      font-size: 36px;
+    }
+
+    .rank-cdate {
+      left: 933px;
+      top: 861px;
+      color: #6D4B2B;
+      font-size: 36px;
+    }
+
+    .rank-bangumi .rank-cdate {
+      left: 754px;
+    }
+
+    .rank-score-rank {
+      left: 1703px;
+      top: 28px;
+      color: #FFFFFF;
+      font-size: 150px;
+    }
+
+    .rank-score {
+      left: 1703px;
+      top: 390px;
+      color: #FFFFFF;
+      font-size: 52px;
+    }
+
+    .rank-history .rank-score {
+      top: 295px;
+    }
+
+    .rank-week {
+      left: 1495px;
+      top: 420px;
+      color: #FFFFFF;
+      font-size: 72px;
+    }
+
+    .rank-last-label {
+      left: 1703px;
+      top: 195px;
+      font-size: 36px;
+    }
+
+    .rank-last-rank {
+      left: 1741px;
+      top: 195px;
+      font-size: 36px;
+    }
+
+    .rank-pin {
+      left: 1617px;
+      top: 190px;
+      width: 45px;
+      height: 45px;
+    }
+
+    .rank-click,
+    .rank-comment,
+    .rank-third,
+    .rank-fourth {
+      left: 1535px;
+      color: #FFFFFF;
+      font-size: 36px;
+    }
+
+    .rank-click {
+      top: 556px;
+    }
+
+    .rank-comment {
+      top: 700px;
+    }
+
+    .rank-third {
+      top: 844px;
+    }
+
+    .rank-fourth {
+      top: 988px;
+    }
+
+    .rank-part {
+      left: 1833px;
+      top: 557px;
+      color: #EAAA7D;
+      font-size: 26px;
+    }
+
+    .rank-fix-a,
+    .rank-fix-b,
+    .rank-fix-c,
+    .rank-fix-b2 {
+      left: 1710px;
+      color: #EAAA7D;
+      font-size: 32px;
+    }
+
+    .rank-fix-a {
+      top: 560px;
+    }
+
+    .rank-fix-b {
+      top: 704px;
+    }
+
+    .rank-fix-c {
+      top: 848px;
+    }
+
+    .rank-fix-b2 {
+      top: 992px;
+    }
+
+    .rank-fix-d {
+      left: 1810px;
+      top: 425px;
+      color: #FFFFFF;
+      font-size: 22px;
+    }
+
+    .rank-click-rank,
+    .rank-comment-rank,
+    .rank-third-rank,
+    .rank-fourth-rank {
+      left: 1837px;
+      color: #EAAA7D;
+      font-size: 26px;
+    }
+
+    .rank-click-rank {
+      top: 497px;
+    }
+
+    .rank-comment-rank {
+      top: 640px;
+    }
+
+    .rank-third-rank {
+      top: 783px;
+    }
+
+    .rank-fourth-rank {
+      top: 926px;
+    }
+
+    .rank-invalid {
+      left: 980px;
+      top: 749px;
+      color: #CC0000;
+      font-size: 48px;
+    }
+
+    .simple-field {
+      color: #FFFFFF;
+    }
+
+    .opening-week {
+      left: 355px;
+      top: 614px;
+      font-size: 128px;
+    }
+
+    .opening-title {
+      left: 376px;
+      top: 750px;
+      font-size: 52px;
+    }
+
+    .long-term-range {
+      left: 607px;
+      top: 415px;
+      font-size: 216px;
+    }
+
+    .long-term-description {
+      left: 607px;
+      top: 695px;
+      font-size: 45px;
+    }
+
+    .history-record-title {
+      left: 607px;
+      top: 543px;
+      font-size: 44px;
+    }
+
+    .history-record-count {
+      left: 607px;
+      top: 825px;
+      font-size: 45px;
+    }
+
+    .top-diff-place {
+      left: 603px;
+      top: 318px;
+      font-size: 390px;
+    }
+
+    .top-diff-text {
+      left: 609px;
+      top: 735px;
+      font-size: 45px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="debug-panel">
+    <label>场景
+      <select id="debug-scene"></select>
+    </label>
+    <label>
+      <input id="debug-overlay-enabled" type="checkbox" checked>
+      叠加参考图
+    </label>
+    <label>参考透明度
+      <input id="debug-overlay-opacity" type="range" min="0" max="1" step="0.05" value="0.5">
+    </label>
+    <label>渲染透明度
+      <input id="debug-canvas-opacity" type="range" min="0.1" max="1" step="0.05" value="1">
+    </label>
+    <label>
+      <input id="debug-grid" type="checkbox">
+      网格
+    </label>
+    <label>
+      <input id="debug-boxes" type="checkbox">
+      元素边框
+    </label>
+    <span id="debug-info"></span>
+  </div>
+  <div id="canvas"></div>
+  <script>
+    const canvas = document.getElementById("canvas");
+    const PAGE_WIDTH = 1920;
+    const PAGE_HEIGHT = 1080;
+
+    function rel(path) {
+      return new URL(path, window.location.href).href;
+    }
+
+    function reset(data) {
+      canvas.innerHTML = "";
+      canvas.classList.remove(
+        "rank-main",
+        "rank-bangumi",
+        "rank-history",
+        "rank-pickup",
+        "sub-main",
+        "sub-bangumi",
+        "stat-1",
+        "stat-2",
+        "stat-3",
+        "simple-opening",
+        "simple-long-term",
+        "simple-history-record",
+        "simple-top-diff"
+      );
+      canvas.style.width = `${data.width}px`;
+      canvas.style.height = `${data.height}px`;
+      canvas.style.backgroundImage = "";
+    }
+
+    function field(text, x, y, options = {}) {
+      const el = document.createElement("div");
+      el.className = `field ${options.className || ""}`;
+      el.textContent = text ?? "";
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      if (options.width && !el.classList.contains("right")) el.style.width = `${options.width}px`;
+      if (options.size) el.style.fontSize = `${options.size}px`;
+      if (options.color) el.style.color = options.color;
+      if (options.weight) el.style.fontWeight = options.weight;
+      if (options.align) el.style.textAlign = options.align;
+      if (options.lineHeight) el.style.lineHeight = options.lineHeight;
+      canvas.appendChild(el);
+      return el;
+    }
+
+    function text(className, value) {
+      const el = document.createElement("div");
+      el.className = `field ${className}`;
+      el.textContent = value ?? "";
+      canvas.appendChild(el);
+      return el;
+    }
+
+    function image(src, x, y, width, height, options = {}) {
+      if (!src) return null;
+      const img = document.createElement("img");
+      img.className = `img ${options.className || ""}`;
+      img.src = src;
+      img.style.left = `${x}px`;
+      img.style.top = `${y}px`;
+      img.style.width = `${width}px`;
+      img.style.height = `${height}px`;
+      canvas.appendChild(img);
+      return img;
+    }
+
+    function classImage(src, className) {
+      if (!src) return null;
+      const img = document.createElement("img");
+      img.className = `img ${className}`;
+      img.src = src;
+      canvas.appendChild(img);
+      return img;
+    }
+
+    function asset(className) {
+      const el = document.createElement("div");
+      el.className = `img asset ${className}`;
+      canvas.appendChild(el);
+      return el;
+    }
+
+    function positionedAsset(className, x, y, width, height) {
+      const el = asset(className);
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      el.style.width = `${width}px`;
+      el.style.height = `${height}px`;
+      return el;
+    }
+
+    function rankCard(data) {
+      reset(data);
+      const d = data.card;
+      canvas.classList.add(`rank-${d.variant || (d.history ? "history" : "main")}`);
+      if (d.longtime) asset("longtime-mark");
+      classImage(d.cover, "rank-cover cover");
+
+      text("rank-title title", d.title);
+      text("rank-author font-note", d.author);
+      text("rank-bv font-round center", d.bv);
+      if (d.category) text("rank-category font-round center", d.category);
+      text("rank-cdate font-round center", d.cdate);
+      if (d.variant === "pickup") {
+        if (d.invalid) text("rank-invalid font-fz", d.invalid);
+        return;
+      }
+      text("rank-score-rank font-rank center", d.scoreRank);
+
+      if (d.history) {
+        text("rank-score font-round center", d.score);
+        text("rank-week font-round", `#${d.week}`);
+      } else {
+        text("rank-score font-round center", d.score);
+        if (d.lastRank === "0") {
+          text("rank-last-label font-note center shadow-white", "新上榜");
+        } else if (d.lastRank) {
+          text("rank-last-label font-note center shadow-white", "上周");
+          text("rank-last-rank font-note shadow-white", d.lastRank);
+          asset(`rank-pin trend-${d.pin || "draw"}`);
+        }
+
+        text("rank-click font-round", d.click);
+        text("rank-comment font-round", d.comment);
+        text("rank-third font-round", d.thirdValue);
+        text("rank-fourth font-round", d.fourthValue);
+        if (d.partText) text("rank-part font-note center", d.partText);
+        text("rank-fix-a font-round", d.fixA);
+        text("rank-fix-b font-round", d.fixB);
+        text("rank-fix-c font-round", d.fixC);
+        if (d.fixB2) text("rank-fix-b2 font-round", d.fixB2);
+        if (d.fixD) text("rank-fix-d font-round", d.fixD);
+        text("rank-click-rank font-note", d.clickRank);
+        text("rank-comment-rank font-note", d.commentRank);
+        text("rank-third-rank font-note", d.thirdRank);
+        text("rank-fourth-rank font-note", d.fourthRank);
+      }
+      if (d.invalid) text("rank-invalid font-fz", d.invalid);
+    }
+
+    function subRank(data) {
+      reset(data);
+      canvas.classList.add(`sub-${data.kind || "main"}`);
+      data.rows.forEach((row, j) => {
+        const y = j * 259;
+        image(row.cover, 63, 48 + y, 336, 210, { className: "sub-cover" });
+        field(row.title, 424, 57 + y, { width: 1461, size: 52, color: "#6D4B2B", className: "title", lineHeight: "54px" });
+        field(row.bv, 549, 221 + y, { size: 32, color: "#FFFFFF", className: "font-round center" });
+        field(row.score, 1706, 225 + y, { width: 1, size: 45, color: "#FFFFFF", className: "font-round right" });
+        field(row.click, 491, 143 + y, { size: 40, color: "#6D4B2B", className: "font-round" });
+        field(row.comment, 893, 143 + y, { size: 40, color: "#6D4B2B", className: "font-round" });
+        field(row.thirdValue, 1218, 143 + y, { size: 40, color: "#6D4B2B", className: "font-round" });
+        if (row.fourthValue) field(row.fourthValue, 1574, 143 + y, { size: 40, color: "#6D4B2B", className: "font-round" });
+        if (row.clickRank) field(row.clickRank, 739, 148 + y, { size: 32, color: "#BCA798", className: "font-round" });
+        if (row.commentRank) field(row.commentRank, 1067, 148 + y, { size: 32, color: "#BCA798", className: "font-round" });
+        if (row.thirdRank) field(row.thirdRank, 1390, 148 + y, { size: 32, color: "#BCA798", className: "font-round" });
+        if (row.fourthRank) field(row.fourthRank, 1748, 148 + y, { size: 32, color: "#BCA798", className: "font-round" });
+        field(row.scoreRank, 1856, 214 + y, { size: 48, color: "#FFFFFF", className: "font-rank center" });
+        field(row.cdate, 820, 215 + y, { size: 37, color: "#BCA798", className: "font-round" });
+        field(row.lastRank, 1244, 215 + y, { size: 34, color: "#BCA798", className: "font-round" });
+      });
+    }
+
+    function stat(data) {
+      reset(data);
+      canvas.classList.add(`stat-${data.kind}`);
+      if (data.kind === 1 || data.kind === 2) {
+        data.rows.forEach((row, i) => {
+          const y = 225 + i * 120;
+          field(row.category, 616, y, { size: 43, color: "#6D4B2B", className: "font-fz center" });
+          field(row.score, 1046, y + 5, { width: 1, size: 35, color: "#6D4B2B", className: "font-round right" });
+          field(row.rank, 1440, y + 5, { size: 35, color: "#AC8164", className: "font-round" });
+          if (row.trend) positionedAsset(`trend-${row.trend}`, 1500, 222 + i * 120, 45, 45);
+        });
+      } else {
+        data.rows.forEach((row, i) => {
+          const y = 314 + i * 134;
+          field(row.current, 869, y, { width: 1, size: 38, color: "#6D4B2B", className: "font-round right" });
+          field(row.last, 1279, y + 6, { size: 31, color: "#AC8164", className: "font-round" });
+          if (row.trend) positionedAsset(`trend-${row.trend}`, 1503, 309 + i * 134, 45, 45);
+        });
+      }
+    }
+
+    function simple(data) {
+      reset(data);
+      canvas.classList.add(`simple-${data.kind}`);
+      if (data.kind === "opening") {
+        text("simple-field opening-week font-rank center", data.week);
+        text("simple-field opening-title font-rank center", data.title);
+      }
+      if (data.kind === "long-term") {
+        text("simple-field long-term-range font-rank center", data.range);
+        text("simple-field long-term-description font-note center", data.description);
+      }
+      if (data.kind === "history-record") {
+        text("simple-field history-record-title font-note center", data.title);
+        text("simple-field history-record-count font-note center", data.count);
+      }
+      if (data.kind === "top-diff") {
+        text("simple-field top-diff-place font-rank center", data.place);
+        text("simple-field top-diff-text font-note center", data.diffText);
+      }
+    }
+
+    function preloadImage(path) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = rel(path);
+      });
+    }
+
+    function staticImagePaths(data) {
+      const paths = [];
+      if (data.template === "rank-card") {
+        const variant = data.card.variant || (data.card.history ? "history" : "main");
+        paths.push({
+          main: "../footage/MAINRANKIMG.png",
+          bangumi: "../footage/BANGUMIRANKIMG.png",
+          history: "../footage/HISTORYRANKIMG.png",
+          pickup: "../footage/PICKUPIMG.png"
+        }[variant]);
+        if (data.card.longtime) paths.push("../footage/LONGTIMEIMG.png");
+        if (data.card.pin) paths.push(`../footage/${data.card.pin.toUpperCase()}IMG.png`);
+      }
+      if (data.template === "sub-rank") {
+        paths.push(data.kind === "bangumi" ? "../footage/SUBBANGUMIRANKIMG.png" : "../footage/SUBRANKIMG.png");
+      }
+      if (data.template === "stat") {
+        paths.push({
+          1: "../footage/STATONEIMG.png",
+          2: "../footage/STATTWOIMG.png",
+          3: "../footage/STATTHREEIMG.png"
+        }[data.kind]);
+        data.rows.forEach((row) => {
+          if (row.trend) paths.push(`../footage/${row.trend.toUpperCase()}IMG.png`);
+        });
+      }
+      if (data.template === "simple") {
+        paths.push({
+          opening: "../footage/MAINTITLEIMG.png",
+          "long-term": "../footage/LONGIMG.png",
+          "history-record": "../footage/HISTORYRECORDIMG.png",
+          "top-diff": "../footage/TOPIMG.png"
+        }[data.kind]);
+      }
+      return [...new Set(paths.filter(Boolean))];
+    }
+
+    window.renderTemplate = async function renderTemplate(data) {
+      if (data.template === "rank-card") rankCard(data);
+      if (data.template === "sub-rank") subRank(data);
+      if (data.template === "stat") stat(data);
+      if (data.template === "simple") simple(data);
+      await document.fonts.ready;
+      await Promise.all(staticImagePaths(data).map(preloadImage));
+      await Promise.all(Array.from(canvas.querySelectorAll("img")).map((img) => {
+        if (img.complete) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+      }));
+      return { ok: true };
+    };
+
+    function withBase(payload) {
+      return {
+        width: PAGE_WIDTH,
+        height: PAGE_HEIGHT,
+        ...payload
+      };
+    }
+
+    const realDebugScenes = [
+      { "id": "rank-main", "label": "主榜卡片", "note": "第 832 期主榜：1_BV1K3Gz6pEoo", "reference": "../ranking/list1/01_BV1K3Gz6pEoo.png", "payload": { "template": "rank-card", "card": { "author": "逗比的雀巢   投稿", "bv": "BV1K3Gz6pEoo", "cdate": "2026-05-23 19:22", "cover": "", "history": false, "invalid": "", "longtime": false, "score": "4,305,376", "scoreRank": "1", "title": "全世界笑点下降1000倍而我不变", "variant": "main", "week": 832, "category": "小剧场", "click": "10,824,656", "clickRank": "1", "comment": "19,585", "commentRank": "14", "lastRank": "0", "pin": "", "partText": "", "thirdValue": "196,459", "fourthValue": "307,674", "thirdRank": "5", "fourthRank": "2", "fixA": "×0.546", "fixB": "×23.54", "fixC": "×0.03", "fixB2": "×0.67", "fixD": "/0.656" } } },
+      { "id": "rank-bangumi", "label": "番剧卡片", "note": "第 832 期番剧样例：1_BV1fQL76sE58", "reference": "../ranking/list1/01_BV1fQL76sE58.png", "payload": { "template": "rank-card", "card": { "author": "投稿", "bv": "BV1fQL76sE58", "cdate": "2026-05-17 10:00", "cover": "../pic/116587138909910_cover.png", "history": false, "invalid": "", "longtime": false, "score": "1,342,666", "scoreRank": "1", "title": "【10月】假面骑士ZZZ 35", "variant": "bangumi", "week": 832, "click": "1,549,906", "clickRank": "1", "comment": "12,497", "commentRank": "1", "lastRank": "1", "pin": "draw", "thirdValue": "4,489", "fourthValue": "11,362", "thirdRank": "1", "fourthRank": "1", "fixA": "×0.565", "fixB": "×35.63", "fixC": "×5.79" } } },
+      { "id": "rank-history", "label": "历史榜卡片", "note": "第 832 期历史榜样例：1_BV1gijEzbEoJ", "reference": "../ranking/list1/01_BV1gijEzbEoJ.png", "payload": { "template": "rank-card", "card": { "author": "HOLA小测佬   投稿", "bv": "BV1gijEzbEoJ", "cdate": "2025-05-23 18:00", "cover": "", "history": true, "invalid": "", "longtime": false, "score": "2,269,808", "scoreRank": "1", "title": "全球排名第一超市！一颗草莓20美金！到底有多离谱？", "variant": "history", "week": 780, "category": "美食" } } },
+      { "id": "sub-main", "label": "副榜列表", "note": "第 832 期副榜第一页：ranking/list2/001.png", "reference": "../ranking/list2/001.png", "payload": { "template": "sub-rank", "kind": "main", "rows": [{ "bv": "BV1eoLs6NE4C", "click": "5,295,380", "comment": "1,722", "cover": "../pic/BV1eoLs6NE4C_pic.jpg", "cdate": "2026-05-21 12:21", "lastRank": "上周：329", "score": "1,689,859", "scoreRank": "31", "title": "1000人海上木筏求生挑战 坚持7天瓜分10亿奖金！", "clickRank": "15", "commentRank": "2,301", "fourthRank": "591", "fourthValue": "26,469", "thirdRank": "1,034", "thirdValue": "5,951" }, { "bv": "BV1iTLe68Ef7", "click": "4,810,385", "comment": "1,322", "cover": "../pic/BV1iTLe68Ef7_pic.jpg", "cdate": "2026-05-22 17:30", "lastRank": "上周：30054", "score": "1,687,961", "scoreRank": "32", "title": "一天花掉当地一个月工资！我在破产国家当富豪，混进印度富人圈！", "clickRank": "26", "commentRank": "3,526", "fourthRank": "933", "fourthValue": "20,861", "thirdRank": "342", "thirdValue": "13,164" }, { "bv": "BV1F3Lh6cESZ", "click": "4,701,337", "comment": "4,560", "cover": "../pic/BV1F3Lh6cESZ_pic.jpg", "cdate": "2026-05-21 23:50", "lastRank": "上周：529", "score": "1,680,817", "scoreRank": "33", "title": "我的腮帮子强得可怕！", "clickRank": "33", "commentRank": "380", "fourthRank": "718", "fourthValue": "23,874", "thirdRank": "1,386", "thirdValue": "4,715" }, { "bv": "BV1CeGB62Epy", "click": "5,101,238", "comment": "967", "cover": "../pic/BV1CeGB62Epy_pic.jpg", "cdate": "2026-05-23 19:44", "lastRank": "", "score": "1,660,649", "scoreRank": "34", "title": "选一条路，决定你接下来的旅途", "clickRank": "19", "commentRank": "5,579", "fourthRank": "14", "fourthValue": "124,842", "thirdRank": "125", "thirdValue": "26,035" }] } },
+      { "id": "sub-tv", "label": "TV 副榜列表", "note": "第 832 期 TV 副榜第一页：ranking/list3/tv_001.png", "reference": "../ranking/list3/tv_001.png", "payload": { "template": "sub-rank", "kind": "main", "rows": [{ "bv": "BV1fkL16NE4h", "click": "2,006,415", "comment": "1,012", "cover": "../pic/BV1fkL16NE4h_pic.png", "cdate": "2026-05-22 10:00", "lastRank": "上周：4", "score": "963,546", "scoreRank": "1", "title": "【惊蛰无声】国安版无间道", "clickRank": "290", "commentRank": "5,223", "fourthRank": "15,855", "fourthValue": "3,068", "thirdRank": "5,868", "thirdValue": "1,398" }, { "bv": "BV1icG16pENy", "click": "1,139,329", "comment": "477", "cover": "../pic/BV1icG16pENy_pic.jpg", "cdate": "2026-05-29 20:00", "lastRank": "", "score": "632,785", "scoreRank": "2", "title": "【纪录片】闪闪的儿科医生4 第1集 “窜天娃”历险记", "clickRank": "974", "commentRank": "14,467", "fourthRank": "45,850", "fourthValue": "1,163", "thirdRank": "5,211", "thirdValue": "1,560" }, { "bv": "BV1fX96B2ETT", "click": "871,719", "comment": "277", "cover": "../pic/BV1fX96B2ETT_pic.png", "cdate": "2026-04-30 09:31", "lastRank": "上周：2", "score": "512,671", "scoreRank": "3", "title": "【飞驰人生3】国王和王后回来了！", "clickRank": "2,019", "commentRank": "27,203", "fourthRank": "35,592", "fourthValue": "1,493", "thirdRank": "2,119", "thirdValue": "3,365" }, { "bv": "BV1gifCB9Ehx", "click": "1,088,963", "comment": "24", "cover": "../pic/BV1gifCB9Ehx_pic.jpg", "cdate": "2026-02-27 20:00", "lastRank": "上周：5", "score": "470,022", "scoreRank": "4", "title": "【纪录片】守护解放西·探案季 第1集  看不见的黑手", "clickRank": "1,069", "commentRank": "179,346", "fourthRank": "104,247", "fourthValue": "446", "thirdRank": "19,516", "thirdValue": "448" }] } },
+      { "id": "sub-guoman", "label": "国创副榜列表", "note": "第 832 期国创副榜第一页：ranking/list4/bangumi_004.png", "reference": "../ranking/list4/bangumi_004.png", "payload": { "template": "sub-rank", "kind": "bangumi", "rows": [{ "bv": "BV1H5Lc62Ep3", "click": "223,336", "comment": "165", "cover": "../pic/BV1H5Lc62Ep3_pic.jpg", "cdate": "2026-05-19 09:00", "lastRank": "上周：12", "score": "225,126", "scoreRank": "11", "title": "【独家】盗妖行 第28集 我是你祖宗【3月国创】", "thirdValue": "582" }, { "bv": "BV1EALm66EJ5", "click": "87,572", "comment": "98", "cover": "../pic/BV1EALm66EJ5_pic.jpg", "cdate": "2026-05-21 11:00", "lastRank": "上周：13", "score": "194,212", "scoreRank": "12", "title": "【独家】驭灵师 第15集 凌家宝库？都是我的了！【2月国创】", "thirdValue": "255" }, { "bv": "BV1QMLu6XEoK", "click": "153,621", "comment": "14", "cover": "../pic/BV1QMLu6XEoK_pic.jpg", "cdate": "2026-05-22 18:00", "lastRank": "上周：14", "score": "154,317", "scoreRank": "13", "title": "冰雪荣耀（下）", "thirdValue": "33" }, { "bv": "BV1CvLs6JEKV", "click": "67,826", "comment": "141", "cover": "../pic/BV1CvLs6JEKV_pic.png", "cdate": "2026-05-22 12:00", "lastRank": "上周：15", "score": "99,213", "scoreRank": "14", "title": "【独家】《开拍啦！怪兽大电影》第6话 他的名字【4月国创】", "thirdValue": "337" }] } },
+      { "id": "stat-1", "label": "统计页 1", "note": "第 832 期统计页 stat_1。", "reference": "../ranking/pic/stat_1.png", "payload": { "template": "stat", "kind": 1, "rows": [{ "category": "游戏", "trend": "draw", "rank": "1", "score": "2,341,904,562" }, { "category": "动画", "trend": "draw", "rank": "2", "score": "1,022,850,136" }, { "category": "影视", "trend": "draw", "rank": "3", "score": "821,000,530" }, { "category": "知识", "trend": "draw", "rank": "4", "score": "715,207,512" }, { "category": "——", "trend": "draw", "rank": "5", "score": "630,901,167" }, { "category": "小剧场", "trend": "draw", "rank": "6", "score": "576,103,519" }, { "category": "音乐", "trend": "draw", "rank": "7", "score": "417,516,437" }] } },
+      { "id": "stat-2", "label": "统计页 2", "note": "第 832 期统计页 stat_2。", "reference": "../ranking/pic/stat_2.png", "payload": { "template": "stat", "kind": 2, "rows": [{ "category": "美食", "trend": "draw", "rank": "8", "score": "346,694,468" }, { "category": "动物", "trend": "draw", "rank": "9", "score": "324,347,111" }, { "category": "娱乐", "trend": "up", "rank": "11", "score": "291,905,508" }, { "category": "资讯", "trend": "down", "rank": "10", "score": "262,552,724" }, { "category": "科技数码", "trend": "draw", "rank": "12", "score": "202,033,181" }, { "category": "体育运动", "trend": "draw", "rank": "13", "score": "174,841,853" }, { "category": "汽车", "trend": "draw", "rank": "14", "score": "128,514,523" }] } },
+      { "id": "stat-3", "label": "统计页 3", "note": "第 832 期统计页 stat_3。", "reference": "../ranking/pic/stat_3.png", "payload": { "template": "stat", "kind": 3, "rows": [{ "current": "23,853,686,351", "last": "24,049,863,474", "trend": "down" }, { "current": "37,635,588", "last": "37,334,907", "trend": "up" }, { "current": "269,352,128", "last": "270,902,028", "trend": "down" }, { "current": "27,456,096", "last": "26,363,500", "trend": "up" }, { "current": "57,589,546", "last": "56,258,281", "trend": "up" }] } },
+      { "id": "simple-opening", "label": "开场标题", "note": "第 832 期开场标题。", "reference": "../ranking/1_op/title.png", "payload": { "template": "simple", "kind": "opening", "title": "2026年5月第5周", "week": "#832" } },
+      { "id": "simple-long", "label": "长期作品页", "note": "第 832 期长期作品页。", "reference": "../ranking/pic/_1.png", "payload": { "template": "simple", "kind": "long-term", "range": "30-21", "description": "长期作品：没有" } },
+      { "id": "simple-history", "label": "历史回顾页", "note": "第 832 期历史回顾页。", "reference": "../ranking/pic/history.png", "payload": { "template": "simple", "kind": "history-record", "count": "该期集计投稿数：392,552", "title": "周刊哔哩哔哩排行榜#780 (av114608182467569)" } },
+      { "id": "simple-top", "label": "前三差距页", "note": "第 832 期前三差距页。", "reference": "../ranking/list1/01_BV1K3Gz6pEoo_.png", "payload": { "template": "simple", "kind": "top-diff", "place": "1", "diffText": "比第2名高出1,069,987pts." } }
+    ];
+
+    const debugScenes = realDebugScenes.map((scene) => ({
+      ...scene,
+      reference: rel(scene.reference),
+      data: () => withBase(JSON.parse(JSON.stringify(scene.payload)))
+    }));
+    function debugControl(id) {
+      return document.getElementById(id);
+    }
+
+    function updateDebugOverlay(scene) {
+      const old = canvas.querySelector(".debug-overlay");
+      if (old) old.remove();
+      if (!debugControl("debug-overlay-enabled").checked) return;
+
+      const overlay = document.createElement("img");
+      overlay.className = "debug-overlay";
+      overlay.src = scene.reference;
+      overlay.style.opacity = debugControl("debug-overlay-opacity").value;
+      overlay.onerror = () => overlay.remove();
+      canvas.appendChild(overlay);
+    }
+
+    async function renderDebugScene() {
+      const scene = debugScenes.find((item) => item.id === debugControl("debug-scene").value) || debugScenes[0];
+      await window.renderTemplate(scene.data());
+      canvas.style.opacity = debugControl("debug-canvas-opacity").value;
+      canvas.classList.toggle("debug-grid", debugControl("debug-grid").checked);
+      canvas.classList.toggle("debug-boxes", debugControl("debug-boxes").checked);
+      updateDebugOverlay(scene);
+      debugControl("debug-info").textContent = scene.note;
+    }
+
+    function bootDebug() {
+      document.body.classList.add("debug");
+      const sceneSelect = debugControl("debug-scene");
+      debugScenes.forEach((scene) => {
+        const option = document.createElement("option");
+        option.value = scene.id;
+        option.textContent = scene.label;
+        sceneSelect.appendChild(option);
+      });
+      [
+        "debug-scene",
+        "debug-overlay-enabled",
+        "debug-overlay-opacity",
+        "debug-canvas-opacity",
+        "debug-grid",
+        "debug-boxes"
+      ].forEach((id) => debugControl(id).addEventListener("input", renderDebugScene));
+      renderDebugScene();
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      if (!navigator.webdriver) bootDebug();
+    });
+  </script>
+</body>
+
+</html>
