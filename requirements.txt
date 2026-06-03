@@ -1,6 +1,4 @@
 arrow
-Pillow
 PyYAML
 requests
 selenium
-webdriver-manager

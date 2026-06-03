@@ -1,88 +1,187 @@
 # -*- coding: utf-8 -*-
 
-import csv
+import argparse
 import json
 import re
-from math import log10
-from os import remove
-from os.path import abspath, exists
-from shutil import make_archive
+from dataclasses import dataclass
+from math import floor, log10
+from pathlib import Path
+from typing import Any
 from unicodedata import combining, normalize
+from urllib.parse import urlparse
 
 import arrow
 import requests
-from PIL import Image, ImageDraw, ImageFont
-from selenium.webdriver import Chrome
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
-from yaml import dump
+from selenium.webdriver import Edge
+from selenium.webdriver.common.by import By
+from selenium.webdriver.edge.options import Options
+from yaml import BaseLoader
+from yaml import load as yload
 
-from constant import (
-    BANGUMIRANKIMG,
-    C_000000,
-    C_6D4B2B,
-    C_818181,
-    C_AC8164,
-    C_BCA798,
-    C_CC0000,
-    C_EAAA7D,
-    C_FFFFFF,
-    CONTROL,
-    DOWNIMG,
-    DRAWIMG,
-    FZCUYUAN_M03,
-    HANNOTATE_SC,
-    HISTORYRANKIMG,
-    HISTORYRECORDIMG,
-    HYHEIMIJ,
-    LONGIMG,
-    LONGTIMEIMG,
-    MAINRANKIMG,
-    MAINTITLEIMG,
-    SEGOE_UI_EMOJI,
-    STATONEIMG,
-    STATTHREEIMG,
-    STATTWOIMG,
-    STYUAN,
-    SUBBANGUMIRANKIMG,
-    SUBRANKIMG,
-    TOPIMG,
-    UA,
-    UPIMG,
-    WEEKS,
-    YUANTI_SC,
-    av2bv,
+YUME = 1277009809
+WEEKS = floor(
+    (int(arrow.now("Asia/Shanghai").timestamp()) - YUME + 133009) / 3600 / 24 / 7
 )
+CONTROL = r"[\u0000-\u0019\u007F-\u00A0]"
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"
 
-MRank = json.load(open(f"{WEEKS}_results.json", "r", encoding="utf-8"))
-BRank = json.load(open(f"{WEEKS}_results_bangumi.json", "r", encoding="utf-8"))
-GRank = json.load(open(f"{WEEKS}_guoman_bangumi.json", "r", encoding="utf-8"))
-HRank = json.load(open(f"{WEEKS}_results_history.json", "r", encoding="utf-8"))
-SRank = json.load(open(f"{WEEKS}_stat.json", "r", encoding="utf-8"))
-Invalid = json.load(open("LostFile.json", "r", encoding="utf-8"))
-InvalidList = list(Invalid.keys())
-browser_options = Options()
-browser_options.add_argument("--headless")
-browser_options.add_argument("--window-size=4096,500")
-browser_options.add_argument("--window-position=-2400,-2400")
-browser = Chrome(
-    service=ChromeService(ChromeDriverManager().install()), options=browser_options
-)
-browser.execute_cdp_cmd(
-    "Emulation.setDefaultBackgroundColorOverride",
-    {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
-)
+# https://www.zhihu.com/question/381784377/answer/1099438784
+# https://github.com/Colerar/abv
+XOR_CODE = 23442827791579
+MASK_CODE = 2251799813685247
+MAX_AID = 1 << 51
+BASE = 58
+BV_LEN = 12
+ALPHABET = "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf"
+TABLE = {char: index for index, char in enumerate(ALPHABET)}
 
-MRankData = {
-    x["wid"]: {
+
+def av2bv(avid: int):
+    bv_list = list("BV1000000000")
+    bv_idx = BV_LEN - 1
+    tmp = (MAX_AID | avid) ^ XOR_CODE
+    while tmp != 0:
+        bv_list[bv_idx] = ALPHABET[tmp % BASE]
+        tmp //= BASE
+        bv_idx -= 1
+    bv_list[3], bv_list[9] = bv_list[9], bv_list[3]
+    bv_list[4], bv_list[7] = bv_list[7], bv_list[4]
+    return "".join(bv_list)
+
+
+def bv2av(bvid: str):
+    bv_list = list(bvid)
+    bv_list[3], bv_list[9] = bv_list[9], bv_list[3]
+    bv_list[4], bv_list[7] = bv_list[7], bv_list[4]
+    tmp = 0
+    for char in bv_list[3:]:
+        idx = TABLE[char]
+        tmp = tmp * BASE + idx
+    avid = (tmp & MASK_CODE) ^ XOR_CODE
+    return avid
+
+
+LOST_INFO = {
+    "42": {
+        "aid": "42",
+        "bvid": "42",
+        "tname": "42",
+        "pubdate": 42,
+        "owner": "42",
+        "title": "42",
+    },
+}
+
+RENDER_TEMPLATE = Path("templates/render.html").resolve().as_uri()
+PAGE_WIDTH = 1920
+PAGE_HEIGHT = 1080
+REQUEST_TIMEOUT = 20
+COVER_LOST = "./footage/cover_lost.png"
+
+
+@dataclass
+class GenerateContext:
+    week: int
+    m_rank: list[dict[str, Any]]
+    b_rank: list[dict[str, Any]]
+    g_rank: list[dict[str, Any]]
+    h_rank: list[dict[str, Any]]
+    s_rank_data: dict[int, Any]
+    invalid: dict[str, str]
+    m_rank_data: dict[Any, dict[str, Any]]
+    b_rank_data: dict[Any, dict[str, Any]]
+    g_rank_data: dict[Any, dict[str, Any]]
+    h_rank_data: dict[Any, dict[str, Any]]
+    all_data: dict[Any, dict[str, Any]]
+
+
+def file_url(path):
+    return Path(path).resolve().as_uri()
+
+
+def load_json_file(path: str | Path):
+    file_path = Path(path)
+    if not file_path.exists():
+        raise FileNotFoundError(f"Missing input file: {file_path}")
+    try:
+        with file_path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError as error:
+        raise ValueError(f"Invalid JSON in {file_path}: {error}") from error
+
+
+def require_non_empty_list(name: str, value):
+    if not isinstance(value, list) or not value:
+        raise ValueError(f"{name} must be a non-empty list")
+
+
+def require_item_keys(name: str, item: dict[str, Any], keys: set[str]):
+    missing = sorted(keys - set(item))
+    if missing:
+        raise ValueError(f"{name} item is missing keys: {', '.join(missing)}")
+
+
+def validate_rank(name: str, data: list[dict[str, Any]], keys: set[str]):
+    require_non_empty_list(name, data)
+    items = [x for x in data if isinstance(x, dict) and x.get("info") is None]
+    if not items:
+        raise ValueError(f"{name} has no rank items")
+    require_item_keys(name, items[0], keys)
+
+
+def validate_stat(data: list[dict[str, Any]]):
+    require_non_empty_list("stat", data)
+    stat_data = {x.get("type"): x.get("ranks") for x in data if isinstance(x, dict)}
+    if 2 not in stat_data or 3 not in stat_data:
+        raise ValueError("stat is missing type 2 or type 3 ranks")
+
+
+def normalize_bvid(value):
+    raw = str(value).strip()
+    if raw.lower().startswith("bv"):
+        return f"BV{raw[2:]}"
+    if raw.lower().startswith("av") and raw[2:].isdigit():
+        return av2bv(int(raw[2:]))
+    if raw.isdigit():
+        return av2bv(int(raw))
+    raise ValueError(f"Invalid BV/AV value: {value!r}")
+
+
+def safe_div(numerator, denominator, fallback=0):
+    if denominator == 0:
+        return fallback
+    return numerator / denominator
+
+
+def main_fix_values(click, comment, danmu, stow, yb, part, fix_a_base, cap_fix_b=True):
+    fix_b = safe_div(
+        stow * 20 + yb * 10,
+        click + yb * 10 + comment * 50,
+    )
+    if cap_fix_b:
+        fix_b = min(fix_b, 1)
+    return {
+        "fix_a": min(safe_div(click + fix_a_base, click * 2, 1), 1),
+        "fix_b": fix_b,
+        "fix_b_": int(safe_div(click * 50, click + comment * 50) * 100) / 100,
+        "fix_c": min(
+            safe_div(comment * 50 + danmu, click * 2 + stow * 10 + yb * 20),
+            1,
+        ),
+        "fix_c_": min(safe_div(yb * 2000, click, 50), 50),
+        "fix_d": safe_div(
+            log10(max(comment, 0) + max(danmu, 0) + 10),
+            log10(max(click, 0) + max(stow, 0) + max(yb, 0) + 10),
+        ),
+        "fix_p": int(safe_div(4, part + 3) * 1000) / 1000,
+    }
+
+
+def convert_main_item(x: dict[str, Any]):
+    data = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
-        "bv": (
-            re.sub(r"^bv", "BV", x["bv"])
-            if "bv1" in x["bv"]
-            else av2bv(int(x["bv"][3:]))
-        ),
+        "bv": normalize_bvid(x["bv"]),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "changqi": x["changqi"],
         "clicks_rank": format(x["clicks_rank"], ","),
@@ -91,23 +190,6 @@ MRankData = {
         "comments": format(x["comments"], ","),
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": min((x["clicks"] + 1000000) / (x["clicks"] * 2), 1),
-        "fix_b": min(
-            (x["stows"] * 20 + x["yb"] * 10)
-            / (x["clicks"] + x["yb"] * 10 + x["comments"] * 50),
-            1,
-        ),
-        "fix_b_": int((x["clicks"] * 50) / (x["clicks"] + x["comments"] * 50) * 100)
-        / 100,
-        "fix_c": min(
-            (x["comments"] * 50 + x["danmu"])
-            / (x["clicks"] * 2 + x["stows"] * 10 + x["yb"] * 20),
-            1,
-        ),
-        "fix_c_": min((x["yb"] * 2000) / x["clicks"], 50),
-        "fix_d": log10(max(x["comments"], 0) + max(x["danmu"], 0) + 10)
-        / log10(max(x["clicks"], 0) + max(x["stows"], 0) + max(x["yb"], 0) + 10),
-        "fix_p": int(4 / (x["part"] + 3) * 1000) / 1000,
         "last": str(x["last"]),
         "part": str(x["part"]),
         "pic": x["pic"],
@@ -122,18 +204,25 @@ MRankData = {
         "yb_rank": format(x["yb_rank"], ","),
         "yb": format(x["yb"], ","),
     }
-    for x in MRank
-    if x.get("info") is None
-}
-BRankData = {
-    x["wid"]: {
+    data.update(
+        main_fix_values(
+            x["clicks"],
+            x["comments"],
+            x["danmu"],
+            x["stows"],
+            x["yb"],
+            x["part"],
+            1000000,
+        )
+    )
+    return data
+
+
+def convert_bangumi_item(x: dict[str, Any], cap_fix_b=True):
+    data = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
-        "bv": (
-            re.sub(r"^bv", "BV", x["bv"])
-            if "bv1" in x["bv"]
-            else av2bv(int(x["bv"][3:]))
-        ),
+        "bv": normalize_bvid(x["bv"]),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "clicks_rank": format(x["click_rank"], ","),
         "clicks": format(x["click"], ","),
@@ -142,22 +231,6 @@ BRankData = {
         "cover": x["cover"],
         "danmu_rank": format(x["danmu_rank"], ","),
         "danmu": format(x["danmu"], ","),
-        "fix_a": min((x["click"] + 200000) / (x["click"] * 2), 1),
-        "fix_b": min(
-            (x["stow"] * 20 + x["yb"] * 10)
-            / (x["click"] + x["yb"] * 10 + x["comm"] * 50),
-            1,
-        ),
-        "fix_b_": int((x["click"] * 50) / (x["click"] + x["comm"] * 50) * 100) / 100,
-        "fix_c": min(
-            (x["comm"] * 50 + x["danmu"])
-            / (x["click"] * 2 + x["stow"] * 10 + x["yb"] * 20),
-            1,
-        ),
-        "fix_c_": min((x["yb"] * 2000) / x["click"], 50),
-        "fix_d": log10(max(x["comm"], 0) + max(x["danmu"], 0) + 10)
-        / log10(max(x["click"], 0) + max(x["stow"], 0) + max(x["yb"], 0) + 10),
-        "fix_p": int(4 / (x["part_count"] + 3) * 1000) / 1000,
         "last": str(x.get("last") if x.get("last") else 0),
         "part": str(x["part_count"]),
         "pic": x["pic"],
@@ -170,63 +243,26 @@ BRankData = {
         "yb_rank": format(x["yb_rank"], ","),
         "yb": format(x["yb"], ","),
     }
-    for x in BRank
-    if x.get("info") is None
-}
-GRankData = {
-    x["wid"]: {
+    data.update(
+        main_fix_values(
+            x["click"],
+            x["comm"],
+            x["danmu"],
+            x["stow"],
+            x["yb"],
+            x["part_count"],
+            200000,
+            cap_fix_b=cap_fix_b,
+        )
+    )
+    return data
+
+
+def convert_history_item(x: dict[str, Any]):
+    return {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
-        "bv": (
-            re.sub(r"^bv", "BV", x["bv"])
-            if "bv1" in x["bv"]
-            else av2bv(int(x["bv"][3:]))
-        ),
-        "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
-        "clicks_rank": format(x["click_rank"], ","),
-        "clicks": format(x["click"], ","),
-        "comments_rank": format(x["comm_rank"], ","),
-        "comments": format(x["comm"], ","),
-        "cover": x["cover"],
-        "danmu_rank": format(x["danmu_rank"], ","),
-        "danmu": format(x["danmu"], ","),
-        "fix_a": min((x["click"] + 200000) / (x["click"] * 2), 1),
-        "fix_b": (x["stow"] * 20 + x["yb"] * 10)
-        / (x["click"] + x["yb"] * 10 + x["comm"] * 50),
-        "fix_b_": int((x["click"] * 50) / (x["click"] + x["comm"] * 50) * 100) / 100,
-        "fix_c": min(
-            (x["comm"] * 50 + x["danmu"])
-            / (x["click"] * 2 + x["stow"] * 10 + x["yb"] * 20),
-            1,
-        ),
-        "fix_c_": min((x["yb"] * 2000) / x["click"], 50),
-        "fix_d": log10(max(x["comm"], 0) + max(x["danmu"], 0) + 10)
-        / log10(max(x["click"], 0) + max(x["stow"], 0) + max(x["yb"], 0) + 10),
-        "fix_p": int(4 / (x["part_count"] + 3) * 1000) / 1000,
-        "last": str(x.get("last") if x.get("last") else 0),
-        "part": str(x["part_count"]),
-        "pic": x["pic"],
-        "score": format(x["score"], ","),
-        "score_rank": str(x["rank"]),
-        "stows_rank": format(x["stow_rank"], ","),
-        "stows": format(x["stow"], ","),
-        "title": str(x["name"]),
-        "weekly_id": x["weekly_id"],
-        "yb_rank": format(x["yb_rank"], ","),
-        "yb": format(x["yb"], ","),
-    }
-    for x in GRank
-    if x.get("info") is None
-}
-HRankData = {
-    x["wid"]: {
-        "author": f"{x['author']}   投稿",
-        "av": x["wid"],
-        "bv": (
-            re.sub(r"^bv", "BV", x["bv"])
-            if "bv1" in x["bv"]
-            else av2bv(int(x["bv"][3:]))
-        ),
+        "bv": normalize_bvid(x["bv"]),
         "cdate": arrow.get(x["cdate"]).format("YYYY-MM-DD HH:mm"),
         "score": format(x["score"], ","),
         "score_rank": str(x["score_rank"]),
@@ -234,222 +270,366 @@ HRankData = {
         "weekly_id": x["weekly_id"],
         "wtype": x["wtype"],
     }
-    for x in HRank
-    if x.get("info") is None
-}
-SRankData = {x["type"]: x.get("ranks") for x in SRank}
-AllData = {
-    **MRankData,
-    **BRankData,
-    **GRankData,
-    **HRankData,
-}
+
+
+def build_context(week: int):
+    m_rank = load_json_file(f"{week}_results.json")
+    b_rank = load_json_file(f"{week}_results_bangumi.json")
+    g_rank = load_json_file(f"{week}_guoman_bangumi.json")
+    h_rank = load_json_file(f"{week}_results_history.json")
+    s_rank = load_json_file(f"{week}_stat.json")
+    invalid = load_json_file("LostFile.json")
+
+    validate_rank(
+        "main rank",
+        m_rank,
+        {
+            "author",
+            "bv",
+            "cdate",
+            "clicks",
+            "comments",
+            "danmu",
+            "part",
+            "score",
+            "score_rank",
+            "wid",
+        },
+    )
+    validate_rank(
+        "bangumi rank",
+        b_rank,
+        {
+            "author",
+            "bv",
+            "cdate",
+            "click",
+            "comm",
+            "danmu",
+            "part_count",
+            "rank",
+            "wid",
+        },
+    )
+    validate_rank(
+        "guoman rank",
+        g_rank,
+        {
+            "author",
+            "bv",
+            "cdate",
+            "click",
+            "comm",
+            "danmu",
+            "part_count",
+            "rank",
+            "wid",
+        },
+    )
+    validate_rank(
+        "history rank",
+        h_rank,
+        {"author", "bv", "cdate", "score", "score_rank", "weekly_id", "wid", "wtype"},
+    )
+    validate_stat(s_rank)
+
+    m_rank_data = {
+        x["wid"]: convert_main_item(x) for x in m_rank if x.get("info") is None
+    }
+    b_rank_data = {
+        x["wid"]: convert_bangumi_item(x) for x in b_rank if x.get("info") is None
+    }
+    g_rank_data = {
+        x["wid"]: convert_bangumi_item(x, cap_fix_b=False)
+        for x in g_rank
+        if x.get("info") is None
+    }
+    h_rank_data = {
+        x["wid"]: convert_history_item(x) for x in h_rank if x.get("info") is None
+    }
+    return GenerateContext(
+        week=week,
+        m_rank=m_rank,
+        b_rank=b_rank,
+        g_rank=g_rank,
+        h_rank=h_rank,
+        s_rank_data={x["type"]: x.get("ranks") for x in s_rank},
+        invalid=invalid,
+        m_rank_data=m_rank_data,
+        b_rank_data=b_rank_data,
+        g_rank_data=g_rank_data,
+        h_rank_data=h_rank_data,
+        all_data={**m_rank_data, **b_rank_data, **g_rank_data, **h_rank_data},
+    )
+
+
+def create_browser():
+    browser_options = Options()
+    browser_options.add_argument("--headless")
+    browser_options.add_argument("--window-size=4096,500")
+    browser_options.add_argument("--window-position=-2400,-2400")
+    browser = Edge(options=browser_options)
+    browser.execute_cdp_cmd(
+        "Emulation.setDefaultBackgroundColorOverride",
+        {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
+    )
+    return browser
+
+
+def render_png(browser, template, payload, output_path):
+    data = {
+        "template": template,
+        "width": PAGE_WIDTH,
+        "height": PAGE_HEIGHT,
+        **payload,
+    }
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    browser.set_window_size(PAGE_WIDTH + 120, PAGE_HEIGHT + 120)
+    browser.execute_cdp_cmd(
+        "Emulation.setDeviceMetricsOverride",
+        {
+            "width": PAGE_WIDTH,
+            "height": PAGE_HEIGHT,
+            "deviceScaleFactor": 1,
+            "mobile": False,
+        },
+    )
+    browser.get(RENDER_TEMPLATE)
+    result = browser.execute_async_script(
+        """
+        const data = arguments[0];
+        const done = arguments[arguments.length - 1];
+        window.renderTemplate(data)
+            .then(done)
+            .catch((error) => done({ ok: false, error: String(error) }));
+        """,
+        data,
+    )
+    if isinstance(result, dict) and not result.get("ok", False):
+        error = result.get("error", "unknown render error")
+        raise RuntimeError(f"Render failed: {template} -> {output_path}: {error}")
+    browser.find_element(By.ID, "canvas").screenshot(str(Path(output_path).resolve()))
+    print(output_path)
+
+
+def clean_title(title):
+    nfc_title = normalize("NFC", title)
+    nfc_title = "".join([c for c in nfc_title if combining(c) == 0])
+    return re.sub(CONTROL, "", nfc_title)
+
+
+def invalid_text(ctx: GenerateContext, aid, bid):
+    if f"av{aid}" in ctx.invalid:
+        return ctx.invalid[f"av{aid}"]
+    if bid in ctx.invalid:
+        return ctx.invalid[bid]
+    return ""
+
+
+def rank_pin(score_rank, last_rank):
+    if int(score_rank) < int(last_rank):
+        return "up"
+    if int(score_rank) > int(last_rank):
+        return "down"
+    return "draw"
+
+
+def resource_ext(link):
+    suffix = Path(urlparse(link).path).suffix.lower()
+    return suffix[1:] if suffix else "jpg"
 
 
 def Resource(bid, link, name):
-    ext = link.split(".")[-1]
-    if len(link) == 0:
-        return "./footage/cover_lost.png"
-    if not exists(f"./pic/{bid}_{name}.{ext}"):
-        resp = requests.get(link, headers={"User-Agent": UA})
-        with open(f"./pic/{bid}_{name}.{ext}", "wb") as f:
+    if not link:
+        return COVER_LOST
+    ext = resource_ext(link)
+    output_path = Path(f"./pic/{bid}_{name}.{ext}")
+    if not output_path.exists():
+        try:
+            resp = requests.get(
+                link,
+                headers={"User-Agent": UA},
+                timeout=REQUEST_TIMEOUT,
+            )
+            resp.raise_for_status()
+        except requests.RequestException as error:
+            print(f"Failed to download resource {link}: {error}; using {COVER_LOST}")
+            return COVER_LOST
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with output_path.open("wb") as f:
             f.write(resp.content)
-    return f"./pic/{bid}_{name}.{ext}"
+    return str(output_path).replace("\\", "/")
 
 
-def Single(args):
+def get_pickup_info(aid):
+    result = requests.get(
+        f"https://api.bilibili.com/x/web-interface/view?aid={aid}",
+        headers={
+            "User-Agent": UA,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "cross-site",
+        },
+        timeout=REQUEST_TIMEOUT,
+    )
+    result.raise_for_status()
+    data = result.json()
+    if data["code"] != 0:
+        return None
+    return {
+        "aid": str(aid),
+        "bvid": data["data"]["bvid"],
+        "tname": data["data"]["tname"],
+        "pubdate": data["data"]["pubdate"],
+        "owner": data["data"]["owner"]["name"],
+        "title": data["data"]["title"],
+    }
+
+
+def pickup_aid(name):
+    raw = str(name).strip()
+    if raw.lower().startswith("av") and raw[2:].isdigit():
+        return raw[2:]
+    if raw.lower().startswith("bv"):
+        return str(bv2av(normalize_bvid(raw)))
+    raise ValueError(f"Invalid pickup id: {name!r}")
+
+
+def PickupSingle(ctx: GenerateContext, browser, aid, rank):
+    info = get_pickup_info(aid)
+    if info is None:
+        info = LOST_INFO[str(aid)]
+    bid = info["bvid"]
+    output_bid = av2bv(int(info["aid"]))
+    card = {
+        "author": f"{info['owner']}   投稿",
+        "bv": bid,
+        "category": info["tname"],
+        "cdate": arrow.get(info["pubdate"]).to("local").format("YYYY-MM-DD HH:mm"),
+        "title": clean_title(info["title"]),
+        "variant": "pickup",
+    }
+    render_png(
+        browser,
+        "rank-card",
+        {"card": card},
+        f"./ranking/list1/{rank:0>2}_{output_bid}.png",
+    )
+
+
+def Pickup(ctx: GenerateContext, browser):
+    yml_path = Path(f"./ranking/list1/{ctx.week}_3.yml")
+    if not yml_path.exists():
+        return
+    with yml_path.open("r", encoding="utf-8-sig") as f:
+        ymlfile = yload(f, Loader=BaseLoader) or []
+    for item in ymlfile:
+        aid = pickup_aid(item[":name"])
+        PickupSingle(ctx, browser, aid, item[":rank"])
+
+
+def Single(ctx: GenerateContext, browser, args):
     bid, rtype = args
-    Author_F = ImageFont.truetype(HANNOTATE_SC, 32)
-    Bid_F = ImageFont.truetype(YUANTI_SC, 42)
-    BiDataRank_F = ImageFont.truetype(HANNOTATE_SC, 26)
-    Cata_F = ImageFont.truetype(YUANTI_SC, 36)
-    DataFix_F = ImageFont.truetype(YUANTI_SC, 32)
-    HisRank_F = ImageFont.truetype(YUANTI_SC, 72)
-    Invalid_F = ImageFont.truetype(FZCUYUAN_M03, 48)
-    LastRank_F = ImageFont.truetype(HANNOTATE_SC, 36)
-    Score_F = ImageFont.truetype(YUANTI_SC, 52)
-    ScoreRank_F = ImageFont.truetype(HYHEIMIJ, 150)
-    Part_F = BiDataRank_F
-    Data_F = UpTime_F = Cata_F
-    Aid = AllData[bid]["av"]
-    Author = AllData[bid]["author"]
-    Bid = AllData[bid]["bv"]
-    Score = AllData[bid]["score"]
-    ScoreRank = AllData[bid]["score_rank"]
-    Title = AllData[bid]["title"]
-    UpTime = AllData[bid]["cdate"]
-    Week = AllData[bid]["weekly_id"]
+    item = ctx.all_data[bid]
+    Aid = item["av"]
+    Author = item["author"]
+    Bid = item["bv"]
+    Score = item["score"]
+    ScoreRank = item["score_rank"]
+    Title = item["title"]
+    UpTime = item["cdate"]
+    Week = item["weekly_id"]
 
-    ishistory = bool(str(Week) != str(WEEKS))
-    RankImg = (
-        Image.open(HISTORYRANKIMG)
-        if ishistory
-        else Image.open(MAINRANKIMG)
-        if rtype
-        else Image.open(BANGUMIRANKIMG)
-    )
-    RankPaper = ImageDraw.Draw(RankImg)
+    ishistory = bool(str(Week) != str(ctx.week))
 
-    if rtype and not ishistory and AllData[bid]["changqi"]:
-        LongMark = Image.open(LONGTIMEIMG)
-        LongRegion = LongMark.crop((0, 0) + LongMark.size)
-        RankImg.paste(LongRegion, (11, 11))
+    CoverFile = ""
     if not rtype:
-        Cover = AllData[bid]["cover"]
-        CoverFile = Resource(bid, Cover, "cover")
-        IconMark = Image.open(CoverFile)
-        IconRegion = IconMark.crop((0, 0) + IconMark.size)
-        IconCover = IconRegion.resize((115, 115), Image.Resampling.LANCZOS)
-        RankImg.paste(IconCover, (35, 930))
+        CoverFile = file_url(Resource(bid, item["cover"], "cover"))
 
-    NFCTitle = normalize("NFC", Title)
-    NFCTitle = "".join([c for c in NFCTitle if combining(c) == 0])
-    RegexTitle = re.sub(CONTROL, "", NFCTitle)
-
-    TImg_O = 32 if rtype else 192
-    TImg = text2img(
-        Aid,
-        RegexTitle,
-        abspath(STYUAN).replace("\\", "/"),
-        abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
-        C_6D4B2B,
-        54,
-    )
-    TImgRegion = TImg.crop((0, 0) + TImg.size)
-    TImgCover = (
-        TImgRegion.resize(TImg.size, Image.Resampling.LANCZOS)
-        if (TImg_O + TImg.size[0]) <= 1475
-        else TImgRegion.resize((1475 - TImg_O, TImg.size[1]), Image.Resampling.LANCZOS)
-    )
-    RankImg.paste(TImgCover, (TImg_O, 1000 - int(TImg.size[1] / 2)), mask=TImgCover)
-    remove(f"./{Aid}.png")
-
-    Author_X = 31 if rtype else 189
     AuthorName = Author if rtype else "投稿"
-    RankPaper.text((Author_X, 927), AuthorName, C_6D4B2B, Author_F)
-    Bid_X = 195 - Bid_F.getlength(Bid) / 2
-    RankPaper.text((Bid_X, 847), Bid, C_FFFFFF, Bid_F)
-
+    card = {
+        "author": AuthorName,
+        "bv": Bid,
+        "cdate": UpTime,
+        "cover": CoverFile,
+        "history": ishistory,
+        "invalid": invalid_text(ctx, Aid, Bid),
+        "longtime": bool(rtype and not ishistory and item.get("changqi")),
+        "score": Score,
+        "scoreRank": ScoreRank,
+        "title": clean_title(Title),
+        "variant": "history" if ishistory else "main" if rtype else "bangumi",
+        "week": Week,
+    }
     if rtype:
-        Cata = AllData[bid]["wtype"]
-        Cata_X = 580 - Cata_F.getlength(Cata) / 2
-        RankPaper.text((Cata_X, 849), Cata, C_6D4B2B, Cata_F)
-    UpTime_O = 933 if rtype else 754
-    UpTime_X = UpTime_O - UpTime_F.getlength(UpTime) / 2
-    RankPaper.text((UpTime_X, 850), UpTime, C_6D4B2B, UpTime_F)
-    ScoreRank_X = 1703 - ScoreRank_F.getlength(ScoreRank) / 2
-    RankPaper.text((ScoreRank_X, 28), ScoreRank, C_FFFFFF, ScoreRank_F)
-
-    Score_X = 1703 - Score_F.getlength(Score) / 2
+        card["category"] = item.get("wtype", "")
     if ishistory:
-        RankPaper.text((Score_X, 280), Score, C_FFFFFF, Score_F)
-        RankPaper.text((1495, 400), f"#{Week}", C_FFFFFF, HisRank_F)
-        if f"av{Aid}" in InvalidList:
-            RankPaper.text((980, 749), Invalid[f"av{Aid}"], C_CC0000, Invalid_F)
-        if Bid in InvalidList:
-            RankPaper.text((980, 749), Invalid[Bid], C_CC0000, Invalid_F)
-        # RankImg.save(f"./ranking/list1/{ScoreRank}_av{Aid}.png")
-        RankImg.save(f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png")
-        print(f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png")
+        render_png(
+            browser,
+            "rank-card",
+            {"card": card},
+            f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png",
+        )
         return 0
-    RankPaper.text((Score_X, 376), Score, C_FFFFFF, Score_F)
 
-    Click = AllData[bid]["clicks"]
-    ClickRank = AllData[bid]["clicks_rank"]
-    Coin = AllData[bid]["yb"]
-    CoinRank = AllData[bid]["yb_rank"]
-    Comment = AllData[bid]["comments"]
-    CommentRank = AllData[bid]["comments_rank"]
-    Danmu = AllData[bid]["danmu"]
-    DanmuRank = AllData[bid]["danmu_rank"]
-    Stow = AllData[bid]["stows"]
-    StowRank = AllData[bid]["stows_rank"]
-    LastRank = AllData[bid]["last"]
-    if str(LastRank) == "0":
-        LastRank_X = 1703 - LastRank_F.getlength("新上榜") / 2
-        RankPaper.text((LastRank_X + 2, 184 + 2), "新上榜", C_000000, LastRank_F)
-        RankPaper.text((LastRank_X + 1, 184 + 1), "新上榜", C_818181, LastRank_F)
-        RankPaper.text((LastRank_X, 184), "新上榜", C_FFFFFF, LastRank_F)
-    else:
-        LastRank_X = 1703 - LastRank_F.getlength("上周") / 2
-        LastRank_X_ = 1703 + LastRank_F.getlength("上周") / 2
-        RankPaper.text((LastRank_X + 2, 184 + 2), "上周", C_000000, LastRank_F)
-        RankPaper.text((LastRank_X_ + 2, 184 + 2), LastRank, C_000000, LastRank_F)
-        RankPaper.text((LastRank_X + 1, 184 + 1), "上周", C_818181, LastRank_F)
-        RankPaper.text((LastRank_X_ + 1, 184 + 1), LastRank, C_818181, LastRank_F)
-        RankPaper.text((LastRank_X, 184), "上周", C_FFFFFF, LastRank_F)
-        RankPaper.text((LastRank_X_, 184), LastRank, C_FFFFFF, LastRank_F)
-        if int(ScoreRank) < int(LastRank):
-            StatPin = Image.open(UPIMG)
-        elif int(ScoreRank) > int(LastRank):
-            StatPin = Image.open(DOWNIMG)
-        elif int(ScoreRank) == int(LastRank):
-            StatPin = Image.open(DRAWIMG)
-        PinRegion = StatPin.crop((0, 0) + StatPin.size)
-        PinCover = PinRegion.resize((45, 45), Image.Resampling.BILINEAR)
-        Pin_X = 1655 - int(LastRank_F.getlength("上周") / 2)
-        RankImg.paste(PinCover, (Pin_X, 190), mask=PinCover)
-    RankPaper.text((1535, 545), Click, C_FFFFFF, Data_F)
-    RankPaper.text((1535, 689), Comment, C_FFFFFF, Data_F)
-
+    card.update({
+        "click": item["clicks"],
+        "clickRank": item["clicks_rank"],
+        "comment": item["comments"],
+        "commentRank": item["comments_rank"],
+        "lastRank": str(item["last"]),
+        "pin": "" if str(item["last"]) == "0" else rank_pin(ScoreRank, item["last"]),
+    })
     if rtype:
-        Part = AllData[bid]["part"]
-        if int(Part) > 1:
-            Part_X = 1833 - Part_F.getlength(Part) / 2
-            RankPaper.text((Part_X, 552), f"{Part}P", C_EAAA7D, Part_F)
-        RankPaper.text((1535, 833), Stow, C_FFFFFF, Data_F)
-        RankPaper.text((1535, 977), Coin, C_FFFFFF, Data_F)
+        Part = item["part"]
+        card.update({
+            "partText": f"{Part}P" if int(Part) > 1 else "",
+            "thirdValue": item["stows"],
+            "fourthValue": item["yb"],
+            "thirdRank": item["stows_rank"],
+            "fourthRank": item["yb_rank"],
+        })
     else:
-        RankPaper.text((1535, 833), Coin, C_FFFFFF, Data_F)
-        RankPaper.text((1535, 977), Danmu, C_FFFFFF, Data_F)
+        card.update({
+            "thirdValue": item["yb"],
+            "fourthValue": item["danmu"],
+            "thirdRank": item["yb_rank"],
+            "fourthRank": item["danmu_rank"],
+        })
 
-    FixA = AllData[bid]["fix_a"]
-    FixB = AllData[bid]["fix_b"]
-    FixB_ = AllData[bid]["fix_b_"]
-    FixC = AllData[bid]["fix_c"]
-    FixC_ = AllData[bid]["fix_c_"]
-    FixP = AllData[bid]["fix_p"]
-    FixD = AllData[bid]["fix_d"]
-    AFix = f"×{str(round(FixP * FixA, 3))}"
-    BFix = f"×{str(round(FixB * 50, 2))}" if rtype else f"×{str(round(FixB_, 2))}"
-    BFix_ = f"×{str(round(FixC * 20, 2))}"
-    CFix = (
-        f"×{str(round(FixC, 2))}"
-        if rtype
-        else f"×{str(round(FixC_, 2) if FixC_ < 50.00 else 50.00)}"
+    AFix = f"×{round(item['fix_p'] * item['fix_a'], 3)}"
+    BFix = (
+        f"×{round(item['fix_b'] * 50, 2)}" if rtype else f"×{round(item['fix_b_'], 2)}"
     )
-    DFix = f"/{str(round(FixD, 3))}"
-    RankPaper.text((1710, 551), AFix, C_EAAA7D, DataFix_F)
-    RankPaper.text((1710, 695), BFix, C_EAAA7D, DataFix_F)
-    RankPaper.text((1710, 839), CFix, C_EAAA7D, DataFix_F)
-
+    BFix_ = f"×{round(item['fix_c'] * 20, 2)}"
+    CFix = (
+        f"×{round(item['fix_c'], 2)}"
+        if rtype
+        else f"×{round(item['fix_c_'], 2) if item['fix_c_'] < 50.00 else 50.00}"
+    )
+    DFix = f"/{round(item['fix_d'], 3)}"
+    card.update({"fixA": AFix, "fixB": BFix, "fixC": CFix})
     if rtype:
-        RankPaper.text((1710, 983), BFix_, C_EAAA7D, DataFix_F)
-        RankPaper.text((1810, 418), DFix, C_FFFFFF, ImageFont.truetype(YUANTI_SC, 22))
-    RankPaper.text((1837, 492), ClickRank, C_EAAA7D, BiDataRank_F)
-    RankPaper.text((1837, 635), CommentRank, C_EAAA7D, BiDataRank_F)
-    if rtype:
-        RankPaper.text((1837, 778), StowRank, C_EAAA7D, BiDataRank_F)
-        RankPaper.text((1837, 921), CoinRank, C_EAAA7D, BiDataRank_F)
-    else:
-        RankPaper.text((1837, 778), CoinRank, C_EAAA7D, BiDataRank_F)
-        RankPaper.text((1837, 921), DanmuRank, C_EAAA7D, BiDataRank_F)
-
-    if f"av{Aid}" in InvalidList:
-        RankPaper.text((980, 749), Invalid[f"av{Aid}"], C_CC0000, Invalid_F)
-    if Bid in InvalidList:
-        RankPaper.text((980, 749), Invalid[Bid], C_CC0000, Invalid_F)
-    # RankImg.save(f"./ranking/list1/{ScoreRank}_av{Aid}.png")
-    RankImg.save(f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png")
-    print(f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png")
+        card.update({"fixB2": BFix_, "fixD": DFix})
+    render_png(
+        browser,
+        "rank-card",
+        {"card": card},
+        f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png",
+    )
 
 
-def SubRank(rtype):
+def SubRank(ctx: GenerateContext, browser, rtype):
     if rtype == 1:
-        LastRankNum = int(MRank[0]["rank_from"])
+        LastRankNum = int(ctx.m_rank[0]["rank_from"])
         SScoreRankData = {
             n + 1: v
-            for n, v in enumerate(MRankData.values())
+            for n, v in enumerate(ctx.m_rank_data.values())
             if v["sp_type_id"] is None and int(v["score_rank"]) > LastRankNum
         }
         PageNum = 30
@@ -457,7 +637,7 @@ def SubRank(rtype):
         LastRankNum = 0
         SScoreRankData = {
             int(v["score_rank"]): v
-            for v in MRankData.values()
+            for v in ctx.m_rank_data.values()
             if v["sp_type_id"] is not None and int(v["score_rank"]) > LastRankNum
         }
         PageNum = 3
@@ -465,7 +645,7 @@ def SubRank(rtype):
         LastRankNum = 10
         SScoreRankData = {
             int(v["score_rank"]): v
-            for v in BRankData.values()
+            for v in ctx.b_rank_data.values()
             if int(v["score_rank"]) > LastRankNum
         }
         PageNum = 3
@@ -473,418 +653,229 @@ def SubRank(rtype):
         LastRankNum = 10
         SScoreRankData = {
             int(v["score_rank"]): v
-            for v in GRankData.values()
+            for v in ctx.g_rank_data.values()
             if int(v["score_rank"]) > LastRankNum
         }
         PageNum = 3
+
     for i in range(PageNum):
-        SImg = Image.open(SUBRANKIMG) if rtype <= 2 else Image.open(SUBBANGUMIRANKIMG)
-        SPaper = ImageDraw.Draw(SImg)
+        rows = []
         for j in range(4):
-            SBid_F = ImageFont.truetype(YUANTI_SC, 32)
-            SBiDataRank_F = ImageFont.truetype(YUANTI_SC, 32)
-            SData_F = ImageFont.truetype(YUANTI_SC, 40)
-            SLastRank_F = ImageFont.truetype(YUANTI_SC, 34)
-            SScore_F = ImageFont.truetype(YUANTI_SC, 45)
-            SScoreRank_F = ImageFont.truetype(HYHEIMIJ, 48)
-            SUpTime_F = ImageFont.truetype(YUANTI_SC, 37)
             k = LastRankNum + 4 * i + j + 1
             if SScoreRankData.get(k) is None:
                 continue
-            SBid = SScoreRankData[k]["bv"]
-            SClick = SScoreRankData[k]["clicks"]
-            SClickRank = SScoreRankData[k]["clicks_rank"]
-            SCoin = SScoreRankData[k]["yb"]
-            SCoinRank = SScoreRankData[k]["yb_rank"]
-            SComment = SScoreRankData[k]["comments"]
-            SCommentRank = SScoreRankData[k]["comments_rank"]
-            SCover = SScoreRankData[k]["pic"]
-            SDanmu = SScoreRankData[k]["danmu"]
-            SScore = SScoreRankData[k]["score"]
-            SScoreRank = SScoreRankData[k]["score_rank"]
-            SStow = SScoreRankData[k]["stows"]
-            SStowRank = SScoreRankData[k]["stows_rank"]
-            STitle = SScoreRankData[k]["title"]
-            SUpTime = SScoreRankData[k]["cdate"]
-            SLastRank = (
-                ""
-                if SScoreRankData[k]["last"] == "0"
-                else f"上周：{SScoreRankData[k]['last']}"
-            )
-            SCoverFile = Resource(SBid, SCover, "pic")
-            SCoverMark = Image.open(SCoverFile)
-            SCoverRegion = SCoverMark.crop((0, 0) + SCoverMark.size)
-            SPic = SCoverRegion.resize((336, 210), Image.Resampling.LANCZOS)
-            SImg.paste(SPic, (63, 48 + j * 259))
-
-            SNFCTitle = normalize("NFC", STitle)
-            SNFCTitle = "".join([c for c in SNFCTitle if combining(c) == 0])
-            SRegexTitle = re.sub(CONTROL, "", SNFCTitle)
-
-            STImg_X = 424
-            STImg_Y = 75 + j * 259
-            STImg = text2img(
-                SBid,
-                SRegexTitle,
-                abspath(STYUAN).replace("\\", "/"),
-                abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
-                C_6D4B2B,
-                52,
-            )
-            STImgRegion = STImg.crop((0, 0) + STImg.size)
-            STImgCover = (
-                STImgRegion.resize(STImg.size, Image.Resampling.LANCZOS)
-                if (STImg_X + STImg.size[0]) <= 1885
-                else STImgRegion.resize(
-                    (1885 - STImg_X, STImg.size[1]), Image.Resampling.LANCZOS
-                )
-            )
-            SImg.paste(
-                STImgCover, (STImg_X, STImg_Y - int(STImg.size[1] / 2)), mask=STImgCover
-            )
-            remove(f"./{SBid}.png")
-
-            SBid_X = 549 - SBid_F.getlength(SBid) / 2
-            SPaper.text((SBid_X, 212 + j * 259), SBid, C_FFFFFF, SBid_F)
-            SScore_X = 1706 - SScore_F.getlength(SScore)
-            SPaper.text((SScore_X, 214 + j * 259), SScore, C_FFFFFF, SScore_F)
-            SPaper.text((491, 133 + j * 259), SClick, C_6D4B2B, SData_F)
-            SPaper.text((893, 133 + j * 259), SComment, C_6D4B2B, SData_F)
+            item = SScoreRankData[k]
+            row = {
+                "bv": item["bv"],
+                "click": item["clicks"],
+                "comment": item["comments"],
+                "cover": file_url(Resource(item["bv"], item["pic"], "pic")),
+                "cdate": item["cdate"],
+                "lastRank": "" if item["last"] == "0" else f"上周：{item['last']}",
+                "score": item["score"],
+                "scoreRank": item["score_rank"],
+                "title": clean_title(item["title"]),
+            }
             if rtype > 2:
-                SPaper.text((1218, 133 + j * 259), SDanmu, C_6D4B2B, SData_F)
+                row.update({"thirdValue": item["danmu"]})
             else:
-                SPaper.text((1218, 133 + j * 259), SCoin, C_6D4B2B, SData_F)
-                SPaper.text((1574, 133 + j * 259), SStow, C_6D4B2B, SData_F)
-                SPaper.text((739, 138 + j * 259), SClickRank, C_BCA798, SBiDataRank_F)
-                SPaper.text(
-                    (1067, 138 + j * 259), SCommentRank, C_BCA798, SBiDataRank_F
-                )
-                SPaper.text((1748, 138 + j * 259), SStowRank, C_BCA798, SBiDataRank_F)
-                SPaper.text((1390, 138 + j * 259), SCoinRank, C_BCA798, SBiDataRank_F)
-            SScoreRank_X = 1856 - SScoreRank_F.getlength(SScoreRank) / 2
-            SPaper.text(
-                (SScoreRank_X, 214 + j * 259), SScoreRank, C_FFFFFF, SScoreRank_F
-            )
-            SPaper.text((820, 205 + j * 259), SUpTime, C_BCA798, SUpTime_F)
-            SPaper.text((1244, 205 + j * 259), SLastRank, C_BCA798, SLastRank_F)
+                row.update({
+                    "clickRank": item["clicks_rank"],
+                    "commentRank": item["comments_rank"],
+                    "fourthRank": item["stows_rank"],
+                    "fourthValue": item["stows"],
+                    "thirdRank": item["yb_rank"],
+                    "thirdValue": item["yb"],
+                })
+            rows.append(row)
         if rtype == 1:
-            SImg.save(f"./ranking/list2/{i + 1:0>3}.png")
-            print(f"./ranking/list2/{i + 1:0>3}.png")
+            output_path = f"./ranking/list2/{i + 1:0>3}.png"
         elif rtype == 2:
-            SImg.save(f"./ranking/list3/tv_{i + 1:0>3}.png")
-            print(f"./ranking/list3/tv_{i + 1:0>3}.png")
+            output_path = f"./ranking/list3/tv_{i + 1:0>3}.png"
         elif rtype == 3:
-            SImg.save(f"./ranking/list4/bangumi_{i + 1:0>3}.png")
-            print(f"./ranking/list4/bangumi_{i + 1:0>3}.png")
+            output_path = f"./ranking/list4/bangumi_{i + 1:0>3}.png"
         elif rtype == 4:
-            SImg.save(f"./ranking/list4/bangumi_{i + 4:0>3}.png")
-            print(f"./ranking/list4/bangumi_{i + 4:0>3}.png")
-
-
-def Stat():
-    ACata_F = ImageFont.truetype(FZCUYUAN_M03, 43)
-    ALastStat_F = ImageFont.truetype(YUANTI_SC, 31)
-    ARank_F = ImageFont.truetype(YUANTI_SC, 35)
-    AStat_F = ImageFont.truetype(YUANTI_SC, 38)
-    AScore_F = ARank_F
-    AImg_1 = Image.open(STATONEIMG)
-    AImg_2 = Image.open(STATTWOIMG)
-    AImg_3 = Image.open(STATTHREEIMG)
-    APaper_1 = ImageDraw.Draw(AImg_1)
-    APaper_2 = ImageDraw.Draw(AImg_2)
-    APaper_3 = ImageDraw.Draw(AImg_3)
-    for i in range(7):
-        ACata = SRankData[2][i][0]
-        ACata_X = 616 - ACata_F.getlength(ACata) / 2
-        APaper_1.text((ACata_X, 221 + i * 120), SRankData[2][i][0], C_6D4B2B, ACata_F)
-        AScore = format(SRankData[2][i][1], ",")
-        AScore_X = 1046 - AScore_F.getlength(AScore)
-        APaper_1.text((AScore_X, 221 + i * 120), AScore, C_6D4B2B, AScore_F)
-        ARank = str(SRankData[2][i][2]) if len(SRankData[2][i + 7]) > 2 else "--"
-        APaper_1.text((1440, 221 + i * 120), ARank, C_AC8164, ARank_F)
-        if not ARank.isdigit():
-            AStatPin = Image.open(UPIMG)
-        elif int(ARank) > i + 1:
-            AStatPin = Image.open(UPIMG)
-        elif int(ARank) < i + 1:
-            AStatPin = Image.open(DOWNIMG)
-        elif int(ARank) == i + 1:
-            AStatPin = Image.open(DRAWIMG)
-
-        APinRegion = AStatPin.crop((0, 0) + AStatPin.size)
-        APinCover = APinRegion.resize((45, 45), Image.Resampling.LANCZOS)
-        AImg_1.paste(APinCover, (1500, 222 + i * 120), mask=APinCover)
-    AImg_1.save("./ranking/pic/stat_1.png")
-    for i in range(7):
-        ACata = SRankData[2][i + 7][0]
-        ACata_X = 616 - ACata_F.getlength(ACata) / 2
-        APaper_2.text(
-            (ACata_X, 221 + i * 120), SRankData[2][i + 7][0], C_6D4B2B, ACata_F
+            output_path = f"./ranking/list4/bangumi_{i + 4:0>3}.png"
+        render_png(
+            browser,
+            "sub-rank",
+            {"kind": "main" if rtype <= 2 else "bangumi", "rows": rows},
+            output_path,
         )
-        AScore = format(SRankData[2][i + 7][1], ",")
-        AScore_X = 1046 - AScore_F.getlength(AScore)
-        APaper_2.text((AScore_X, 221 + i * 120), AScore, C_6D4B2B, AScore_F)
-        ARank = str(SRankData[2][i + 7][2]) if len(SRankData[2][i + 7]) > 2 else "--"
-        APaper_2.text((1440, 221 + i * 120), ARank, C_AC8164, ARank_F)
+
+
+def Stat(ctx: GenerateContext, browser):
+    rows_1 = []
+    for i in range(7):
+        AScore = format(ctx.s_rank_data[2][i][1], ",")
+        ARank = (
+            str(ctx.s_rank_data[2][i][2])
+            if len(ctx.s_rank_data[2][i + 7]) > 2
+            else "--"
+        )
         if not ARank.isdigit():
-            AStatPin = Image.open(UPIMG)
+            trend = "up"
+        elif int(ARank) > i + 1:
+            trend = "up"
+        elif int(ARank) < i + 1:
+            trend = "down"
+        else:
+            trend = "draw"
+        rows_1.append({
+            "category": ctx.s_rank_data[2][i][0],
+            "rank": ARank,
+            "score": AScore,
+            "trend": trend,
+        })
+    render_png(browser, "stat", {"kind": 1, "rows": rows_1}, "./ranking/pic/stat_1.png")
+
+    rows_2 = []
+    for i in range(7):
+        AScore = format(ctx.s_rank_data[2][i + 7][1], ",")
+        ARank = (
+            str(ctx.s_rank_data[2][i + 7][2])
+            if len(ctx.s_rank_data[2][i + 7]) > 2
+            else "--"
+        )
+        if not ARank.isdigit():
+            trend = "up"
         elif int(ARank) > i + 8:
-            AStatPin = Image.open(UPIMG)
+            trend = "up"
         elif int(ARank) < i + 8:
-            AStatPin = Image.open(DOWNIMG)
-        elif int(ARank) == i + 8:
-            AStatPin = Image.open(DRAWIMG)
-        APinRegion = AStatPin.crop((0, 0) + AStatPin.size)
-        APinCover = APinRegion.resize((45, 45), Image.Resampling.LANCZOS)
-        AImg_2.paste(APinCover, (1500, 222 + i * 120), mask=APinCover)
-    AImg_2.save("./ranking/pic/stat_2.png")
-    AClick = format(SRankData[3][0]["click"], ",")
-    ACoin = format(SRankData[3][0]["yb"], ",")
-    AComment = format(SRankData[3][0]["comment"], ",")
-    ADanmu = format(SRankData[3][0]["danmu"], ",")
-    AStow = format(SRankData[3][0]["stow"], ",")
-    APaper_3.text((869 - AStat_F.getlength(AClick), 304), AClick, C_6D4B2B, AStat_F)
-    APaper_3.text((869 - AStat_F.getlength(AComment), 438), AComment, C_6D4B2B, AStat_F)
-    APaper_3.text((869 - AStat_F.getlength(AStow), 572), AStow, C_6D4B2B, AStat_F)
-    APaper_3.text((869 - AStat_F.getlength(ADanmu), 706), ADanmu, C_6D4B2B, AStat_F)
-    APaper_3.text((869 - AStat_F.getlength(ACoin), 840), ACoin, C_6D4B2B, AStat_F)
-    ALastClick = format(SRankData[3][1]["click"], ",")
-    ALastCoin = format(SRankData[3][1]["yb"], ",")
-    ALastComment = format(SRankData[3][1]["comment"], ",")
-    ALastDanmu = format(SRankData[3][1]["danmu"], ",")
-    ALastStow = format(SRankData[3][1]["stow"], ",")
-    APaper_3.text((1279, 313), ALastClick, C_AC8164, ALastStat_F)
-    APaper_3.text((1279, 447), ALastComment, C_AC8164, ALastStat_F)
-    APaper_3.text((1279, 581), ALastStow, C_AC8164, ALastStat_F)
-    APaper_3.text((1279, 715), ALastDanmu, C_AC8164, ALastStat_F)
-    APaper_3.text((1279, 849), ALastCoin, C_AC8164, ALastStat_F)
+            trend = "down"
+        else:
+            trend = "draw"
+        rows_2.append({
+            "category": ctx.s_rank_data[2][i + 7][0],
+            "rank": ARank,
+            "score": AScore,
+            "trend": trend,
+        })
+    render_png(browser, "stat", {"kind": 2, "rows": rows_2}, "./ranking/pic/stat_2.png")
+
+    rows_3 = []
     for d in ["click", "comment", "stow", "danmu", "yb"]:
-        if int(SRankData[3][0][d]) > int(SRankData[3][1][d]):
-            AStatPin = Image.open(UPIMG)
-        elif int(SRankData[3][0][d]) < int(SRankData[3][1][d]):
-            AStatPin = Image.open(DOWNIMG)
-        elif int(SRankData[3][0][d]) == int(SRankData[3][1][d]):
-            AStatPin = Image.open(DRAWIMG)
-        APinRegion = AStatPin.crop((0, 0) + AStatPin.size)
-        APinCover = APinRegion.resize((45, 45), Image.Resampling.LANCZOS)
-        a_i = ["click", "comment", "stow", "danmu", "yb"].index(d)
-        AImg_3.paste(APinCover, (1503, 309 + a_i * 134), mask=APinCover)
-    AImg_3.save("./ranking/pic/stat_3.png")
+        if int(ctx.s_rank_data[3][0][d]) > int(ctx.s_rank_data[3][1][d]):
+            trend = "up"
+        elif int(ctx.s_rank_data[3][0][d]) < int(ctx.s_rank_data[3][1][d]):
+            trend = "down"
+        else:
+            trend = "draw"
+        rows_3.append({
+            "current": format(ctx.s_rank_data[3][0][d], ","),
+            "last": format(ctx.s_rank_data[3][1][d], ","),
+            "trend": trend,
+        })
+    render_png(browser, "stat", {"kind": 3, "rows": rows_3}, "./ranking/pic/stat_3.png")
 
 
-def MainRank():
-    LastRankNum = int(MRank[0]["rank_from"])
+def MainRank(ctx: GenerateContext, browser):
+    LastRankNum = int(ctx.m_rank[0]["rank_from"])
     RankDataM = [
         (k, True)
-        for k, v in MRankData.items()
+        for k, v in ctx.m_rank_data.items()
         if v["sp_type_id"] is None and int(v["score_rank"]) <= LastRankNum
     ]
-    RankDataB = [(k, False) for k, v in BRankData.items() if int(v["score_rank"]) <= 10]
-    RankDataG = [(k, False) for k, v in GRankData.items() if int(v["score_rank"]) <= 10]
-    RankDataH = [(k, True) for k, v in HRankData.items() if int(v["score_rank"]) <= 5]
-    RankData = RankDataM + RankDataB + RankDataG + RankDataH
-    list(map(Single, RankData))
+    RankDataB = [
+        (k, False) for k, v in ctx.b_rank_data.items() if int(v["score_rank"]) <= 10
+    ]
+    RankDataG = [
+        (k, False) for k, v in ctx.g_rank_data.items() if int(v["score_rank"]) <= 10
+    ]
+    RankDataH = [
+        (k, True) for k, v in ctx.h_rank_data.items() if int(v["score_rank"]) <= 5
+    ]
+    for item in RankDataM + RankDataB + RankDataG + RankDataH:
+        Single(ctx, browser, item)
 
 
-def Opening():
-    MTitle_F = ImageFont.truetype(HYHEIMIJ, 52)
-    MWeek_F = ImageFont.truetype(HYHEIMIJ, 128)
-    MTitle = f"{MRank[0]['name']}"
-    MWeek = f"#{MRank[0]['id']}"
-    MImg = Image.open(MAINTITLEIMG)
-    MPaper = ImageDraw.Draw(MImg)
-    MTitle_X = 376 - MTitle_F.getlength(MTitle) / 2
-    MWeek_X = 355 - MWeek_F.getlength(MWeek) / 2
-    MPaper.text((MTitle_X, 750), MTitle, C_FFFFFF, MTitle_F)
-    MPaper.text((MWeek_X, 614), MWeek, C_FFFFFF, MWeek_F)
-    MImg.save("./ranking/1_op/title.png")
+def Opening(ctx: GenerateContext, browser):
+    MTitle = f"{ctx.m_rank[0]['name']}"
+    MWeek = f"#{ctx.m_rank[0]['id']}"
+    render_png(
+        browser,
+        "simple",
+        {"kind": "opening", "title": MTitle, "week": MWeek},
+        "./ranking/1_op/title.png",
+    )
 
 
-def LongTerm():
-    LTitle_F = ImageFont.truetype(HYHEIMIJ, 216)
-    LongTerm_F = ImageFont.truetype(HANNOTATE_SC, 45)
-    LastRankNum = int(MRank[0]["rank_from"])
+def LongTerm(ctx: GenerateContext, browser):
+    LastRankNum = int(ctx.m_rank[0]["rank_from"])
     LTitle = f"{LastRankNum}-21"
     LongTerm_ = (
         f"长期作品：{LastRankNum - 30}个" if LastRankNum - 30 > 0 else "长期作品：没有"
     )
-    LImg = Image.open(LONGIMG)
-    LPaper = ImageDraw.Draw(LImg)
-    LTitle_X = 607 - LTitle_F.getlength(LTitle) / 2
-    LongTerm__X = 607 - LongTerm_F.getlength(LongTerm_) / 2
-    LPaper.text((LTitle_X, 415), LTitle, C_FFFFFF, LTitle_F)
-    LPaper.text((LongTerm__X, 681), LongTerm_, C_FFFFFF, LongTerm_F)
-    LImg.save("./ranking/pic/_1.png")
+    render_png(
+        browser,
+        "simple",
+        {"kind": "long-term", "range": LTitle, "description": LongTerm_},
+        "./ranking/pic/_1.png",
+    )
 
 
-def History():
-    HUpTime_F = ImageFont.truetype(HANNOTATE_SC, 44)
-    HCount_F = ImageFont.truetype(HANNOTATE_SC, 45)
-    HCount = f"该期集计投稿数：{format(HRank[0]['count'], ',')}"
-    HUpTime = f"{HRank[0]['name']} (av{HRank[0]['wid']})"
-    HImg = Image.open(HISTORYRECORDIMG)
-    HPaper = ImageDraw.Draw(HImg)
-    HCount_X = 607 - HCount_F.getlength(HCount) / 2
-    HUpTime_X = 607 - HUpTime_F.getlength(HUpTime) / 2
-    HPaper.text((HCount_X, 811), HCount, C_FFFFFF, HCount_F)
-    HPaper.text((HUpTime_X, 529), HUpTime, C_FFFFFF, HUpTime_F)
-    HImg.save("./ranking/pic/history.png")
+def History(ctx: GenerateContext, browser):
+    HCount = f"该期集计投稿数：{format(ctx.h_rank[0]['count'], ',')}"
+    HUpTime = f"{ctx.h_rank[0]['name']} (av{ctx.h_rank[0]['wid']})"
+    render_png(
+        browser,
+        "simple",
+        {"kind": "history-record", "count": HCount, "title": HUpTime},
+        "./ranking/pic/history.png",
+    )
 
 
-def Top():
-    Top_F = ImageFont.truetype(HYHEIMIJ, 390)
-    Diff_F = ImageFont.truetype(HANNOTATE_SC, 45)
+def Top(ctx: GenerateContext, browser):
     TopData = {
         int(v["score_rank"]): (k, v["score"], v["bv"])
-        for k, v in MRankData.items()
+        for k, v in ctx.m_rank_data.items()
         if v["sp_type_id"] is None and int(v["score_rank"]) <= 4
     }
     for t in range(3):
-        TImg = Image.open(TOPIMG)
-        TPaper = ImageDraw.Draw(TImg)
-        # Aid = TopData[t + 1][0]
         Bid = TopData[t + 1][2]
         Diff = int(TopData[t + 1][1].replace(",", "")) - int(
             TopData[t + 2][1].replace(",", "")
         )
         DiffText = f"比第{t + 2}名高出{format(Diff, ',')}pts."
-        TPaper.text(
-            (603 - Top_F.getlength(f"{t + 1}") / 2, 318), f"{t + 1}", C_FFFFFF, Top_F
+        render_png(
+            browser,
+            "simple",
+            {"kind": "top-diff", "place": f"{t + 1}", "diffText": DiffText},
+            f"./ranking/list1/{t + 1:0>2}_{Bid}_.png",
         )
-        TPaper.text(
-            (609 - Diff_F.getlength(DiffText) / 2, 722), DiffText, C_FFFFFF, Diff_F
-        )
-        # TImg.save(f"./ranking/list1/{t + 1}_av{Aid}_.png")
-        TImg.save(f"./ranking/list1/{t + 1:0>2}_{Bid}_.png")
 
 
-def MakeYaml(file, max, min, part):
-    content = json.load(open(f"./{WEEKS}_{file}.json", "r", encoding="utf-8"))
-    rankfrom = content[0].get("rank_from")
-    yamlcontent = []
-    doorcontent = []
-    for x in content:
-        if x.get("info") is None and x.get("sp_type_id") != 2:
-            rank = x["score_rank"] if x.get("score_rank") else x["rank"]
-            name = f"av{x['wid']}"
-            name = f"{re.sub(r'^bv', 'BV', x['bv'])}"
-            length = 20
-            if part in (7, 11, 15):
-                length = 15
-            if part == 16:
-                length = 30
-            if x.get("changqi"):
-                length -= 10
-            if rankfrom <= max:
-                max = rankfrom
-            if rank <= max and rank >= min:
-                yamlcontent += [
-                    {
-                        ":rank": rank,
-                        ":name": name,
-                        ":length": length,
-                        ":offset": 0,
-                    }
-                ]
-                doorcontent += [
-                    (
-                        rank,
-                        f"{re.sub(r'^bv', 'BV', x['bv'])}",
-                        x["name"],
-                    )
-                ]
-
-    # print(dump(yamlcontent[::-1], sort_keys=False))
-    with open(f"./ranking/list1/{WEEKS}_{part}.yml", "w") as f:
-        f.write(f"---\n{dump(yamlcontent[::-1], sort_keys=False)}")
-
-    with open(f"./{WEEKS}_rankdoor.csv", "a", newline="", encoding="utf-8-sig") as f:
-        writer = csv.writer(f)
-        writer.writerow([
-            {
-                "results": "主榜",
-                "results_history": "历史",
-                "guoman_bangumi": "国创",
-                "results_bangumi": "番剧",
-            }.get(file)
-        ])
-        writer.writerows(sorted(doorcontent, reverse=True))
-
-
-def text2img(name, text, font, emoji, color, size):
-    global browser
-    html_content = f"""<html>
-        <head>
-            <style type="text/css">
-                @font-face {{
-                    font-family: "Custom";
-                    src: url("{font}");
-                }}
-                @font-face {{
-                    font-family: "Emoji";
-                    src: url("{emoji}");
-                }}
-                body {{
-                    font-family: Custom, Emoji, Segoe UI, Segoe UI Historic, Segoe UI Emoji, sans-serif;
-                    font-size: {size}px;
-                    overflow: hidden;
-                    line-height: 350px;
-                    white-space: nowrap;
-                    text-overflow: ellipsis;
-                    text-align: left;
-                    color: {color};
-                    margin: 0px;
-                    padding: 10px;
-                    display: block;
-                }}
-            </style>
-        </head>
-        <body>
-            <p>{text}</p>
-        </body>
-    </html>"""
-
-    with open("TEXT.html", "w", encoding="utf-8-sig") as f:
-        f.write(html_content)
-
-    browser.get(f"file://{abspath('TEXT.html')}")
-    # print(f"./{name}.png")
-    browser.save_screenshot(f"./{name}.png")
-    img = Image.open(f"./{name}.png")
-    x, y = img.size
-    i = 0
-    while i <= x:
-        if sum([img.getpixel((i, k))[-1] for k in range(y)]) != 0:
-            break
-        i += 1
-    j = x - 1
-    while j >= 0:
-        if sum([img.getpixel((j, k))[-1] for k in range(y)]) != 0:
-            break
-        j -= 1
-    img = img.crop((i, 0) + (j + 1, y))
-    remove(abspath("TEXT.html"))
-    return img
-
-
-def Main():
-    MakeYaml("results", 99, 21, 5)
-    MakeYaml("results", 20, 11, 9)
-    MakeYaml("results", 10, 4, 13)
-    MakeYaml("results", 3, 1, 16)
-    MakeYaml("results_history", 5, 1, 15)
-    MakeYaml("guoman_bangumi", 10, 1, 7)
-    MakeYaml("results_bangumi", 10, 1, 11)
-    Opening()
-    LongTerm()
-    History()
-    MainRank()
-    Stat()
-    Top()
+def Main(ctx: GenerateContext, browser):
+    Opening(ctx, browser)
+    LongTerm(ctx, browser)
+    History(ctx, browser)
+    MainRank(ctx, browser)
+    Pickup(ctx, browser)
+    Stat(ctx, browser)
+    Top(ctx, browser)
     for i in range(4):
-        SubRank(i + 1)
-    make_archive(f"{WEEKS}_list1", "zip", "./ranking", "list1")
+        SubRank(ctx, browser, i + 1)
+
+
+def run_generate(week: int):
+    ctx = build_context(week)
+    browser = create_browser()
+    try:
+        Main(ctx, browser)
+    finally:
+        browser.quit()
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--week", type=int, default=WEEKS, help="ranking week number")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    run_generate(args.week)
 
 
 if __name__ == "__main__":
-    Main()
+    main()
