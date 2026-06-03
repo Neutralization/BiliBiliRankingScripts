@@ -345,7 +345,7 @@ def PickupSingle(aid, rank):
         "author": f"{info['owner']}   投稿",
         "bv": bid,
         "category": info["tname"],
-        "cdate": arrow.get(info["pubdate"]).format("YYYY-MM-DD HH:mm"),
+        "cdate": arrow.get(info["pubdate"]).to("local").format("YYYY-MM-DD HH:mm"),
         "title": clean_title(info["title"]),
         "variant": "pickup",
     }
