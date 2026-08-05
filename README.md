@@ -5,18 +5,18 @@
 ## 工作环境 (Windows 10/11)
 
 - [Adobe After Effects](https://www.adobe.com/products/aftereffects.html)
-    > 支持版本 CS6/CC/CC2014/CC2015/CC2015.3/CC2017/CC2018/2019/2020/2021/2022/2023/2024/2025
-    需要在 AE 首选项中打开`允许脚本写入文件和访问网络`
+    > 支持版本 CS6/CC~CC2018/2019~2026  
+    需要在 AE 首选项中打开`允许脚本写入文件和访问网络`  
 - [Adobe Media Encoder](https://www.adobe.com/products/media-encoder.html) / [Voukoder](https://www.voukoder.org/forum/thread/783-downloads-instructions/)
 - [aria2c](https://aria2.github.io/) / [FFmpeg](https://ffmpeg.org/)
-    > [winget](https://github.com/microsoft/winget-cli) install aria2.aria2 Gyan.FFmpeg.Shared Chromium.ChromeDriver
-    > 其他方式需添加 `aria2c` `ffmpeg` 路径到系统 `$PATH` 变量
+    > [winget](https://github.com/microsoft/winget-cli) install aria2.aria2 Gyan.FFmpeg  
+    > 其他方式需添加 `aria2c` `ffmpeg` 路径到系统 `$PATH` 变量  
 - [PowerShell](https://docs.microsoft.com/zh-cn/powershell/)
-    > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块
-    > Install-Module -Name powershell-yaml
+    > 安装 [powershell-yaml](https://www.powershellgallery.com/packages/powershell-yaml) 模块  
+    > Install-Module -Name powershell-yaml  
 - [Python](https://www.python.org/)
-    > 安装 [arrow](https://pypi.org/project/arrow/) / [PyYAML](https://pypi.org/project/PyYAML/) / [requests](https://pypi.org/project/requests/) / [selenium](https://pypi.org/project/selenium/) 模块
-    > python -m pip install -r requirements.txt
+    > 安装 [arrow](https://pypi.org/project/arrow/) / [PyYAML](https://pypi.org/project/PyYAML/) / [requests](https://pypi.org/project/requests/) / [selenium](https://pypi.org/project/selenium/) 模块  
+    > uv sync  
 - [json2.js](https://github.com/douglascrockford/JSON-js)
 
 ## 获取 Cookie
@@ -46,7 +46,7 @@
 - [x] 自动生成 1080P 视频的图片素材
 - [x] 正确渲染稿件标题中的 Unicode 字符
 - [x] 取代 Pillow 改用前端作图
-- [ ] 移除 python 改为 powershell
+- ~~移除 python 改为 powershell~~
 
 ## 学习资料
 
@@ -54,5 +54,5 @@
 - [After Effects Expression Reference](https://ae-expressions.docsforadobe.dev/)
 - [After Effects Plugin Match Names List](https://fendrafx.com/utility/after-effects-plugin-match-names-list/)
 - [PowerShell | Microsoft Docs](https://docs.microsoft.com/en-us/powershell/scripting/overview)
-- [Python 3.10 documentation](https://docs.python.org/3.10/)
+- [Python 3.12 documentation](https://docs.python.org/3.12/)
 - [Chromium WebdriverIO documentation](https://webdriver.io/docs/api/chromium/)

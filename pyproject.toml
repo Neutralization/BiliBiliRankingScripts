@@ -1,0 +1,23 @@
+[project]
+name = "BiliBiliRankingScripts"
+description = "https://github.com/Neutralization/BiliBiliRankingScripts"
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "arrow>=1.4.0",
+    "pyyaml>=6.0.3",
+    "requests>=2.34.2",
+    "selenium>=4.44.0",
+]
+[tool.uv]
+index-url = "https://mirrors.aliyun.com/pypi/web/simple"
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.format]
+preview = true
+
+[tool.ruff.lint]
+preview = false

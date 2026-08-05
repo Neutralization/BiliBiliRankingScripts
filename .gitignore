@@ -1,4 +1,19 @@
-# 素材
+# project
+*.aep
+*.csv
+*.html
+*.jpg
+*.json
+*.mp4
+*.png
+*.psd
+*.tex
+*.ttf
+*.txt
+*.xlsx
+*_AME/
+*日志/
+Adobe*/
 banner/
 footage/
 pic/
@@ -6,26 +21,10 @@ public/
 ranking/
 z_fm/
 
-# 缓存
-*_AME/
-Adobe*/
-*日志/
-
-# 数据
-/*.csv
-/*.json
-/*.txt
-/*.xlsx
-/*.html
-/*.tex
-/*.ttf
-/BBDown.data
-/BBDown.exe
-
-# 工程
-/*.aep
-/*.jpg
-/*.mp4
-/*.png
-/*.psd
-!.eslintrc.js
+# dev
+!render.html
+.python-version
+.ruff_cache/
+.venv/
+node_modules/
+uv.lock
