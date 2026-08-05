@@ -248,14 +248,29 @@ function Main {
     Write-YamlList -Suffix 'results_history' -Max 5 -Min 1 -Part 15
     Write-YamlList -Suffix 'results' -Max 3 -Min 1 -Part 16
     Write-RankdoorCsv
-    uv run .\generate.py
+    uv run .\generate.py --week $RankNum
     $rankStartTime = [DateTimeOffset]::FromUnixTimeSeconds(1276876800 + ([int64]$RankNum * 604800)).LocalDateTime
     $archivePaths = @("${FootageFolder}/${RankNum}*.yml")
     $pngFiles = Get-ChildItem -Path "${FootageFolder}/*.png" -File -ErrorAction SilentlyContinue | Where-Object { $_.CreationTime -gt $rankStartTime }
     if ($pngFiles.Count -gt 0) {
         $archivePaths += $pngFiles.FullName
     }
-    Compress-Archive -Path $archivePaths -DestinationPath "${TruePath}/${RankNum}_list1.zip" -Update
+
+    $archiveTemp = Join-Path ([System.IO.Path]::GetTempPath()) "bilibiliweek_${RankNum}_list1_$([Guid]::NewGuid().ToString('N'))"
+    $archiveListFolder = Join-Path $archiveTemp 'list1'
+    try {
+        New-Item -ItemType Directory -Path $archiveListFolder -Force | Out-Null
+        foreach ($archivePath in $archivePaths) {
+            Get-ChildItem -Path $archivePath -File -ErrorAction SilentlyContinue | ForEach-Object {
+                Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $archiveListFolder $_.Name) -Force
+            }
+        }
+        Compress-Archive -Path $archiveListFolder -DestinationPath "${TruePath}/${RankNum}_list1.zip" -Force
+    } finally {
+        if (Test-Path $archiveTemp) {
+            Remove-Item -LiteralPath $archiveTemp -Recurse -Force
+        }
+    }
 }
 
 Main
