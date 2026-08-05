@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import argparse
 import json
 import re
@@ -110,6 +108,14 @@ def load_json_file(path: str | Path):
         raise ValueError(f"Invalid JSON in {file_path}: {error}") from error
 
 
+def normalize_rank_data(name: str, data):
+    if isinstance(data, dict):
+        return [data]
+    if isinstance(data, list):
+        return data
+    raise ValueError(f"{name} must be a rank object or list")
+
+
 def require_non_empty_list(name: str, value):
     if not isinstance(value, list) or not value:
         raise ValueError(f"{name} must be a non-empty list")
@@ -121,10 +127,18 @@ def require_item_keys(name: str, item: dict[str, Any], keys: set[str]):
         raise ValueError(f"{name} item is missing keys: {', '.join(missing)}")
 
 
-def validate_rank(name: str, data: list[dict[str, Any]], keys: set[str]):
+def validate_rank(
+    name: str,
+    data: list[dict[str, Any]],
+    keys: set[str],
+    *,
+    allow_empty_items: bool = False,
+):
     require_non_empty_list(name, data)
     items = [x for x in data if isinstance(x, dict) and x.get("info") is None]
     if not items:
+        if allow_empty_items:
+            return
         raise ValueError(f"{name} has no rank items")
     require_item_keys(name, items[0], keys)
 
@@ -140,8 +154,8 @@ def normalize_bvid(value):
     raw = str(value).strip()
     if raw.lower().startswith("bv"):
         return f"BV{raw[2:]}"
-    if raw.lower().startswith("av") and raw[2:].isdigit():
-        return av2bv(int(raw[2:]))
+    if raw.lower().startswith("av") and raw[2:].strip().isdigit():
+        return av2bv(int(raw[2:].strip()))
     if raw.isdigit():
         return av2bv(int(raw))
     raise ValueError(f"Invalid BV/AV value: {value!r}")
@@ -273,10 +287,16 @@ def convert_history_item(x: dict[str, Any]):
 
 
 def build_context(week: int):
-    m_rank = load_json_file(f"{week}_results.json")
-    b_rank = load_json_file(f"{week}_results_bangumi.json")
-    g_rank = load_json_file(f"{week}_guoman_bangumi.json")
-    h_rank = load_json_file(f"{week}_results_history.json")
+    m_rank = normalize_rank_data("main rank", load_json_file(f"{week}_results.json"))
+    b_rank = normalize_rank_data(
+        "bangumi rank", load_json_file(f"{week}_results_bangumi.json")
+    )
+    g_rank = normalize_rank_data(
+        "guoman rank", load_json_file(f"{week}_guoman_bangumi.json")
+    )
+    h_rank = normalize_rank_data(
+        "history rank", load_json_file(f"{week}_results_history.json")
+    )
     s_rank = load_json_file(f"{week}_stat.json")
     invalid = load_json_file("LostFile.json")
 
@@ -310,6 +330,7 @@ def build_context(week: int):
             "rank",
             "wid",
         },
+        allow_empty_items=True,
     )
     validate_rank(
         "guoman rank",
@@ -713,9 +734,7 @@ def Stat(ctx: GenerateContext, browser):
             if len(ctx.s_rank_data[2][i + 7]) > 2
             else "--"
         )
-        if not ARank.isdigit():
-            trend = "up"
-        elif int(ARank) > i + 1:
+        if not ARank.isdigit() or int(ARank) > i + 1:
             trend = "up"
         elif int(ARank) < i + 1:
             trend = "down"
@@ -737,9 +756,7 @@ def Stat(ctx: GenerateContext, browser):
             if len(ctx.s_rank_data[2][i + 7]) > 2
             else "--"
         )
-        if not ARank.isdigit():
-            trend = "up"
-        elif int(ARank) > i + 8:
+        if not ARank.isdigit() or int(ARank) > i + 8:
             trend = "up"
         elif int(ARank) < i + 8:
             trend = "down"
