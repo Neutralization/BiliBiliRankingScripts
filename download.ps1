@@ -3,30 +3,237 @@ param (
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7),
     [array]$Part = $null
 )
-$ProgressPreference = 'SilentlyContinue'
+$ProgressPreference = 'Continue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $DownloadFolder = "${TruePath}/ranking/list0"
 $FootageFolder = "${TruePath}/ranking/list1"
 $CookieFile = "${TruePath}/bilibili.com_cookies.txt"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
+$CookieHeader = ''
+$WbiMixinKey = ''
+$TaskIndex = 0
+$TaskCount = 0
 
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 $Session.UserAgent = $UserAgent
 if (Test-Path $CookieFile) {
     $Cookies = Get-Content -Path $CookieFile
+    $CookiePairs = @()
     $Cookies | ForEach-Object {
-        if (!$_.StartsWith('#') -and $_.StartsWith('.bilibili.com')) {
-            $Cookie = $_.Split("`t")
+        $Line = $_
+        if ($Line.StartsWith('#HttpOnly_')) {
+            $Line = $Line.Substring('#HttpOnly_'.Length)
+        }
+        if (!$Line.StartsWith('#') -and ($Line -match '(^|\t)\.?bilibili\.com\t')) {
+            $Cookie = $Line.Split("`t")
+            if ($Cookie.Count -lt 7) {
+                return
+            }
             $Name = $Cookie[5]
             $Value = $Cookie[6]
             $Path = $Cookie[2]
             $Domain = $Cookie[0]
             $Session.Cookies.Add((New-Object System.Net.Cookie($Name, $Value, $Path, $Domain)))
+            $CookiePairs += "${Name}=${Value}"
         }
     }
+    $CookieHeader = $CookiePairs -join '; '
 }
 $Headers = @{
     'User-Agent' = $UserAgent
+}
+if ($CookieHeader) {
+    $Headers.Cookie = $CookieHeader
+}
+
+function Get-MD5Hash {
+    param (
+        [string]$Text
+    )
+
+    $md5 = [System.Security.Cryptography.MD5]::Create()
+    try {
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($Text)
+        return (($md5.ComputeHash($bytes) | ForEach-Object { $_.ToString('x2') }) -join '')
+    } finally {
+        $md5.Dispose()
+    }
+}
+
+function Get-WbiImageKeyPart {
+    param (
+        [string]$Url
+    )
+
+    $fileName = ($Url -split '[/?#]') | Where-Object { $_ } | Select-Object -Last 1
+    return [System.IO.Path]::GetFileNameWithoutExtension($fileName)
+}
+
+function Get-MixinKey {
+    param (
+        [string]$Origin
+    )
+
+    $mixinKeyEncTab = @(
+        46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35,
+        27, 43, 5, 49, 33, 9, 42, 19, 29, 28, 14, 39, 12, 38, 41, 13
+    )
+    $chars = $Origin.ToCharArray()
+    return -join ($mixinKeyEncTab | ForEach-Object { $chars[$_] })
+}
+
+function ConvertTo-QueryValue {
+    param (
+        [object]$Value
+    )
+
+    $text = [string]$Value
+    $text = $text -replace "[!'()*]", ''
+    return [System.Uri]::EscapeDataString($text)
+}
+
+function New-WbiQuery {
+    param (
+        [hashtable]$Params,
+        [string]$MixinKey
+    )
+
+    $Params.wts = [DateTimeOffset]::Now.ToUnixTimeSeconds()
+    $query = (($Params.Keys | Sort-Object | ForEach-Object {
+                "$_=$(ConvertTo-QueryValue $Params[$_])"
+            }) -join '&')
+    $wRid = Get-MD5Hash "${query}${MixinKey}"
+    return "${query}&w_rid=${wRid}"
+}
+
+function New-WbiPlayUrl {
+    param (
+        [string]$AID,
+        [string]$BID,
+        [string]$CID,
+        [string]$MixinKey
+    )
+
+    $query = New-WbiQuery @{
+        support_multi_audio = 'true'
+        from_client         = 'BROWSER'
+        avid                = $AID
+        bvid                = $BID
+        cid                 = $CID
+        qn                  = '120'
+        fnver               = '0'
+        fnval               = '4048'
+        fourk               = '1'
+        otype               = 'json'
+    } $MixinKey
+    return "https://api.bilibili.com/x/player/wbi/playurl?${query}"
+}
+
+function Initialize-BiliCredential {
+    $navUrl = 'https://api.bilibili.com/x/web-interface/nav'
+    $nav = Invoke-WebRequest -UseBasicParsing -Uri $navUrl -WebSession $Session -Headers $Headers |
+        Select-Object -ExpandProperty 'Content' |
+        ConvertFrom-Json
+
+    if ($true -ne $nav.data.isLogin) {
+        throw 'bilibili.com_cookies.txt 已过期或未登录，请重新导出 bilibili.com_cookies.txt。'
+    }
+
+    $imgKey = Get-WbiImageKeyPart $nav.data.wbi_img.img_url
+    $subKey = Get-WbiImageKeyPart $nav.data.wbi_img.sub_url
+    if (!$imgKey -or !$subKey) {
+        throw '获取 WBI key 失败，无法签名播放接口。'
+    }
+
+    return Get-MixinKey "${imgKey}${subKey}"
+}
+
+function Write-RunLog {
+    param (
+        [string]$Message,
+        [string]$Color = 'Gray'
+    )
+
+    $taskProgress = "[ $script:TaskIndex / $script:TaskCount ]"
+    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${taskProgress} ${Message}" -ForegroundColor $Color
+}
+
+function Format-ByteSize {
+    param (
+        [long]$Bytes
+    )
+
+    if ($Bytes -ge 1GB) { return ('{0:N1} GB' -f ($Bytes / 1GB)) }
+    if ($Bytes -ge 1MB) { return ('{0:N1} MB' -f ($Bytes / 1MB)) }
+    if ($Bytes -ge 1KB) { return ('{0:N1} KB' -f ($Bytes / 1KB)) }
+    return "${Bytes} B"
+}
+
+function Get-RemoteContentLength {
+    param (
+        [string]$Url,
+        [string]$Referer
+    )
+
+    $requestHeaders = @{
+        'User-Agent' = $UserAgent
+        'Referer'    = $Referer
+    }
+    if ($CookieHeader) {
+        $requestHeaders.Cookie = $CookieHeader
+    }
+
+    try {
+        $response = Invoke-WebRequest -UseBasicParsing -Method Head -Uri $Url -Headers $requestHeaders -ErrorAction Stop
+        [long]$contentLength = 0
+        if ([long]::TryParse($response.Headers['Content-Length'], [ref]$contentLength) -and $contentLength -gt 0) {
+            return $contentLength
+        }
+    } catch {
+        # Some video CDNs do not support HEAD requests or omit Content-Length.
+    }
+
+    return $null
+}
+
+function Invoke-Aria2Download {
+    param (
+        [string[]]$Aria2cArgs,
+        [string]$Url,
+        [string]$OutputPath,
+        [string]$Activity,
+        [string]$Referer
+    )
+
+    $totalBytes = Get-RemoteContentLength $Url $Referer
+    $job = Start-Job -ScriptBlock {
+        param ([string[]]$Arguments)
+        & aria2c.exe @Arguments *> $null
+        return $LASTEXITCODE
+    } -ArgumentList (, $Aria2cArgs)
+
+    try {
+        while ($job.State -notin @('Completed', 'Failed', 'Stopped')) {
+            [long]$downloadedBytes = if (Test-Path -LiteralPath $OutputPath) { (Get-Item -LiteralPath $OutputPath).Length } else { 0 }
+            if ($null -ne $totalBytes) {
+                $percent = [Math]::Min(100, [Math]::Floor(($downloadedBytes / $totalBytes) * 100))
+                $status = "$(Format-ByteSize $downloadedBytes) / $(Format-ByteSize $totalBytes)"
+                Write-Progress -Activity $Activity -Status $status -PercentComplete $percent
+            } else {
+                Write-Progress -Activity $Activity -Status "$(Format-ByteSize $downloadedBytes)"
+            }
+            Start-Sleep -Milliseconds 250
+            $job = Get-Job -Id $job.Id
+        }
+
+        $exitCode = Receive-Job -Job $job -ErrorAction SilentlyContinue | Select-Object -Last 1
+        if ($job.State -ne 'Completed' -or $exitCode -ne 0) {
+            throw "aria2c download failed with exit code ${exitCode}"
+        }
+    } finally {
+        Write-Progress -Activity $Activity -Completed
+        Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+    }
 }
 
 function ConvertTo-AID {
@@ -91,30 +298,44 @@ function BiliDown {
         $BID = ConvertTo-AID $AID $true
         $ID = $BID
     } else {
+        Write-RunLog "${ID} ID 格式无效，跳过" 'Yellow'
         return
     }
-    $pageUrl = "https://api.bilibili.com/x/player/pagelist?aid=${AID}&jsonp=jsonp"
+
+    Write-RunLog "${BID} 开始处理" 'Cyan'
     $Headers.referer = "https://www.bilibili.com/video/av${AID}/"
+
+    Write-RunLog "${BID} 获取分 P 信息" 'Gray'
+    $pageUrl = "https://api.bilibili.com/x/player/pagelist?aid=${AID}&jsonp=jsonp"
     $Headers.path = "/x/player/pagelist?aid=${AID}&jsonp=jsonp"
     $pages = Invoke-WebRequest -UseBasicParsing -Uri $pageUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $CID = $pages.data | Where-Object -Property 'page' -EQ $Part | Select-Object -ExpandProperty 'cid'
+    if ($null -eq $CID) {
+        Write-RunLog "${BID} 未找到 P${Part} 的 CID，跳过" 'Red'
+        return
+    }
+    Write-RunLog "${BID} P${Part} CID=${CID}" 'Gray'
 
+    Write-RunLog "${BID} 获取字幕信息" 'Gray'
     $ccUrl = "https://api.bilibili.com/x/player/wbi/v2?aid=${AID}&cid=${CID}&isGaiaAvoided=false"
     $ccData = Invoke-WebRequest -UseBasicParsing -Uri $ccUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $subtitle = $ccData.data.subtitle.subtitles[0]
     if ($null -ne $subtitle.subtitle_url -and $subtitle.lan -notmatch 'ai-') {
         Invoke-WebRequest -Uri "http:$($subtitle.subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "${FootageFolder}/${ID}.json"
+        Write-RunLog "${BID} 字幕已保存" 'Gray'
+    } else {
+        Write-RunLog "${BID} 无可下载字幕" 'DarkGray'
     }
 
+    Write-RunLog "${BID} 解析播放地址" 'Gray'
     $sourceUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=${AID}&bvid=${BID}&cid=${CID}&qn=120&fnver=0&fnval=4048&fourk=1"
     $pgcTest = Invoke-WebRequest -UseBasicParsing -Uri $sourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
-    $sourceUrl = if (-404 -eq $pgcTest.code) { "https://api.bilibili.com/x/player/playurl?avid=${AID}&bvid=${BID}&cid=${CID}&qn=120&fnver=0&fnval=4048&fourk=1" } else { $sourceUrl }
-    $Headers.referer = "https://www.bilibili.com/video/av${AID}/"
+    $sourceUrl = if (-404 -eq $pgcTest.code) { New-WbiPlayUrl $AID $BID $CID $WbiMixinKey } else { $sourceUrl }
     $Headers.path = $sourceUrl.Substring('https://api.bilibili.com'.Length)
     $videoInfo = Invoke-WebRequest -UseBasicParsing -Uri $sourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $videoData = if (-404 -eq $pgcTest.code) { $videoInfo.data } else { $videoInfo.result.video_info }
     if ($null -eq $videoData) {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 解析失败，跳过" -ForegroundColor Red
+        Write-RunLog "${BID} 解析失败，跳过" 'Red'
         return
     }
 
@@ -122,17 +343,21 @@ function BiliDown {
     if ($null -ne $videoData.durl) {
         $singleMp4 = $videoData.durl | Where-Object -Property 'order' -EQ 1 | Select-Object -ExpandProperty 'url'
         try {
+            Write-RunLog "${BID} 下载单文件 MP4" 'Cyan'
             $aria2cArgs = @(
                 '--conf-path=aria2.conf',
                 "${singleMp4}",
                 "--header=User-Agent: ${UserAgent}",
                 "--header=Referer: $($Headers.referer)",
+                "--header=Cookie: ${CookieHeader}",
                 "--dir=${DownloadFolder}",
                 '--out', "${ID}.mp4"
             )
-            & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
+            Invoke-Aria2Download $aria2cArgs $singleMp4 "${DownloadFolder}/${ID}.mp4" "Download MP4: ${BID}" $Headers.referer
+            Write-RunLog "${BID} 下载完成" 'Green'
         } catch {
-            New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force
+            Write-RunLog "${BID} 出现错误：$($_.Exception.Message)" 'Red'
+            New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force | Out-Null
         }
         return
     }
@@ -148,42 +373,48 @@ function BiliDown {
     $videoDash = $videoData.dash.video | Where-Object -Property 'id' -EQ $videoId | Where-Object -Property 'codecs' -Match 'avc' | Select-Object -ExpandProperty 'baseUrl'
 
     try {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 正在下载" -ForegroundColor Cyan
+        Write-RunLog "${BID} 下载音频流" 'Cyan'
         $aria2cArgs = @(
             '--conf-path=aria2.conf',
             "${audioDash}",
             "--header=User-Agent: ${UserAgent}",
             "--header=Referer: $($Headers.referer)",
+            "--header=Cookie: ${CookieHeader}",
             "--dir=${DownloadFolder}", '--out', "${ID}_a.m4s"
         )
-        & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
+        Invoke-Aria2Download $aria2cArgs $audioDash "${DownloadFolder}/${ID}_a.m4s" "Download audio: ${BID}" $Headers.referer
 
+        Write-RunLog "${BID} 下载视频流" 'Cyan'
         $aria2cArgs = @(
             '--conf-path=aria2.conf',
             "${videoDash}",
             "--header=User-Agent: ${UserAgent}",
             "--header=Referer: $($Headers.referer)",
+            "--header=Cookie: ${CookieHeader}",
             "--dir=${DownloadFolder}", '--out', "${ID}_v.m4s"
         )
-        & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
+        Invoke-Aria2Download $aria2cArgs $videoDash "${DownloadFolder}/${ID}_v.m4s" "Download video: ${BID}" $Headers.referer
 
+        Write-RunLog "${BID} 合并音视频" 'Cyan'
         $ffmpegArgs = @(
-            '-y', '-hide_banner',
+            '-y', '-hide_banner', '-loglevel', 'error',
             '-i', "${DownloadFolder}/${ID}_a.m4s",
             '-i', "${DownloadFolder}/${ID}_v.m4s",
             '-c', 'copy',
             "${DownloadFolder}/${ID}.mp4"
         )
-        & ffmpeg.exe @ffmpegArgs 2>> "${DownloadFolder}/${ID}_.log"
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 下载完成" -ForegroundColor Green
+        & ffmpeg.exe @ffmpegArgs
+        if ($LASTEXITCODE -ne 0) { throw "ffmpeg 合并失败，退出码 ${LASTEXITCODE}" }
+        Write-RunLog "${BID} 下载完成" 'Green'
     } catch {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 出现错误" -ForegroundColor Red
-        New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force
+        Write-RunLog "${BID} 出现错误：$($_.Exception.Message)" 'Red'
+        New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force | Out-Null
     }
 }
 
 function Main {
     Import-Module powershell-yaml
+    $script:WbiMixinKey = Initialize-BiliCredential
     $Files = @()
     $LocalVideos = @()
     $LostVideos = @()
@@ -216,19 +447,14 @@ function Main {
             (Resolve-Path "${_}"), 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
 
-    $bilidownDef = ${Function:BiliDown}.ToString()
-    $converttoaidDef = ${Function:ConvertTo-AID}.ToString()
-    $TaskQueue | ForEach-Object -ThrottleLimit 4 -Parallel {
-        $Headers = $using:Headers
-        $Session = $using:Session
-        $UserAgent = $using:UserAgent
-        $DownloadFolder = $using:DownloadFolder
-        $FootageFolder = $using:FootageFolder
-        ${Function:BiliDown} = [ScriptBlock]::Create($using:bilidownDef)
-        ${Function:ConvertTo-AID} = [ScriptBlock]::Create($using:converttoaidDef)
-        BiliDown $_
+    $script:TaskCount = @($TaskQueue).Count
+    Write-RunLog "共 ${TaskCount} 个待下载任务，开始串行下载" 'Cyan'
+    foreach ($Task in $TaskQueue) {
+        $script:TaskIndex += 1
+        BiliDown $Task
     }
-    Get-ChildItem "${DownloadFolder}/*" -Include *.log, *.m4s | ForEach-Object {
+    Write-RunLog '任务队列处理完成，清理临时 m4s 文件' 'Gray'
+    Get-ChildItem "${DownloadFolder}/*" -Include *.m4s | ForEach-Object {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
             (Resolve-Path "${_}"), 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
