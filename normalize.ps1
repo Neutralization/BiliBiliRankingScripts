@@ -1,12 +1,15 @@
 param (
     [string]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7),
+    [switch]$History,
+    [int]$HistoryNum = [Math]::Floor([Math]::Floor(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7) / 100) * 100,
     [array]$Part = $null
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $DownloadFolder = "${TruePath}/ranking/list0"
 $FootageFolder = "${TruePath}/ranking/list1"
+$OutputFolder = if ($History) { "${TruePath}/ranking/list100" } else { $FootageFolder }
 
 $tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_nvenc -f null -' -RedirectStandardError '.\NUL'
 if ($tmp.ExitCode -eq 0 ) { $Nvdia = $true } else { $Nvdia = $false }
@@ -29,7 +32,7 @@ function Normalize {
             '-f', 'lavfi', '-i', 'anullsrc',
             '-f', 'lavfi', '-i', "smptebars=duration=${Length}:size=1280x720:rate=1",
             '-vf', "drawtext=fontfile='C\:/Windows/Fonts/msyh.ttc':fontsize=100:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:text='${FileName}'",
-            "${FootageFolder}/${Rank}_${FileName}.mp4"
+            "${OutputFolder}/${Rank}_${FileName}.mp4"
         )
         & ffmpeg.exe @fakeArgs 2> $null
         return $null
@@ -57,7 +60,7 @@ function Normalize {
         '-af', "${Target}:print_format=summary:linear=true:${Source}", '-ar', '48000',
         '-c:v', "${Encoder}", '-b:v', '10M',
         '-c:a', 'aac', '-b:a', '320k', '-r', '60',
-        "${FootageFolder}/${Rank}_${FileName}.mp4"
+        "${OutputFolder}/${Rank}_${FileName}.mp4"
     )
     Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 截取视频并标准化音频音量" -ForegroundColor Green
     & ffmpeg.exe @VideoArg 2> $null
@@ -101,12 +104,20 @@ function Main {
     $LostVideos = @()
     $RankVideos = @()
 
-    if ($null -eq $Part) {
-        Get-ChildItem "${FootageFolder}/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
+    if ($History -or ($null -eq $Part)) {
+        Get-ChildItem "${OutputFolder}/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
     }
-    $Part = if ($null -ne $Part) { $Part } else { @('*') }
-    foreach ($p in $Part) {
-        $Files += Get-Content -Raw "${FootageFolder}/${RankNum}_${p}.yml"
+    if ($History) {
+        $historyYmlPath = "${TruePath}/ranking/list100/${HistoryNum}.yml"
+        if (!(Test-Path -LiteralPath $historyYmlPath)) {
+            throw "Missing history YAML: ${historyYmlPath}"
+        }
+        $Files += Get-Content -Raw $historyYmlPath
+    } else {
+        $Part = if ($null -ne $Part) { $Part } else { @('*') }
+        foreach ($p in $Part) {
+            $Files += Get-Content -Raw "${FootageFolder}/${RankNum}_${p}.yml"
+        }
     }
 
     foreach ($content in $Files) {
@@ -125,11 +136,12 @@ function Main {
         $length = [int]$_.':length'
         $video = "${rank}_${name}"
         $FootageFolder = $using:FootageFolder
+        $OutputFolder = $using:OutputFolder
         $DownloadFolder = $using:DownloadFolder
         $LocalVideos = $using:LocalVideos
         $LostVideos = $using:LostVideos
         $Encoder = $using:Encoder
-        if (($LocalVideos -notcontains $video) -or ((Get-Item "${FootageFolder}/${video}.mp4").length -eq 0)) {
+        if (($LocalVideos -notcontains $video) -or ((Get-Item "${OutputFolder}/${video}.mp4").length -eq 0)) {
             ${Function:Normalize} = [ScriptBlock]::Create($using:normalizeDef)
             Normalize $rank $name $offset $length
         } else {
@@ -141,11 +153,13 @@ function Main {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
             "${_}", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
-    $EDFile = Get-ChildItem -Path './ranking/2_ed/*' -Include *.mp3, *.flac | Where-Object Name -NotMatch 'ed.mp3' | Select-Object -ExpandProperty Name
-    if ($null -ne $EDFile ) {
-        EDNormalize $EDFile
-        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            "${TruePath}/ranking/2_ed/${EDFile}", 'OnlyErrorDialogs', 'SendToRecycleBin')
+    if (!$History) {
+        $EDFile = Get-ChildItem -Path './ranking/2_ed/*' -Include *.mp3, *.flac | Where-Object Name -NotMatch 'ed.mp3' | Select-Object -ExpandProperty Name
+        if ($null -ne $EDFile ) {
+            EDNormalize $EDFile
+            [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
+                "${TruePath}/ranking/2_ed/${EDFile}", 'OnlyErrorDialogs', 'SendToRecycleBin')
+        }
     }
 }
 

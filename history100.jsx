@@ -1,5 +1,8 @@
 // @include 'json2/json2.js';
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
+YUME = 1277009809;
+CurrentWeek = Math.floor((Date.now() / 1000 - YUME + 133009) / 3600 / 24 / 7);
+HistoryNum = Math.floor(CurrentWeek / 100) * 100;
 app.newProject();
 app.project.workingSpace = 'Rec.709 Gamma 2.4';
 app.project.bitsPerChannel = 8;
@@ -10,24 +13,30 @@ WeeklyFolder = app.project.items.addFolder('HistoryResource');
 NormalRankSize = [1440, 810];
 VideoSize = [1920, 1080];
 DirectoryPrefix = './ranking/list100/';
-LostFile = '404_tv';
 regex = /- :rank: (\d+)\n {2}:name: (\w+)\n {2}:length: (\d+)\n {2}:offset: (\d+)(\n {2}:short: \d+)?(\n {2}:no_pause: true)?/gm;
 subst = '$1: ["$2", $3, $4],';
-parts = [800];
 RankDataList = [];
-for (n = 0; n < parts.length; n++) {
-    file = new File(DirectoryPrefix + parts[n] + '.yml');
-    file.open('r');
-    ymlstring = file.read();
-    file.close();
-    RankList = ymlstring.replace(regex, subst).replace('\'', '"').replace('---', '{') + '}';
-    RankDataList[RankDataList.length] = JSON.parse(RankList);
-}
+file = new File(DirectoryPrefix + HistoryNum + '.yml');
+file.open('r');
+ymlstring = file.read();
+file.close();
+RankList = ymlstring.replace(regex, subst).replace('\'', '"').replace('---', '{') + '}';
+RankList = RankList.replace(',\n}', '\n}');
+RankDataList[RankDataList.length] = JSON.parse(RankList);
 lostfile = new File('LostFile.json');
 lostfile.open('r');
 content = lostfile.read();
 lostfile.close();
-LostVideos = JSON.parse(content).name;
+LostVideos = JSON.parse(content);
+LegacyLostVideos = LostVideos.name instanceof Array ? LostVideos.name : [];
+
+function IsLostVideo(name) {
+    if (name in LostVideos) return true;
+    for (lost = 0; lost < LegacyLostVideos.length; lost++) {
+        if (name == LegacyLostVideos[lost]) return true;
+    }
+    return false;
+}
 
 RankData = RankDataList[0];
 
@@ -35,11 +44,12 @@ StaticResource = {
     // IMAGE
     spop: './ranking/pic/spop.png',
     sped: './ranking/pic/sped.png',
+    Invalid: './public/invalid.png',
     // AUDIO
     op_audio: './public/54 - Subtitle 1.mp3',
     ed_audio: './public/55 - Subtitle 2.mp3',
     // VIDEO
-    '404_tv': './public/tv_x264.mp4',
+    NotFound: './public/error.mp4',
 };
 
 for (key in StaticResource) {
@@ -198,7 +208,9 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
         if (!(LastRank + i in RankData)) {
             continue;
         }
-        VideoFile = LastRank + i + '_' + RankData[LastRank + i][0];
+        CheckLost = IsLostVideo(RankData[LastRank + i][0]);
+        VideoFile = (CheckLost == false) ? LastRank + i + '_' + RankData[LastRank + i][0] : 'NotFound';
+        // VideoFile = LastRank + i + '_' + RankData[LastRank + i][0];
         VideoMaskImage = LastRank + i + '_' + RankData[LastRank + i][0] + '_';
         VideoDuration = RankData[LastRank + i][1];
         TrueDuration = app.project.items[ResourceID[VideoFile]].duration;
@@ -212,9 +224,22 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
         NewVideoLayer.outPoint = GlobalOffset + VideoDuration;
         NewVideoLayer.inPoint = NewVideoLayer.outPoint - VideoDuration;
         NewVideoLayer.outPoint = NewVideoLayer.inPoint + VideoDuration;
+        if (CheckLost == true) {
+            InvalidLayer = AddLayer(MasterComposition, 'Invalid', VideoDuration, GlobalOffset - VideoOffset);
+            InvalidLayer.inPoint = GlobalOffset;
+            InvalidLayer.outPoint = GlobalOffset + VideoDuration;
+            InvalidLayer.inPoint = InvalidLayer.outPoint - VideoDuration;
+            InvalidLayer.outPoint = InvalidLayer.inPoint + VideoDuration;
+            InvalidLayer.property('Scale').setValue([75, 75]);
+            InvalidLayer.property('Position').setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
+        }
         if (NeedProperty) {
             AddVideoProperty(NewVideoLayer, 1, NewVideoLayer.inPoint, 0.6, 1);
             AddVideoProperty(NewVideoLayer, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
+            if (CheckLost == true) {
+                AddVideoProperty(InvalidLayer, 1, NewVideoLayer.inPoint, 0.6, 1);
+                AddVideoProperty(InvalidLayer, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
+            }
         }
         AddAudioProperty(NewVideoLayer, 1, NewVideoLayer.inPoint, 0.6, 1);
         AddAudioProperty(NewVideoLayer, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
@@ -234,48 +259,6 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
         NewVideoLayer.comment = LastRank + i + '-' + VideoFile;
         writeLn(NewVideoLayer.comment); // DEBUG
 
-        CheckLost = false;
-        for (lost in LostVideos) {
-            if (RankData[LastRank + i][0] == LostVideos[lost]) CheckLost = true;
-        }
-        if (CheckLost == true) {
-            VideoOffset = 0;
-            NewVideoLayer.enabled = false;
-            LostVideoLayer = AddLayer(MasterComposition, LostFile, VideoDuration, GlobalOffset);
-            LostVideoLayer.inPoint = GlobalOffset;
-            LostVideoLayer.outPoint = GlobalOffset + VideoDuration;
-            LostTextLayer = MasterComposition.layers.addText('视频已失效');
-            LostTextDocument = LostTextLayer.property('Source Text').value;
-            LostTextDocument.resetCharStyle();
-            LostTextDocument.fontSize = 48;
-            LostTextDocument.fillColor = [0.8, 0, 0];
-            LostTextDocument.applyFill = true;
-            // LostTextDocument.font = '方正粗圆_GBK';
-            LostTextDocument.justification = ParagraphJustification.CENTER_JUSTIFY;
-            LostTextLayer.inPoint = GlobalOffset;
-            LostTextLayer.outPoint = GlobalOffset + VideoDuration;
-            LostTextLayer.property('Position').setValue([1100, 777]);
-            LostTextLayer.property('Source Text').setValue(LostTextDocument);
-            if (NeedProperty) {
-                AddVideoProperty(LostVideoLayer, 1, LostVideoLayer.inPoint, 0.6, 1);
-                AddVideoProperty(LostVideoLayer, 1, LostVideoLayer.outPoint - 0.6, 0.6, 2);
-            }
-            AddAudioProperty(LostVideoLayer, 1, LostVideoLayer.inPoint, 0.6, 1);
-            AddAudioProperty(LostVideoLayer, 1, LostVideoLayer.outPoint - 0.6, 0.6, 2);
-            VideoItemSize = LostVideoLayer.sourceRectAtTime(LostVideoLayer.inPoint, false);
-            if (VideoItemSize.width / VideoItemSize.height >= 16 / 9) {
-                LostVideoLayer.property('Scale').setValue([
-                    (NormalRankSize[0] / VideoItemSize.width) * 100,
-                    (NormalRankSize[0] / VideoItemSize.width) * 100,
-                ]);
-            } else {
-                LostVideoLayer.property('Scale').setValue([
-                    (NormalRankSize[1] / VideoItemSize.height) * 100,
-                    (NormalRankSize[1] / VideoItemSize.height) * 100,
-                ]);
-            }
-            LostVideoLayer.property('Position').setValue([VideoSize[0] / 2 - 223, VideoSize[1] / 2 - 118]);
-        }
         NewVideoLayer_mask = AddLayer(MasterComposition, VideoMaskImage, VideoDuration, GlobalOffset);
         if (NeedSpace && LastRank + i > FirstRank) {
             ChangeLayer = AddLayer(MasterComposition, '0_change', 1, GlobalOffset + VideoDuration);
@@ -285,8 +268,7 @@ function AddRankPart(RankData, FirstRank, NeedSpace, NeedProperty, GlobalOffset)
             GlobalOffset = GlobalOffset + VideoDuration;
         } else {
             if (CheckLost == true) {
-                AddVideoProperty(LostVideoLayer, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
-                AddVideoProperty(LostTextLayer, 1, LostTextLayer.outPoint - 0.6, 0.6, 2);
+                AddVideoProperty(InvalidLayer, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
             }
             AddVideoProperty(NewVideoLayer, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);
             //AddVideoProperty(NewVideoLayer_mask, 1, NewVideoLayer.outPoint - 0.6, 0.6, 2);

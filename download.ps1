@@ -1,6 +1,8 @@
 param (
     [string]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7),
+    [switch]$History,
+    [int]$HistoryNum = [Math]::Floor([Math]::Floor(((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7) / 100) * 100,
     [array]$Part = $null
 )
 $ProgressPreference = 'Continue'
@@ -423,9 +425,17 @@ function Main {
     if ($null -eq $Part) {
         Get-ChildItem "${DownloadFolder}/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
     }
-    $Part = if ($null -ne $Part) { $Part } else { @('*') }
-    foreach ($p in $Part) {
-        $Files += Get-Content -Raw "${FootageFolder}/${RankNum}_${p}.yml"
+    if ($History) {
+        $historyYmlPath = "${TruePath}/ranking/list100/${HistoryNum}.yml"
+        if (!(Test-Path -LiteralPath $historyYmlPath)) {
+            throw "Missing history YAML: ${historyYmlPath}"
+        }
+        $Files += Get-Content -Raw $historyYmlPath
+    } else {
+        $Part = if ($null -ne $Part) { $Part } else { @('*') }
+        foreach ($p in $Part) {
+            $Files += Get-Content -Raw "${FootageFolder}/${RankNum}_${p}.yml"
+        }
     }
     foreach ($content in $Files) {
         $items = (ConvertFrom-Yaml $content) | ForEach-Object { $_ } | ForEach-Object { $_.':name' }

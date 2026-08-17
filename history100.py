@@ -1,226 +1,239 @@
 # -*- coding: utf-8 -*-
 
-import json
+import argparse
 import re
-from math import ceil
-from os import remove
-from os.path import abspath
+import time
+from pathlib import Path
+from typing import Final, TypedDict
 from unicodedata import combining, normalize
 
-import arrow
 import requests
-from PIL import Image, ImageDraw, ImageFont
+from selenium.webdriver import Edge
+from selenium.webdriver.common.by import By
+from selenium.webdriver.edge.options import Options
 from yaml import BaseLoader
 from yaml import load as yload
 
-from constant import (
-    C_000000,
-    C_6D4B2B,
-    C_FFFFFF,
-    CONTROL,
-    HANNOTATE_SC,
-    HYQIHEI_105J,
-    REDFM,
-    SEGOE_UI_EMOJI,
-    STYUAN,
-    TOP100IMG,
-    UA,
-    YUANTI_SC,
-    YUME,
+from history100_lost_info import LOST_INFO, VideoInfo
+
+YUME: Final = 1277009809
+CONTROL: Final = re.compile(r"[\u0000-\u0019\u007F-\u00A0]")
+UA: Final = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"
 )
-from generate import text2img
-
-LOST_INFO = {
-    "1906108321": {
-        "aid": "1906108321",
-        "bvid": "BV1fKCzYWEkU",
-        "tname": "短片",
-        "pubdate": "2024-07-07 11:47:38",
-        "owner": "麦克阿瑟传奇纪录片",
-        "title": "大型纪录片《兄弟致富路》",
-    },
-    "113718872510574": {
-        "aid": "113718872510574",
-        "bvid": "BV1fKCzYWEkU",
-        "tname": "同人·手书",
-        "pubdate": "2024-12-26 19:28:38",
-        "owner": "刘师兄_liujun",
-        "title": "零经费 自拍《三体2：黑暗森林》（自制动画）第05集",
-    },
-    "1151699647": {
-        "aid": "1151699647",
-        "bvid": "BV1NZ421h7yv",
-        "tname": "娱乐杂谈",
-        "pubdate": "2024-03-10 12:00:00",
-        "owner": "吃瓜郭昱麟",
-        "title": "邪淫，抽卡，小团团被抓，大司马撤编。斗鱼直播帝国因何而崩塌？",
-    },
-    "443580160": {
-        "aid": "443580160",
-        "bvid": "BV1iL411z76f",
-        "tname": "音乐现场",
-        "pubdate": "2023-05-13 13:56:44",
-        "owner": "龚琳娜",
-        "title": "龚琳娜美依礼芽日语唱花海 |乘风2023",
-    },
-    "910787823": {
-        "aid": "910787823",
-        "bvid": "BV1HM4y1b79Z",
-        "tname": "综艺",
-        "pubdate": "2023-05-07 15:16:13",
-        "owner": "GARNiDELiA",
-        "title": "【MARiA】乘风2023初舞台！《极乐净土》，虽迟但到！",
-    },
-    "227527058": {
-        "aid": "227527058",
-        "bvid": "BV14h411u752",
-        "tname": "绘画",
-        "pubdate": "2023-04-16 11:23:46",
-        "owner": "龙-凤尘",
-        "title": "火柴人教学【基础篇】",
-    },
-    "606197808": {
-        "aid": "606197808",
-        "bvid": "BV1e84y1t7G6",
-        "tname": "科学科普",
-        "pubdate": "2022-12-11 22:01:14",
-        "owner": "刘加勇医生",
-        "title": "医生阳了，居家用药一次说清楚",
-    },
-    "256387835": {
-        "aid": "256387835",
-        "bvid": "BV1VY411c7tK",
-        "tname": "日常",
-        "pubdate": "2022-05-11 14:56:26",
-        "owner": "寂照庵",
-        "title": "蓝翔技校三年的课程被他三分钟介绍完了",
-    },
-}
+RENDER_TEMPLATE: Final = Path("templates/render.html").resolve().as_uri()
+PAGE_WIDTH: Final = 1920
+PAGE_HEIGHT: Final = 1080
+REQUEST_TIMEOUT: Final = 20
+SECONDS_PER_DAY: Final = 24 * 3600
+SECONDS_PER_WEEK: Final = 7 * SECONDS_PER_DAY
 
 
-def GetInfo(aid):
-    resp = requests.get(
-        f"https://api.bilibili.com/x/web-interface/view?aid={aid}",
-        headers={
-            "User-Agent": UA,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-            "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
-            "DNT": "1",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "cross-site",
-        },
+class Top100Payload(TypedDict):
+    author: str
+    bvid: str
+    category: str
+    cdate: str
+    title: str
+    week: int
+    rankTime: str
+    anniversaryText: str
+    anniversary: bool
+    spText: str
+    top100Text: str
+
+
+class Top100Labels(TypedDict):
+    spText: str
+    top100Text: str
+
+
+class Top100RenderItem(TypedDict):
+    name: str
+    rank: int
+    labels: Top100Labels
+
+
+HISTORY_NUM_TEXT: Final[dict[int, str]] = dict(
+    zip(
+        range(100, 2100, 100),
+        "一百 二百 三百 四百 五百 六百 七百 八百 九百 一千 一千一百 一千二百 一千三百 一千四百 一千五百 一千六百 一千七百 一千八百 一千九百 两千".split(),
+        strict=True,
     )
-    try:
-        result = json.loads(resp.content)
-    except json.decoder.JSONDecodeError:
-        print(resp.content)
+)
+
+
+def current_week(timestamp: int | None = None) -> int:
+    now = int(time.time()) if timestamp is None else timestamp
+    return (now - YUME + 133009) // 3600 // 24 // 7
+
+
+def default_history_num(timestamp: int | None = None) -> int:
+    return current_week(timestamp) // 100 * 100
+
+
+def top100_labels(history_num: int) -> Top100Labels:
+    chinese_text = HISTORY_NUM_TEXT[history_num]
+    return {
+        "spText": f"{chinese_text}期SP",
+        "top100Text": f"{chinese_text}期纪念",
+    }
+
+
+def clean_title(title: str) -> str:
+    nfc_title = normalize("NFC", title)
+    return CONTROL.sub("", "".join(char for char in nfc_title if combining(char) == 0))
+
+
+def get_info(name: str) -> VideoInfo | None:
+    normalized_name = name.strip()
+    parameter = "bvid" if normalized_name.lower().startswith("bv") else "aid"
+    value = (
+        normalized_name if parameter == "bvid" else normalized_name.removeprefix("av")
+    )
+    response = requests.get(
+        "https://api.bilibili.com/x/web-interface/view",
+        params={parameter: value},
+        headers={"User-Agent": UA},
+        timeout=REQUEST_TIMEOUT,
+    )
+    response.raise_for_status()
+    result = response.json()
     if result["code"] != 0:
         return None
-    else:
-        infodata = {
-            "aid": aid,
-            "bvid": result["data"]["bvid"],
-            "tname": result["data"]["tname"],
-            "pubdate": result["data"]["pubdate"],
-            "owner": result["data"]["owner"]["name"],
-            "title": result["data"]["title"],
-        }
-        print(infodata)
-        return infodata
+    data = result["data"]
+    info: VideoInfo = {
+        "aid": str(data["aid"]),
+        "bvid": str(data["bvid"]),
+        "tname": str(data["tname"]),
+        "pubdate": int(data["pubdate"]),
+        "owner": str(data["owner"]["name"]),
+        "title": str(data["title"]),
+    }
+    # print(info)
+    return info
 
 
-def Single(Avid, Week):
-    Author_F = ImageFont.truetype(HANNOTATE_SC, 32)
-    Bid_F = ImageFont.truetype(YUANTI_SC, 42)
-    Cata_F = ImageFont.truetype(YUANTI_SC, 36)
-    Week_F = ImageFont.truetype(HYQIHEI_105J, 41)
-    YearCount_F = ImageFont.truetype(HYQIHEI_105J, 20)
-    RankTime_F = ImageFont.truetype(STYUAN, 38)
-    UpTime_F = Cata_F
-    AllData = GetInfo(Avid)
-    if AllData is None:
-        AllData = LOST_INFO[Avid]
-    Aid = AllData["aid"]
-    Author = AllData["owner"]
-    Bid = AllData["bvid"]
-    Cata = AllData["tname"]
-    Title = AllData["title"]
-    UpTime = arrow.get(AllData["pubdate"]).format("YYYY-MM-DD HH:mm")
-    RankDate = arrow.get(Week * 7 * 24 * 3600 + YUME).shift(days=-1)
-    RankTime = (
-        f"{RankDate.format('YYYY年M月')}第{ceil(int(RankDate.format('D')) / 7)}周"
+def fallback_info(name: str) -> VideoInfo:
+    aid = name[2:] if name.lower().startswith("av") else name
+    if aid in LOST_INFO:
+        return LOST_INFO[aid]
+    for info in LOST_INFO.values():
+        if info["bvid"].lower() == name.lower():
+            return info
+    raise KeyError(f"No fallback metadata for {name}")
+
+
+def create_browser() -> Edge:
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--window-size=4096,500")
+    options.add_argument("--window-position=-2400,-2400")
+    browser = Edge(options=options)
+    browser.execute_cdp_cmd(
+        "Emulation.setDefaultBackgroundColorOverride",
+        {"color": {"r": 0, "g": 0, "b": 0, "a": 0}},
     )
-    RankImg = Image.open(TOP100IMG)
-    RankPaper = ImageDraw.Draw(RankImg)
+    return browser
 
-    if int(RankDate.format("M")) == 6 and ceil(int(RankDate.format("D")) / 7) == 4:
-        FMImg = Image.open(REDFM)
-        FMRegion = FMImg.crop((0, 0) + FMImg.size)
-        FMCover = FMRegion.resize((326, 203), Image.Resampling.LANCZOS)
-        RankImg.paste(FMCover, (1542, 707))
-        YearCount = int(RankDate.format("YYYY")) - 2009
-        FMImg_X = 1560
-        RankPaper.text(
-            (FMImg_X + 1, 830 + 1), f"The {YearCount}th year", C_000000, YearCount_F
+
+def render_png(browser: Edge, item: Top100Payload, output: Path) -> None:
+    payload = {
+        "template": "top100",
+        "width": PAGE_WIDTH,
+        "height": PAGE_HEIGHT,
+        **item,
+    }
+    output.parent.mkdir(parents=True, exist_ok=True)
+    browser.set_window_size(PAGE_WIDTH + 120, PAGE_HEIGHT + 120)
+    browser.execute_cdp_cmd(
+        "Emulation.setDeviceMetricsOverride",
+        {
+            "width": PAGE_WIDTH,
+            "height": PAGE_HEIGHT,
+            "deviceScaleFactor": 1,
+            "mobile": False,
+        },
+    )
+    browser.get(RENDER_TEMPLATE)
+    result = browser.execute_async_script(
+        """
+        const data = arguments[0];
+        const done = arguments[arguments.length - 1];
+        window.renderTemplate(data).then(done)
+            .catch((error) => done({ok: false, error: String(error)}));
+        """,
+        payload,
+    )
+    if isinstance(result, dict) and not result.get("ok", False):
+        raise RuntimeError(f"Render failed: {output}: {result.get('error')}")
+    browser.find_element(By.ID, "canvas").screenshot(str(output.resolve()))
+    print(output)
+
+
+def render_item(browser: Edge, render_data: Top100RenderItem) -> None:
+    name = render_data["name"]
+    rank = render_data["rank"]
+    info = get_info(name)
+    if info is None:
+        try:
+            info = fallback_info(name)
+        except KeyError as error:
+            print(f"Skip {name}: {error}")
+            return
+    published = (
+        time.strftime(
+            "%Y-%m-%d %H:%M",
+            time.localtime(info["pubdate"]),
         )
-        RankPaper.text((FMImg_X, 830), f"The {YearCount}th year", C_FFFFFF, YearCount_F)
-
-    NFCTitle = normalize("NFC", Title)
-    NFCTitle = "".join([c for c in NFCTitle if combining(c) == 0])
-    RegexTitle = re.sub(CONTROL, "", NFCTitle)
-
-    TImg_O = 31
-    TImg = text2img(
-        Aid,
-        RegexTitle,
-        abspath(STYUAN).replace("\\", "/"),
-        abspath(SEGOE_UI_EMOJI).replace("\\", "/"),
-        C_6D4B2B,
-        54,
+        if isinstance(info["pubdate"], int)
+        else str(info["pubdate"])[:16]
     )
-    TImgRegion = TImg.crop((0, 0) + TImg.size)
-    TImgCover = (
-        TImgRegion.resize(TImg.size, Image.Resampling.LANCZOS)
-        if (TImg_O + TImg.size[0]) <= 1475
-        else TImgRegion.resize((1475 - TImg_O, TImg.size[1]), Image.Resampling.LANCZOS)
+    rank_date = time.gmtime(YUME + rank * SECONDS_PER_WEEK - SECONDS_PER_DAY)
+    rank_week_of_month = (rank_date.tm_mday + 6) // 7
+    anniversary = rank_date.tm_mon == 6 and rank_week_of_month == 4
+    item: Top100Payload = {
+        "author": f"{info['owner']}   投稿",
+        "bvid": info["bvid"],
+        "category": info["tname"],
+        "cdate": published,
+        "title": clean_title(info["title"]),
+        "week": rank,
+        "rankTime": f"{rank_date.tm_year}年{rank_date.tm_mon}月第{rank_week_of_month}周",
+        "anniversaryText": f"The {rank_date.tm_year - 2009}th year"
+        if anniversary
+        else "",
+        "anniversary": anniversary,
+        "spText": render_data["labels"]["spText"],
+        "top100Text": render_data["labels"]["top100Text"],
+    }
+    render_png(browser, item, Path(f"./ranking/list100/{rank}_{name}.png"))
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "HistoryNum", nargs="?", type=int, default=default_history_num()
     )
-    RankImg.paste(TImgCover, (TImg_O, 1000 - int(TImg.size[1] / 2)), mask=TImgCover)
-    remove(f"./{Aid}.png")
-
-    Author_X = 31
-    AuthorName = f"{Author}   投稿"
-    RankPaper.text((Author_X, 927), AuthorName, C_6D4B2B, Author_F)
-    Bid_X = 195 - Bid_F.getlength(Bid) / 2
-    RankPaper.text((Bid_X, 847), Bid, C_FFFFFF, Bid_F)
-    Cata_X = 580 - Cata_F.getlength(Cata) / 2
-    RankPaper.text((Cata_X, 849), Cata, C_6D4B2B, Cata_F)
-    UpTime_O = 933
-    UpTime_X = UpTime_O - UpTime_F.getlength(UpTime) / 2
-    RankPaper.text((UpTime_X, 850), UpTime, C_6D4B2B, UpTime_F)
-    Week_X = 1560
-    RankPaper.text((Week_X + 1, 782 + 1), f"#{Week}", C_000000, Week_F)
-    RankPaper.text((Week_X, 782), f"#{Week}", C_FFFFFF, Week_F)
-    RankTime_X = 1705 - RankTime_F.getlength(RankTime) / 2
-    RankPaper.text((RankTime_X, 926), RankTime, C_FFFFFF, RankTime_F)
-    RankImg.save(f"./ranking/list100/{Week}_av{Aid}.png")
-
-
-def Main():
-    ymlfile = yload(
-        open(
-            "./ranking/list100/800.yml",
-            "r",
-            encoding="utf-8-sig",
-        ),
-        Loader=BaseLoader,
-    )
-    for x in ymlfile:
-        print(x[":name"][2:], int(x[":rank"]))
-        Single(x[":name"][2:], int(x[":rank"]))
+    history_num = parser.parse_args().HistoryNum
+    labels = top100_labels(history_num)
+    yml_path = Path(f"./ranking/list100/{history_num}.yml")
+    with yml_path.open("r", encoding="utf-8-sig") as stream:
+        items = yload(stream, Loader=BaseLoader) or []
+    browser = create_browser()
+    try:
+        for item in items:
+            render_item(
+                browser,
+                {
+                    "name": item[":name"],
+                    "rank": int(item[":rank"]),
+                    "labels": labels,
+                },
+            )
+    finally:
+        browser.quit()
 
 
 if __name__ == "__main__":
-    Main()
+    main()

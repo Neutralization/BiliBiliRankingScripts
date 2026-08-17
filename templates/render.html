@@ -16,6 +16,16 @@
     }
 
     @font-face {
+      font-family: SCYuan;
+      src: url("../footage/圆体-简_常规体.ttf");
+    }
+
+    @font-face {
+      font-family: HYQIHEI;
+      src: url("../footage/汉仪旗黑 105简繁_Regular.ttf");
+    }
+
+    @font-face {
       font-family: HanNote;
       src: url("../footage/手札体-简_标准体.ttf");
     }
@@ -163,6 +173,10 @@
       background-image: url("../footage/TOPIMG.png");
     }
 
+    #canvas.top100 {
+      background-image: url("../footage/TOP100.png");
+    }
+
     #canvas.debug-grid::before {
       position: absolute;
       inset: 0;
@@ -217,6 +231,12 @@
     .shadow-white {
       color: #FFFFFF;
       text-shadow: 2px 2px 0 #000000, 1px 1px 0 #818181;
+    }
+
+    .shadow-black {
+      color: #FFFFFF;
+      text-shadow: 1px 1px 0 #000000;
+      font-family: HYQIHEI, Emoji, "Segoe UI Emoji", sans-serif;
     }
 
     .cover {
@@ -318,7 +338,7 @@
 
     .rank-bv {
       left: 195px;
-      top: 858px;
+      top: 860px;
       color: #FFFFFF;
       font-size: 42px;
     }
@@ -332,7 +352,7 @@
 
     .rank-cdate {
       left: 933px;
-      top: 861px;
+      top: 860px;
       color: #6D4B2B;
       font-size: 36px;
     }
@@ -534,6 +554,80 @@
       top: 735px;
       font-size: 45px;
     }
+
+    .top100-title {
+      left: 31px;
+      top: 979px;
+      width: 1444px;
+      color: #6D4B2B;
+      font-size: 54px;
+      line-height: 56px;
+    }
+
+
+    .top100-author {
+      left: 31px;
+      top: 937px;
+      color: #6D4B2B;
+      font-size: 32px;
+    }
+
+    .top100-bvid {
+      left: 195px;
+      top: 860px;
+      color: #FFFFFF;
+      font-size: 42px;
+    }
+
+    .top100-category {
+      left: 580px;
+      top: 860px;
+      color: #6D4B2B;
+      font-size: 36px;
+    }
+
+    .top100-cdate {
+      left: 933px;
+      top: 860px;
+      color: #6D4B2B;
+      font-size: 36px;
+    }
+
+    .top100-sp {
+      left: 1320px;
+      top: 860px;
+      color: #FFFFFF;
+      font-size: 30px;
+      font-family: SCYuan, Emoji, "Segoe UI Emoji", sans-serif;
+    }
+
+    .top100-text {
+      left: 1705px;
+      top: 554px;
+      color: #FFFFFF;
+      text-shadow: 1px 1px 0 #000000;
+      font-size: 36px;
+      font-family: SCYuanTi, Emoji, "Segoe UI Emoji", sans-serif;
+    }
+
+    .top100-week {
+      left: 1560px;
+      top: 795px;
+      font-size: 41px;
+    }
+
+    .top100-rank-time {
+      left: 1705px;
+      top: 926px;
+      color: #FFFFFF;
+      font-size: 38px;
+    }
+
+    .top100-anniversary-text {
+      left: 1560px;
+      top: 837px;
+      font-size: 20px;
+    }
   </style>
 </head>
 
@@ -584,7 +678,8 @@
         "simple-opening",
         "simple-long-term",
         "simple-history-record",
-        "simple-top-diff"
+        "simple-top-diff",
+        "top100"
       );
       canvas.style.width = `${data.width}px`;
       canvas.style.height = `${data.height}px`;
@@ -812,6 +907,24 @@
       }
     }
 
+    function top100(data) {
+      reset(data);
+      canvas.classList.add("top100");
+      if (data.anniversary) {
+        image("../footage/FM.png", 1542, 707, 326, 203, { className: "contain" });
+        text("top100-anniversary-text shadow-black", data.anniversaryText);
+      }
+      text("top100-title title", data.title);
+      text("top100-author font-note", data.author);
+      text("top100-bvid font-round center", data.bvid);
+      if (data.category) text("top100-category font-round center", data.category);
+      text("top100-cdate font-round center", data.cdate);
+      text("top100-week shadow-black", `#${data.week}`);
+      text("top100-rank-time font-round center", data.rankTime);
+      text("top100-sp font-round center", data.spText);
+      text("top100-text font-round center", data.top100Text);
+    }
+
     function preloadImage(path) {
       return new Promise((resolve, reject) => {
         const img = new Image();
@@ -855,6 +968,10 @@
           "top-diff": "../footage/TOPIMG.png"
         }[data.kind]);
       }
+      if (data.template === "top100") {
+        paths.push("../footage/TOP100.png");
+        if (data.anniversary) paths.push("../footage/FM.png");
+      }
       return [...new Set(paths.filter(Boolean))];
     }
 
@@ -863,6 +980,7 @@
       if (data.template === "sub-rank") subRank(data);
       if (data.template === "stat") stat(data);
       if (data.template === "simple") simple(data);
+      if (data.template === "top100") top100(data);
       await document.fonts.ready;
       fitTitles();
       await Promise.all(staticImagePaths(data).map(preloadImage));
@@ -898,7 +1016,8 @@
       { "id": "simple-opening", "label": "开场标题", "note": "第 832 期开场标题。", "reference": "../ranking/1_op/title.png", "payload": { "template": "simple", "kind": "opening", "title": "2026年5月第5周", "week": "#832" } },
       { "id": "simple-long", "label": "长期作品页", "note": "第 832 期长期作品页。", "reference": "../ranking/pic/_1.png", "payload": { "template": "simple", "kind": "long-term", "range": "30-21", "description": "长期作品：没有" } },
       { "id": "simple-history", "label": "历史回顾页", "note": "第 832 期历史回顾页。", "reference": "../ranking/pic/history.png", "payload": { "template": "simple", "kind": "history-record", "count": "该期集计投稿数：392,552", "title": "周刊哔哩哔哩排行榜#780 (av114608182467569)" } },
-      { "id": "simple-top", "label": "前三差距页", "note": "第 832 期前三差距页。", "reference": "../ranking/list1/01_BV1K3Gz6pEoo_.png", "payload": { "template": "simple", "kind": "top-diff", "place": "1", "diffText": "比第2名高出1,069,987pts." } }
+      { "id": "simple-top", "label": "前三差距页", "note": "第 832 期前三差距页。", "reference": "../ranking/list1/01_BV1K3Gz6pEoo_.png", "payload": { "template": "simple", "kind": "top-diff", "place": "1", "diffText": "比第2名高出1,069,987pts." } },
+      { "id": "top100", "label": "Top100 卡片", "note": "Top100 样例：第 800 期历史百期回顾。", "reference": "../ranking/list100/784_av114715137150680.png", "payload": { "template": "top100", "author": "KANGBAS卓拉  投稿", "bvid": "BV19hKwzhEd6", "category": "综合", "cdate": "2025-06-20 10:12", "title": "自学动画 爆肝两月 自创一集《猫和老鼠》", "week": 784, "rankTime": "2025年6月第4周", "anniversaryText": "The 16th year", "anniversary": true, "spText": "八百期SP", "top100Text": "八百期纪念" } }
     ];
 
     const debugScenes = realDebugScenes.map((scene) => ({
