@@ -1,4 +1,4 @@
-param (
+﻿param (
     [string]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 )
@@ -8,7 +8,7 @@ $FootageFolder = "${TruePath}/ranking/list1"
 $LOST_FILE = "${TruePath}/LostFile.json"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
-Write-Host ">>> 周刊哔哩哔哩排行榜#${RankNum}" -ForegroundColor Cyan
+Write-Information ">>> 周刊哔哩哔哩排行榜#${RankNum}" -InformationAction Continue
 
 function ConvertTo-AID {
     param (
@@ -100,7 +100,7 @@ function Get-VideoTitle {
             $Bvid = ConvertTo-AID -Source $Aid -Reverse $true
             $lost["av$Aid"] = $msg; $lost["$Bvid"] = $msg
             $lost | ConvertTo-Json -Depth 10 | Set-Content $LOST_FILE -Encoding UTF8
-            Write-Host "> 视频失效: av${Aid} (${msg})" -ForegroundColor Red
+            Write-Information "> 视频失效: av${Aid} (${msg})" -InformationAction Continue
             return $null
         }
     } catch { return $null }
@@ -150,7 +150,7 @@ function Write-YamlList {
         $yamlStr.Add('  :offset: 0')
     }
     $yamlStr | Set-Content -Path "${FootageFolder}/${RankNum}_${Part}.yml" -Encoding UTF8
-    Write-Host "> 已生成 YAML: ${FootageFolder}/${RankNum}_${Part}.yml" -ForegroundColor Cyan
+    Write-Information "> 已生成 YAML: ${FootageFolder}/${RankNum}_${Part}.yml" -InformationAction Continue
 }
 
 function Write-RankdoorCsv {
@@ -198,7 +198,7 @@ function Write-RankdoorCsv {
 
     $csvPath = "${TruePath}/${RankNum}_rankdoor.csv"
     $csvLines | Set-Content -Path $csvPath -Encoding UTF8
-    Write-Host "> 已生成 Rankdoor CSV: ${csvPath}" -ForegroundColor Cyan
+    Write-Information "> 已生成 Rankdoor CSV: ${csvPath}" -InformationAction Continue
 }
 
 function Main {
@@ -207,7 +207,7 @@ function Main {
     foreach ($suffix in $targetFiles) {
         $file = "./${RankNum}_${suffix}.json"
         if (-not (Test-Path $file)) { continue }
-        Write-Host "> 正在处理文件: $file" -ForegroundColor Cyan
+        Write-Information "> 正在处理文件: $file" -InformationAction Continue
         $data = Get-Content $file -Raw | ConvertFrom-Json
 
         foreach ($item in $data) {
@@ -218,8 +218,8 @@ function Main {
                 $info = Get-VideoTitle -Aid $item.wid
                 if ($null -ne $info) {
                     if ($info.title -ne '' -and $info.title -ne $item.name) {
-                        Write-Host "> 正在更新标题：原 $($item.wid) / $($item.name)" -ForegroundColor Yellow
-                        Write-Host "> 正在更新标题: 现 $($info.title)" -ForegroundColor Yellow
+                        Write-Information "> 正在更新标题：原 $($item.wid) / $($item.name)" -InformationAction Continue
+                        Write-Information "> 正在更新标题: 现 $($info.title)" -InformationAction Continue
                         $item.name = $info.title
                     }
                     if ($info.tname -ne '' -and $item.wtype -ne $info.tname) { $item.wtype = $info.tname }
@@ -228,11 +228,11 @@ function Main {
                 $cover = $item.cover
                 $id = ConvertTo-AID -Source $item.wid -Reverse $true
                 if ($null -ne $pic) {
-                    Write-Host "> 正在下载封面: ${pic} > ${id}_pic" -ForegroundColor Cyan
+                    Write-Information "> 正在下载封面: ${pic} > ${id}_pic" -InformationAction Continue
                     Get-Cover -Id $id -Link $pic -Name 'pic'
                 }
                 if ($null -ne $cover) {
-                    Write-Host "> 正在下载封面: ${cover} > ${id}_cover" -ForegroundColor Cyan
+                    Write-Information "> 正在下载封面: ${cover} > ${id}_cover" -InformationAction Continue
                     Get-Cover -Id $id -Link $cover -Name 'cover'
                 }
             }

@@ -1,4 +1,4 @@
-param (
+﻿param (
     [string]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7),
     [switch]$History,
@@ -25,7 +25,7 @@ function Normalize {
         [parameter(position = 4)]$Length
     )
     if ($LostVideos -contains $FileName) {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 视频已失效，生成占位视频"
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 视频已失效，生成占位视频" -InformationAction Continue
         $fakeArgs = @(
             '-n', '-hide_banner',
             '-t', "${Length}",
@@ -62,7 +62,7 @@ function Normalize {
         '-c:a', 'aac', '-b:a', '320k', '-r', '60',
         "${OutputFolder}/${Rank}_${FileName}.mp4"
     )
-    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 截取视频并标准化音频音量" -ForegroundColor Green
+    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 截取视频并标准化音频音量" -InformationAction Continue
     & ffmpeg.exe @VideoArg 2> $null
 }
 
@@ -93,11 +93,17 @@ function EDNormalize {
         '-c:a', 'libmp3lame', '-q:a', '0',
         './ranking/2_ed/ed.mp3'
     )
-    Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 标准化音频音量" -ForegroundColor Green
+    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 标准化音频音量" -InformationAction Continue
     & ffmpeg.exe @EncodeArg 2> $null
 }
 
 function Main {
+    param (
+        [string]$RankNum,
+        [int]$HistoryNum,
+        [array]$Part
+    )
+
     Import-Module powershell-yaml
     $Files = @()
     $LocalVideos = @()
@@ -143,9 +149,9 @@ function Main {
         $Encoder = $using:Encoder
         if (($LocalVideos -notcontains $video) -or ((Get-Item "${OutputFolder}/${video}.mp4").length -eq 0)) {
             ${Function:Normalize} = [ScriptBlock]::Create($using:normalizeDef)
-            Normalize $rank $name $offset $length
+            Normalize -Rank $rank -FileName $name -Offset $offset -Length $length
         } else {
-            Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${name} 已存在，跳过处理" -ForegroundColor Green
+            Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${name} 已存在，跳过处理" -InformationAction Continue
         }
     }
     Add-Type -AssemblyName Microsoft.VisualBasic
@@ -163,4 +169,4 @@ function Main {
     }
 }
 
-Main
+Main -RankNum $RankNum -HistoryNum $HistoryNum -Part $Part

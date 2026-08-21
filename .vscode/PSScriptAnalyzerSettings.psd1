@@ -5,7 +5,5 @@
     )
 
     ExcludeRules = @(
-        'PSAvoidUsingWriteHost',
-        'PSReviewUnusedParameter'
     )
 }

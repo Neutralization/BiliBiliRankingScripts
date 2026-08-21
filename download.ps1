@@ -1,4 +1,4 @@
-param (
+﻿param (
     [string]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7),
     [array]$Part = $null
@@ -76,6 +76,41 @@ function ConvertTo-AID {
     if ($Reverse) { return av2bv $Source } else { return bv2av $Source }
 }
 
+function Get-Aria2DefaultArgument {
+    return @(
+        '--check-certificate=false',
+        '--console-log-level=notice',
+        '--continue=true',
+        '--download-result=hide',
+        '--enable-color=false',
+        '--file-allocation=none',
+        '--max-concurrent-downloads=20',
+        '--max-connection-per-server=16',
+        '--min-split-size=1M',
+        '--split=12',
+        '--summary-interval=0'
+    )
+}
+
+function Get-Aria2cArgument {
+    param (
+        [string]$SourceUrl,
+        [string]$OutputName,
+        [string]$DownloadFolder,
+        [string]$UserAgent,
+        [string]$Referer
+    )
+
+    return @(
+        Get-Aria2DefaultArgument
+        $SourceUrl
+        "--header=User-Agent: ${UserAgent}"
+        "--header=Referer: ${Referer}"
+        "--dir=${DownloadFolder}"
+        '--out', $OutputName
+    )
+}
+
 function BiliDown {
     param (
         [parameter(position = 1)]$ID,
@@ -114,7 +149,7 @@ function BiliDown {
     $videoInfo = Invoke-WebRequest -UseBasicParsing -Uri $sourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $videoData = if (-404 -eq $pgcTest.code) { $videoInfo.data } else { $videoInfo.result.video_info }
     if ($null -eq $videoData) {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - 解析失败，跳过" -ForegroundColor Red
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 解析失败，跳过" -InformationAction Continue
         return
     }
 
@@ -122,14 +157,7 @@ function BiliDown {
     if ($null -ne $videoData.durl) {
         $singleMp4 = $videoData.durl | Where-Object -Property 'order' -EQ 1 | Select-Object -ExpandProperty 'url'
         try {
-            $aria2cArgs = @(
-                '--conf-path=aria2.conf',
-                "${singleMp4}",
-                "--header=User-Agent: ${UserAgent}",
-                "--header=Referer: $($Headers.referer)",
-                "--dir=${DownloadFolder}",
-                '--out', "${ID}.mp4"
-            )
+            $aria2cArgs = Get-Aria2cArgument -SourceUrl $singleMp4 -OutputName "${ID}.mp4" -DownloadFolder "${DownloadFolder}" -UserAgent $UserAgent -Referer $Headers.referer
             & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
         } catch {
             New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force
@@ -148,23 +176,11 @@ function BiliDown {
     $videoDash = $videoData.dash.video | Where-Object -Property 'id' -EQ $videoId | Where-Object -Property 'codecs' -Match 'avc' | Select-Object -ExpandProperty 'baseUrl'
 
     try {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 正在下载" -ForegroundColor Cyan
-        $aria2cArgs = @(
-            '--conf-path=aria2.conf',
-            "${audioDash}",
-            "--header=User-Agent: ${UserAgent}",
-            "--header=Referer: $($Headers.referer)",
-            "--dir=${DownloadFolder}", '--out', "${ID}_a.m4s"
-        )
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 正在下载" -InformationAction Continue
+        $aria2cArgs = Get-Aria2cArgument -SourceUrl $audioDash -OutputName "${ID}_a.m4s" -DownloadFolder "${DownloadFolder}" -UserAgent $UserAgent -Referer $Headers.referer
         & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
 
-        $aria2cArgs = @(
-            '--conf-path=aria2.conf',
-            "${videoDash}",
-            "--header=User-Agent: ${UserAgent}",
-            "--header=Referer: $($Headers.referer)",
-            "--dir=${DownloadFolder}", '--out', "${ID}_v.m4s"
-        )
+        $aria2cArgs = Get-Aria2cArgument -SourceUrl $videoDash -OutputName "${ID}_v.m4s" -DownloadFolder "${DownloadFolder}" -UserAgent $UserAgent -Referer $Headers.referer
         & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
 
         $ffmpegArgs = @(
@@ -175,14 +191,19 @@ function BiliDown {
             "${DownloadFolder}/${ID}.mp4"
         )
         & ffmpeg.exe @ffmpegArgs 2>> "${DownloadFolder}/${ID}_.log"
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 下载完成" -ForegroundColor Green
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 下载完成" -InformationAction Continue
     } catch {
-        Write-Host "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 出现错误" -ForegroundColor Red
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 出现错误" -InformationAction Continue
         New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force
     }
 }
 
 function Main {
+    param (
+        [string]$RankNum,
+        [array]$Part
+    )
+
     Import-Module powershell-yaml
     $Files = @()
     $LocalVideos = @()
@@ -216,17 +237,8 @@ function Main {
             (Resolve-Path "${_}"), 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
 
-    $bilidownDef = ${Function:BiliDown}.ToString()
-    $converttoaidDef = ${Function:ConvertTo-AID}.ToString()
-    $TaskQueue | ForEach-Object -ThrottleLimit 4 -Parallel {
-        $Headers = $using:Headers
-        $Session = $using:Session
-        $UserAgent = $using:UserAgent
-        $DownloadFolder = $using:DownloadFolder
-        $FootageFolder = $using:FootageFolder
-        ${Function:BiliDown} = [ScriptBlock]::Create($using:bilidownDef)
-        ${Function:ConvertTo-AID} = [ScriptBlock]::Create($using:converttoaidDef)
-        BiliDown $_
+    foreach ($task in $TaskQueue) {
+        BiliDown $task
     }
     Get-ChildItem "${DownloadFolder}/*" -Include *.log, *.m4s | ForEach-Object {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
@@ -234,4 +246,4 @@ function Main {
     }
 }
 
-Main
+Main -RankNum $RankNum -Part $Part

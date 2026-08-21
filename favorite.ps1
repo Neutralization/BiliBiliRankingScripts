@@ -1,4 +1,4 @@
-param (
+﻿param (
     [string]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 )
@@ -99,11 +99,11 @@ function Add-TimeStamp {
             -Body $Body
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Host $Result.message
+        Write-Information -MessageData $Result.message -InformationAction Continue
         return 1
     } else {
         $CID = $Result.data.pages[0].cid
-        Write-Host "取得视频 CID $($CID)"
+        Write-Information -MessageData "取得视频 CID $($CID)" -InformationAction Continue
     }
     $Stamp = Get-Content $StampFile -Encoding 'GB2312'
     $StampString = $Stamp | ConvertFrom-Json | ConvertTo-Json -Compress
@@ -125,10 +125,10 @@ function Add-TimeStamp {
             -Body $Body
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Host $Result.message
+        Write-Information -MessageData $Result.message -InformationAction Continue
         return 1
     } else {
-        Write-Host '添加视频分段章节成功'
+        Write-Information -MessageData '添加视频分段章节成功' -InformationAction Continue
     }
 }
 
@@ -159,7 +159,7 @@ function Get-SelfAID {
             -Headers $Headers `
             -Body $Body
     ).Content | ConvertFrom-Json
-    Write-Host "周刊哔哩哔哩排行榜#$($RankNum) - $($Result.data.arc_audits[0].Archive.bvid)"
+    Write-Information -MessageData "周刊哔哩哔哩排行榜#$($RankNum) - $($Result.data.arc_audits[0].Archive.bvid)" -InformationAction Continue
     $SelfAID = "av$($Result.data.arc_audits[0].Archive.aid)"
     return $SelfAID
 }
@@ -194,10 +194,10 @@ function Add-Favourite {
             -Body $Body
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Host $Result.message
+        Write-Information -MessageData $Result.message -InformationAction Continue
         return 1
     } else {
-        Write-Host "收藏视频 av$($AID) 成功"
+        Write-Information -MessageData "收藏视频 av$($AID) 成功" -InformationAction Continue
     }
 }
 
@@ -218,6 +218,8 @@ function Get-Ranking {
 }
 
 function Set-TopReply {
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([int])]
     param (
         [parameter(position = 1)]$AVID,
         [parameter(position = 2)]$RPID
@@ -230,19 +232,21 @@ function Set-TopReply {
         'action' = '1'
         'csrf'   = $CSRF
     }
-    $Result = (
-        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v2/reply/top' `
-            -Method Post `
-            -WebSession $Session `
-            -Headers $Headers `
-            -ContentType 'application/x-www-form-urlencoded' `
-            -Body $Body
-    ).Content | ConvertFrom-Json
-    if ($Result.code -ne 0) {
-        Write-Host $Result.message
-        return 1
-    } else {
-        Write-Host "评论置顶成功`nhttps://www.bilibili.com/video/av$($AID)#reply$($RPID)"
+    if ($PSCmdlet.ShouldProcess("av$($AID)#reply$($RPID)", 'Set top reply')) {
+        $Result = (
+            Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v2/reply/top' `
+                -Method Post `
+                -WebSession $Session `
+                -Headers $Headers `
+                -ContentType 'application/x-www-form-urlencoded' `
+                -Body $Body
+        ).Content | ConvertFrom-Json
+        if ($Result.code -ne 0) {
+            Write-Information -MessageData $Result.message -InformationAction Continue
+            return 1
+        } else {
+            Write-Information -MessageData "评论置顶成功`nhttps://www.bilibili.com/video/av$($AID)#reply$($RPID)" -InformationAction Continue
+        }
     }
 }
 
@@ -274,11 +278,11 @@ function Add-Reply {
             -Body $Body
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Host $Result.message
+        Write-Information -MessageData $Result.message -InformationAction Continue
         return 1
     } else {
         $RPID = $Result.data.rpid
-        Write-Host "评论发送成功`nhttps://www.bilibili.com/video/av$($AID)#reply$($RPID)"
+        Write-Information -MessageData "评论发送成功`nhttps://www.bilibili.com/video/av$($AID)#reply$($RPID)" -InformationAction Continue
         return $RPID
     }
 }
@@ -301,31 +305,15 @@ function Get-RankList {
         return $RankString
     }
 
-    # if ((Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount 25)[-1] -eq '主榜') {
-    #     $SplitNum = 24
-    # } else {
-    #     $RankNum = (Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount 25)[-1].Split(',')[0]
-    #     try {
-    #         $null = [convert]::ToInt32($RankNum)
-    #         if ($RankNum -gt 10) {
-    #             $SplitNum = 24 + ($RankNum - 10)
-    #         } else {
-    #             $SplitNum = 24 - (11 - $RankNum)
-    #         }
-    #     } catch { return $false }
-    # }
     $RankList = @()
-    # $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount $SplitNum | Select-Object -Skip 0
     $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' | Select-Object -Skip 0
     $RankList += Join-RankList $SplitList
-    # $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' -TotalCount ($SplitNum + 18) | Select-Object -Skip $SplitNum
-    # $RankList += Join-RankList $SplitList
-    # $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' | Select-Object -Skip ($SplitNum + 18)
-    # $RankList += Join-RankList $SplitList
     return $RankList
 }
 
 function Set-MasterPiece {
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([int])]
     param (
         [parameter(position = 1)]$AVID
     )
@@ -340,20 +328,42 @@ function Set-MasterPiece {
             -Headers $Headers
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Host $Result.message
+        Write-Information -MessageData $Result.message -InformationAction Continue
         return 1
     } else {
         $BeforeAID = $Result.data | Where-Object -Property 'title' -Like '*周刊哔哩哔哩排行榜*' | Select-Object -ExpandProperty 'aid'
         if ($null -eq $BeforeAID) {
-            Write-Host '目前没有代表作'
+            Write-Information -MessageData '目前没有代表作' -InformationAction Continue
         } else {
-            Write-Host "目前代表作 av$($BeforeAID)"
+            Write-Information -MessageData "目前代表作 av$($BeforeAID)" -InformationAction Continue
             $Body = @{
                 'aid'  = $BeforeAID
                 'csrf' = $CSRF
             }
+            if ($PSCmdlet.ShouldProcess("av$($BeforeAID)", 'Cancel masterpiece')) {
+                $Result = (
+                    Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/masterpiece/cancel' `
+                        -Method Post `
+                        -WebSession $Session `
+                        -Headers $Headers `
+                        -ContentType 'application/x-www-form-urlencoded' `
+                        -Body $Body
+                ).Content | ConvertFrom-Json
+                if ($Result.code -ne 0) {
+                    Write-Information -MessageData $Result.message -InformationAction Continue
+                    return 1
+                } else {
+                    Write-Information -MessageData "取消代表作 av$($BeforeAID) 成功" -InformationAction Continue
+                }
+            }
+        }
+        $Body = @{
+            'aid'  = $AID
+            'csrf' = $CSRF
+        }
+        if ($PSCmdlet.ShouldProcess("av$($AID)", 'Set masterpiece')) {
             $Result = (
-                Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/masterpiece/cancel' `
+                Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/masterpiece/add' `
                     -Method Post `
                     -WebSession $Session `
                     -Headers $Headers `
@@ -361,34 +371,18 @@ function Set-MasterPiece {
                     -Body $Body
             ).Content | ConvertFrom-Json
             if ($Result.code -ne 0) {
-                Write-Host $Result.message
+                Write-Information -MessageData $Result.message -InformationAction Continue
                 return 1
             } else {
-                Write-Host "取消代表作 av$($BeforeAID) 成功"
+                Write-Information -MessageData "设置新代表作 av$($AID) 成功" -InformationAction Continue
             }
-        }
-        $Body = @{
-            'aid'  = $AID
-            'csrf' = $CSRF
-        }
-        $Result = (
-            Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/masterpiece/add' `
-                -Method Post `
-                -WebSession $Session `
-                -Headers $Headers `
-                -ContentType 'application/x-www-form-urlencoded' `
-                -Body $Body
-        ).Content | ConvertFrom-Json
-        if ($Result.code -ne 0) {
-            Write-Host $Result.message
-            return 1
-        } else {
-            Write-Host "设置新代表作 av$($AID) 成功"
         }
     }
 }
 
 function Set-TopVideo {
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([int])]
     param (
         [parameter(position = 1)]$AVID
     )
@@ -398,19 +392,21 @@ function Set-TopVideo {
         'reason' = ''
         'csrf'   = $CSRF
     }
-    $Result = (
-        Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/top/arc/set' `
-            -Method Post `
-            -WebSession $Session `
-            -Headers $Headers `
-            -ContentType 'application/x-www-form-urlencoded' `
-            -Body $Body
-    ).Content | ConvertFrom-Json
-    if ($Result.code -ne 0) {
-        Write-Host $Result.message
-        return 1
-    } else {
-        Write-Host "设置空间置顶 av$($AID) 成功"
+    if ($PSCmdlet.ShouldProcess("av$($AID)", 'Set top video')) {
+        $Result = (
+            Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/top/arc/set' `
+                -Method Post `
+                -WebSession $Session `
+                -Headers $Headers `
+                -ContentType 'application/x-www-form-urlencoded' `
+                -Body $Body
+        ).Content | ConvertFrom-Json
+        if ($Result.code -ne 0) {
+            Write-Information -MessageData $Result.message -InformationAction Continue
+            return 1
+        } else {
+            Write-Information -MessageData "设置空间置顶 av$($AID) 成功" -InformationAction Continue
+        }
     }
 }
 
@@ -427,7 +423,7 @@ function Main {
     Set-MasterPiece $SelfAID
     Set-TopVideo $SelfAID
     $RankList = Get-RankList
-    $ROOT = Add-Reply $SelfAID '0' $RankList
+    $ROOT = Add-Reply -AVID $SelfAID -Parent '0' -Message $RankList
     Start-Sleep -Seconds 1
     Set-TopReply $SelfAID $ROOT
 }
