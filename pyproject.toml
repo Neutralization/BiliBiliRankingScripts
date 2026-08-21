@@ -21,3 +21,8 @@ preview = true
 
 [tool.ruff.lint]
 preview = false
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.3",
+]
