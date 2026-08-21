@@ -1,0 +1,32 @@
+{
+  "name": "bilibiliweek",
+  "version": "1.0.0",
+  "description": "涉及周刊哔哩哔哩排行榜制作相关的脚本",
+  "main": "autobilibilirank.jsx",
+  "scripts": {
+    "lint": "npm run lint:js && npm run lint:py && npm run lint:ps",
+    "lint:js": "eslint autobilibilirank.jsx history100.jsx",
+    "lint:js:fix": "eslint autobilibilirank.jsx history100.jsx --fix",
+    "lint:py": "uv run ruff check generate.py history100.py history100_lost_info.py",
+    "lint:py:fix": "uv run ruff check generate.py history100.py history100_lost_info.py --fix",
+    "lint:ps": "pwsh -NoProfile -Command \"$results = @('download.ps1','makeyaml.ps1','normalize.ps1','favorite.ps1','fakerank.ps1') | ForEach-Object { Invoke-ScriptAnalyzer -Path $_ -Settings ./.vscode/PSScriptAnalyzerSettings.psd1 }; $results; if ($results | Where-Object Severity -eq 'Error') { exit 1 }\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Neutralization/BiliBiliRankingScripts.git"
+  },
+  "author": "Neutralized",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/Neutralization/BiliBiliRankingScripts/issues"
+  },
+  "homepage": "https://github.com/Neutralization/BiliBiliRankingScripts#readme",
+  "devDependencies": {
+    "@biomejs/biome": "2.5.8",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.1",
+    "types-for-adobe": "^7.2.5",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "lib": [],
+    "types": []
+  },
+  "include": [
+    "autobilibilirank.jsx",
+    "history100.jsx",
+    "types/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "json2"
+  ]
+}
