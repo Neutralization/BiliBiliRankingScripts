@@ -49,7 +49,7 @@ StaticResource = {
     op_audio: './public/54 - Subtitle 1.mp3',
     ed_audio: './public/55 - Subtitle 2.mp3',
     // VIDEO
-    NotFound: './public/error.mp4',
+    NotFound: './public/error.mp4'
 };
 
 for (key in StaticResource) {
