@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "lint:ps",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-Command",
+        "$results = @('download.ps1','makeyaml.ps1','movefile.ps1','normalize.ps1','favorite.ps1','fakerank.ps1') | ForEach-Object { Invoke-ScriptAnalyzer -Path $_ -Settings .vscode/PSScriptAnalyzerSettings.psd1 }; foreach ($item in $results) { $line = if ($item.Line) { $item.Line } else { 1 }; $column = if ($item.Column) { $item.Column } else { 1 }; \"$($item.ScriptPath):${line}:${column}: $($item.Severity): $($item.RuleName): $($item.Message)\" }; if ($results | Where-Object Severity -eq 'Error') { exit 1 }"
+      ],
+      "problemMatcher": {
+        "owner": "psscriptanalyzer",
+        "fileLocation": [
+          "absolute"
+        ],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(Error|Warning|Information):\\s+([^:]+):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "code": 5,
+          "message": 6
+        }
+      },
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    }
+  ]
+}
