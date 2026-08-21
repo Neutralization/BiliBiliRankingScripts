@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import argparse
 import re
 import time
@@ -57,7 +55,28 @@ class Top100RenderItem(TypedDict):
 HISTORY_NUM_TEXT: Final[dict[int, str]] = dict(
     zip(
         range(100, 2100, 100),
-        "一百 二百 三百 四百 五百 六百 七百 八百 九百 一千 一千一百 一千二百 一千三百 一千四百 一千五百 一千六百 一千七百 一千八百 一千九百 两千".split(),
+        [
+            "一百",
+            "二百",
+            "三百",
+            "四百",
+            "五百",
+            "六百",
+            "七百",
+            "八百",
+            "九百",
+            "一千",
+            "一千一百",
+            "一千二百",
+            "一千三百",
+            "一千四百",
+            "一千五百",
+            "一千六百",
+            "一千七百",
+            "一千八百",
+            "一千九百",
+            "两千",
+        ],
         strict=True,
     )
 )

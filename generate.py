@@ -645,7 +645,7 @@ def Single(ctx: GenerateContext, browser, args):
     )
 
 
-def SubRank(ctx: GenerateContext, browser, rtype):
+def SubRank(ctx: GenerateContext, browser, rtype: int):
     if rtype == 1:
         LastRankNum = int(ctx.m_rank[0]["rank_from"])
         SScoreRankData = {
@@ -678,6 +678,8 @@ def SubRank(ctx: GenerateContext, browser, rtype):
             if int(v["score_rank"]) > LastRankNum
         }
         PageNum = 3
+    else:
+        return
 
     for i in range(PageNum):
         rows = []
