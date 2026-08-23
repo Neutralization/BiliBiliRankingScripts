@@ -25,7 +25,7 @@ function Normalize {
         [parameter(position = 4)]$Length
     )
     if ($LostVideos -contains $FileName) {
-        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 视频已失效，生成占位视频" -InformationAction Continue
+        [Console]::Out.WriteLine("$($PSStyle.Foreground.Red)$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 视频已失效，生成占位视频$($PSStyle.Reset)")
         $fakeArgs = @(
             '-n', '-hide_banner',
             '-t', "${Length}",
@@ -62,7 +62,7 @@ function Normalize {
         '-c:a', 'aac', '-b:a', '320k', '-r', '60',
         "${OutputFolder}/${Rank}_${FileName}.mp4"
     )
-    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 截取视频并标准化音频音量" -InformationAction Continue
+    [Console]::Out.WriteLine("$($PSStyle.Foreground.Green)$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 截取视频并标准化音频音量$($PSStyle.Reset)")
     & ffmpeg.exe @VideoArg 2> $null
 }
 
@@ -151,7 +151,7 @@ function Main {
             ${Function:Normalize} = [ScriptBlock]::Create($using:normalizeDef)
             Normalize -Rank $rank -FileName $name -Offset $offset -Length $length
         } else {
-            Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${name} 已存在，跳过处理" -InformationAction Continue
+            [Console]::Out.WriteLine("$($PSStyle.Foreground.Yellow)$(Get-Date -Format 'MM/dd HH:mm:ss') - ${name} 已存在，跳过处理$($PSStyle.Reset)")
         }
     }
     Add-Type -AssemblyName Microsoft.VisualBasic

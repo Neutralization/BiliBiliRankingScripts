@@ -51,8 +51,8 @@ function ConvertTo-AID {
         $bvList[3], $bvList[9] = $bvList[9], $bvList[3]
         $bvList[4], $bvList[7] = $bvList[7], $bvList[4]
         $tmp = [int64]0
-        foreach ($char in $bvList[3..($BV_LEN - 1)]) {
-            $idx = $table[$char]
+        $bvList[3..($BV_LEN - 1)] | ForEach-Object {
+            $idx = $table[$_]
             $tmp = $tmp * $BASE + $idx
         }
         return ($tmp -band $MASK_CODE) -bxor $XOR_CODE
@@ -149,7 +149,7 @@ function BiliDown {
     $videoInfo = Invoke-WebRequest -UseBasicParsing -Uri $sourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $videoData = if (-404 -eq $pgcTest.code) { $videoInfo.data } else { $videoInfo.result.video_info }
     if ($null -eq $videoData) {
-        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 解析失败，跳过" -InformationAction Continue
+        [Console]::Out.WriteLine("$($PSStyle.Foreground.Red)$(Get-Date -Format 'MM/dd HH:mm:ss') - ${ID} 解析失败，跳过$($PSStyle.Reset)")
         return
     }
 
@@ -160,7 +160,7 @@ function BiliDown {
             $aria2cArgs = Get-Aria2cArgument -SourceUrl $singleMp4 -OutputName "${ID}.mp4" -DownloadFolder "${DownloadFolder}" -UserAgent $UserAgent -Referer $Headers.referer
             & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
         } catch {
-            New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force
+            New-Item -Path "${DownloadFolder}" -Name "${ID}.txt" -ItemType 'file' -Value '' -Force
         }
         return
     }
@@ -176,25 +176,24 @@ function BiliDown {
     $videoDash = $videoData.dash.video | Where-Object -Property 'id' -EQ $videoId | Where-Object -Property 'codecs' -Match 'avc' | Select-Object -ExpandProperty 'baseUrl'
 
     try {
-        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 正在下载" -InformationAction Continue
-        $aria2cArgs = Get-Aria2cArgument -SourceUrl $audioDash -OutputName "${ID}_a.m4s" -DownloadFolder "${DownloadFolder}" -UserAgent $UserAgent -Referer $Headers.referer
-        & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
+        [Console]::Out.WriteLine("$($PSStyle.Foreground.Green)$(Get-Date -Format 'MM/dd HH:mm:ss') - ${ID} 正在下载$($PSStyle.Reset)")
+        $aria2cArgs = Get-Aria2cArgument -SourceUrl $audioDash -OutputName "${CID}_a.m4s" -DownloadFolder "${DownloadFolder}" -UserAgent $UserAgent -Referer $Headers.referer
+        & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${CID}_.log"
 
-        $aria2cArgs = Get-Aria2cArgument -SourceUrl $videoDash -OutputName "${ID}_v.m4s" -DownloadFolder "${DownloadFolder}" -UserAgent $UserAgent -Referer $Headers.referer
-        & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${ID}_.log"
+        $aria2cArgs = Get-Aria2cArgument -SourceUrl $videoDash -OutputName "${CID}_v.m4s" -DownloadFolder "${DownloadFolder}" -UserAgent $UserAgent -Referer $Headers.referer
+        & aria2c.exe @aria2cArgs 1>> "${DownloadFolder}/${CID}_.log"
 
         $ffmpegArgs = @(
             '-y', '-hide_banner',
-            '-i', "${DownloadFolder}/${ID}_a.m4s",
-            '-i', "${DownloadFolder}/${ID}_v.m4s",
+            '-i', "${DownloadFolder}/${CID}_a.m4s",
+            '-i', "${DownloadFolder}/${CID}_v.m4s",
             '-c', 'copy',
             "${DownloadFolder}/${ID}.mp4"
         )
-        & ffmpeg.exe @ffmpegArgs 2>> "${DownloadFolder}/${ID}_.log"
-        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 下载完成" -InformationAction Continue
+        & ffmpeg.exe @ffmpegArgs 2>> "${DownloadFolder}/${CID}_.log"
     } catch {
-        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${BID} 出现错误" -InformationAction Continue
-        New-Item -Path "${DownloadFolder}" -Name "${BID}.txt" -ItemType 'file' -Value '' -Force
+        [Console]::Out.WriteLine("$($PSStyle.Foreground.Red)$(Get-Date -Format 'MM/dd HH:mm:ss') - ${ID} 出现错误$($PSStyle.Reset)")
+        New-Item -Path "${DownloadFolder}" -Name "${ID}.txt" -ItemType 'file' -Value '' -Force
     }
 }
 
@@ -214,11 +213,11 @@ function Main {
         Get-ChildItem "${DownloadFolder}/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
     }
     $Part = if ($null -ne $Part) { $Part } else { @('*') }
-    foreach ($p in $Part) {
-        $Files += Get-Content -Raw "${FootageFolder}/${RankNum}_${p}.yml"
+    $Part | ForEach-Object {
+        $Files += Get-Content -Raw "${FootageFolder}/${RankNum}_${_}.yml"
     }
-    foreach ($content in $Files) {
-        $items = (ConvertFrom-Yaml $content) | ForEach-Object { $_ } | ForEach-Object { $_.':name' }
+    $Files | ForEach-Object {
+        $items = (ConvertFrom-Yaml $_) | ForEach-Object { $_ } | ForEach-Object { $_.':name' }
         $RankVideos += $items
     }
     (Get-Content "${TruePath}/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
@@ -226,7 +225,9 @@ function Main {
     }
     $TaskQueue = $RankVideos | Where-Object { $LocalVideos -notcontains $_ } | Where-Object { $LostVideos -notcontains $_ }
     $OldVideos = $LocalVideos | Where-Object { $RankVideos -notcontains $_ }
-
+    $RankVideos | Where-Object { $LocalVideos -contains $_ } | ForEach-Object {
+        [Console]::Out.WriteLine("$($PSStyle.Foreground.Yellow)$(Get-Date -Format 'MM/dd HH:mm:ss') - ${_} 已存在，跳过下载$($PSStyle.Reset)")
+    }
     Add-Type -AssemblyName Microsoft.VisualBasic
     $OldVideos | ForEach-Object {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
@@ -236,9 +237,8 @@ function Main {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
             (Resolve-Path "${_}"), 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
-
-    foreach ($task in $TaskQueue) {
-        BiliDown $task
+    $TaskQueue | ForEach-Object {
+        BiliDown $_
     }
     Get-ChildItem "${DownloadFolder}/*" -Include *.log, *.m4s | ForEach-Object {
         [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
