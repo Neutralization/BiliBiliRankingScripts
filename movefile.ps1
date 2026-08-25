@@ -1,9 +1,8 @@
+$RankNum = [Math]::Floor(
+    ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 $ProgressPreference = 'SilentlyContinue'
 $FromFolder = '.\'
-$DistFolder = 'D:\bilibiliweek\ranking'
-$RankNum = [string]$RankNum = [Math]::Floor(
-    ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
-
+$DistFolder = "D:\bilibiliweek\ranking\#${RankNum}"
 $Backup = "$($FromFolder)\$($RankNum)"
 
 if (!(Test-Path -Path $Backup)) {
@@ -16,15 +15,15 @@ if (!(Test-Path -Path $Backup)) {
     Move-Item -Path "$($FromFolder)\rule_2.png" -Destination $Backup -Force
     Move-Item -Path "$($FromFolder)\$($RankNum)_*.yml" -Destination $Backup -Force
 } else {
-    Copy-Item -Path "$($Backup)\op_2.png" -Destination "$($DistFolder)\1_op\" -Force
-    Copy-Item -Path "$($Backup)\start.png" -Destination "$($DistFolder)\1_op\" -Force
-    Copy-Item -Path "$($Backup)\world.png" -Destination "$($DistFolder)\1_op\" -Force
-    Copy-Item -Path "$($Backup)\history_record.png" -Destination "$($DistFolder)\pic\" -Force
-    Copy-Item -Path "$($Backup)\over.png" -Destination "$($DistFolder)\pic\" -Force
-    Copy-Item -Path "$($Backup)\rule_2.png" -Destination "$($DistFolder)\pic\" -Force
-    Copy-Item -Path "$($Backup)\$($RankNum)_*.yml" -Destination "$($DistFolder)\list1\" -Force
+    Copy-Item -Path "$($Backup)\op_2.png" -Destination "$($DistFolder)\" -Force
+    Copy-Item -Path "$($Backup)\start.png" -Destination "$($DistFolder)\" -Force
+    Copy-Item -Path "$($Backup)\world.png" -Destination "$($DistFolder)\" -Force
+    Copy-Item -Path "$($Backup)\history_record.png" -Destination "$($DistFolder)\" -Force
+    Copy-Item -Path "$($Backup)\over.png" -Destination "$($DistFolder)\" -Force
+    Copy-Item -Path "$($Backup)\rule_2.png" -Destination "$($DistFolder)\" -Force
+    Copy-Item -Path "$($Backup)\$($RankNum)_*.yml" -Destination "$($DistFolder)\main\" -Force
 }
 
 Get-ChildItem -File "$($RankNum)*.rar" -Path $FromFolder | ForEach-Object {
-    (7z e $_ -o"$($DistFolder)\2_ed" -y) > $null
+    (7z e $_ -o"$($DistFolder)\" -y) > $null
 }

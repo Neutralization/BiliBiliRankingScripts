@@ -4,10 +4,10 @@
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
-$FootageFolder = "${TruePath}/ranking/list1"
+$FootageFolder = "${TruePath}/ranking/#${RankNum}"
 
 Import-Module powershell-yaml
-$Files = Get-Content -Raw "${FootageFolder}/${RankNum}_*.yml"
+$Files = Get-Content -Raw "${FootageFolder}/main/${RankNum}_*.yml"
 
 $TaskQueue = @()
 foreach ($content in $Files) {
@@ -25,12 +25,12 @@ $TaskQueue | ForEach-Object -ThrottleLimit $TaskLimit -Parallel {
     $folder = $using:FootageFolder
     $fileName = "${rank}_${name}"
 
-    if (-not (Test-Path -LiteralPath "${folder}/${fileName}.png")) {
-        Copy-Item './footage/MAINRANKIMG.png' "${folder}/${fileName}.png"
+    if (-not (Test-Path -LiteralPath "${folder}/main/${fileName}.png")) {
+        Copy-Item './footage/public/MAINRANKIMG.png' "${folder}/${fileName}.png"
     }
     if ($len -ge 30) {
-        if (-not (Test-Path -LiteralPath "${folder}/${fileName}_.png")) {
-            Copy-Item './footage/TOPIMG.png' "${folder}/${fileName}_.png"
+        if (-not (Test-Path -LiteralPath "${folder}/main/${fileName}_.png")) {
+            Copy-Item './footage/public/TOPIMG.png' "${folder}/main/${fileName}_.png"
         }
     }
 
@@ -40,7 +40,7 @@ $TaskQueue | ForEach-Object -ThrottleLimit $TaskLimit -Parallel {
         '-f', 'lavfi', '-i', 'anullsrc',
         '-f', 'lavfi', '-i', "smptebars=duration=${len}:size=1280x720:rate=1",
         '-vf', "drawtext=fontfile='C\:/Windows/Fonts/msyh.ttc':fontsize=100:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:text='${fileName}'",
-        "${folder}/${fileName}.mp4"
+        "${folder}/main/${fileName}.mp4"
     )
 
     & ffmpeg.exe @fakeArgs 2> $null

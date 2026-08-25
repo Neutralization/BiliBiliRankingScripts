@@ -74,7 +74,7 @@ RENDER_TEMPLATE = Path("templates/render.html").resolve().as_uri()
 PAGE_WIDTH = 1920
 PAGE_HEIGHT = 1080
 REQUEST_TIMEOUT = 20
-COVER_LOST = "./footage/cover_lost.png"
+COVER_LOST = "./footage/public/cover_lost.png"
 
 
 @dataclass
@@ -298,7 +298,7 @@ def build_context(week: int):
         "history rank", load_json_file(f"{week}_results_history.json")
     )
     s_rank = load_json_file(f"{week}_stat.json")
-    invalid = load_json_file("LostFile.json")
+    invalid = load_json_file("./footage/LostFile.json")
 
     validate_rank(
         "main rank",
@@ -464,7 +464,7 @@ def Resource(bid, link, name):
     if not link:
         return COVER_LOST
     ext = resource_ext(link)
-    output_path = Path(f"./pic/{bid}_{name}.{ext}")
+    output_path = Path(f"./footage/covers/{bid}_{name}.{ext}")
     if not output_path.exists():
         try:
             resp = requests.get(
@@ -539,12 +539,12 @@ def PickupSingle(ctx: GenerateContext, browser, aid, rank):
         browser,
         "rank-card",
         {"card": card},
-        f"./ranking/list1/{rank:0>2}_{output_bid}.png",
+        f"./ranking/#{ctx.week}/main/{rank:0>2}_{output_bid}.png",
     )
 
 
 def Pickup(ctx: GenerateContext, browser):
-    yml_path = Path(f"./ranking/list1/{ctx.week}_3.yml")
+    yml_path = Path(f"./ranking/#{ctx.week}/main/{ctx.week}_3.yml")
     if not yml_path.exists():
         return
     with yml_path.open("r", encoding="utf-8-sig") as f:
@@ -594,7 +594,7 @@ def Single(ctx: GenerateContext, browser, args):
             browser,
             "rank-card",
             {"card": card},
-            f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png",
+            f"./ranking/#{ctx.week}/main/{ScoreRank:0>2}_{Bid}.png",
         )
         return 0
 
@@ -641,7 +641,7 @@ def Single(ctx: GenerateContext, browser, args):
         browser,
         "rank-card",
         {"card": card},
-        f"./ranking/list1/{ScoreRank:0>2}_{Bid}.png",
+        f"./ranking/#{ctx.week}/main/{ScoreRank:0>2}_{Bid}.png",
     )
 
 
@@ -712,13 +712,13 @@ def SubRank(ctx: GenerateContext, browser, rtype: int):
                 })
             rows.append(row)
         if rtype == 1:
-            output_path = f"./ranking/list2/{i + 1:0>3}.png"
+            output_path = f"./ranking/#{ctx.week}/sub/{i + 1:0>3}.png"
         elif rtype == 2:
-            output_path = f"./ranking/list3/tv_{i + 1:0>3}.png"
+            output_path = f"./ranking/#{ctx.week}/sub/tv_{i + 1:0>3}.png"
         elif rtype == 3:
-            output_path = f"./ranking/list4/bangumi_{i + 1:0>3}.png"
+            output_path = f"./ranking/#{ctx.week}/sub/bangumi_{i + 1:0>3}.png"
         elif rtype == 4:
-            output_path = f"./ranking/list4/bangumi_{i + 4:0>3}.png"
+            output_path = f"./ranking/#{ctx.week}/sub/bangumi_{i + 4:0>3}.png"
         render_png(
             browser,
             "sub-rank",
@@ -748,7 +748,7 @@ def Stat(ctx: GenerateContext, browser):
             "score": AScore,
             "trend": trend,
         })
-    render_png(browser, "stat", {"kind": 1, "rows": rows_1}, "./ranking/pic/stat_1.png")
+    render_png(browser, "stat", {"kind": 1, "rows": rows_1}, f"./ranking/#{ctx.week}/stat_1.png")
 
     rows_2 = []
     for i in range(7):
@@ -770,7 +770,7 @@ def Stat(ctx: GenerateContext, browser):
             "score": AScore,
             "trend": trend,
         })
-    render_png(browser, "stat", {"kind": 2, "rows": rows_2}, "./ranking/pic/stat_2.png")
+    render_png(browser, "stat", {"kind": 2, "rows": rows_2}, f"./ranking/#{ctx.week}/stat_2.png")
 
     rows_3 = []
     for d in ["click", "comment", "stow", "danmu", "yb"]:
@@ -785,7 +785,7 @@ def Stat(ctx: GenerateContext, browser):
             "last": format(ctx.s_rank_data[3][1][d], ","),
             "trend": trend,
         })
-    render_png(browser, "stat", {"kind": 3, "rows": rows_3}, "./ranking/pic/stat_3.png")
+    render_png(browser, "stat", {"kind": 3, "rows": rows_3}, f"./ranking/#{ctx.week}/stat_3.png")
 
 
 def MainRank(ctx: GenerateContext, browser):
@@ -815,7 +815,7 @@ def Opening(ctx: GenerateContext, browser):
         browser,
         "simple",
         {"kind": "opening", "title": MTitle, "week": MWeek},
-        "./ranking/1_op/title.png",
+        f"./ranking/#{ctx.week}/title.png",
     )
 
 
@@ -829,7 +829,7 @@ def LongTerm(ctx: GenerateContext, browser):
         browser,
         "simple",
         {"kind": "long-term", "range": LTitle, "description": LongTerm_},
-        "./ranking/pic/_1.png",
+        f"./ranking/#{ctx.week}/_1.png",
     )
 
 
@@ -840,7 +840,7 @@ def History(ctx: GenerateContext, browser):
         browser,
         "simple",
         {"kind": "history-record", "count": HCount, "title": HUpTime},
-        "./ranking/pic/history.png",
+        f"./ranking/#{ctx.week}/history.png",
     )
 
 
@@ -860,7 +860,7 @@ def Top(ctx: GenerateContext, browser):
             browser,
             "simple",
             {"kind": "top-diff", "place": f"{t + 1}", "diffText": DiffText},
-            f"./ranking/list1/{t + 1:0>2}_{Bid}_.png",
+            f"./ranking/#{ctx.week}/main/{t + 1:0>2}_{Bid}_.png",
         )
 
 

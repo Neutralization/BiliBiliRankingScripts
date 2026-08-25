@@ -5,8 +5,8 @@
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
-$DownloadFolder = "${TruePath}/ranking/list0"
-$FootageFolder = "${TruePath}/ranking/list1"
+$DownloadFolder = "${TruePath}/footage/videos"
+$FootageFolder = "${TruePath}/ranking/#${RankNum}"
 $CookieFile = "${TruePath}/bilibili.com_cookies.txt"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
@@ -138,7 +138,7 @@ function BiliDown {
     $ccData = Invoke-WebRequest -UseBasicParsing -Uri $ccUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $subtitle = $ccData.data.subtitle.subtitles[0]
     if ($null -ne $subtitle.subtitle_url -and $subtitle.lan -notmatch 'ai-') {
-        Invoke-WebRequest -Uri "http:$($subtitle.subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "${FootageFolder}/${ID}.json"
+        Invoke-WebRequest -Uri "http:$($subtitle.subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "${FootageFolder}/main/${ID}.json"
     }
 
     $sourceUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=${AID}&bvid=${BID}&cid=${CID}&qn=120&fnver=0&fnval=4048&fourk=1"
@@ -214,13 +214,13 @@ function Main {
     }
     $Part = if ($null -ne $Part) { $Part } else { @('*') }
     $Part | ForEach-Object {
-        $Files += Get-Content -Raw "${FootageFolder}/${RankNum}_${_}.yml"
+        $Files += Get-Content -Raw "${FootageFolder}/main/${RankNum}_${_}.yml"
     }
     $Files | ForEach-Object {
         $items = (ConvertFrom-Yaml $_) | ForEach-Object { $_ } | ForEach-Object { $_.':name' }
         $RankVideos += $items
     }
-    (Get-Content "${TruePath}/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
+    (Get-Content "${TruePath}/footage/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
         $LostVideos += $_
     }
     $TaskQueue = $RankVideos | Where-Object { $LocalVideos -notcontains $_ } | Where-Object { $LostVideos -notcontains $_ }

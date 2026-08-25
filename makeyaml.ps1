@@ -4,8 +4,8 @@
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
-$FootageFolder = "${TruePath}/ranking/list1"
-$LOST_FILE = "${TruePath}/LostFile.json"
+$FootageFolder = "${TruePath}/ranking/#${RankNum}"
+$LOST_FILE = "${TruePath}/footage/LostFile.json"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
 Write-Information ">>> 周刊哔哩哔哩排行榜#${RankNum}" -InformationAction Continue
@@ -32,8 +32,8 @@ function ConvertTo-AID {
         $bvList[3], $bvList[9] = $bvList[9], $bvList[3]
         $bvList[4], $bvList[7] = $bvList[7], $bvList[4]
         $tmp = [int64]0
-        foreach ($char in $bvList[3..($BV_LEN - 1)]) {
-            $idx = $table[$char]
+        $bvList[3..($BV_LEN - 1)] | ForEach-Object {
+            $idx = $table[$_]
             $tmp = $tmp * $BASE + $idx
         }
         return ($tmp -band $MASK_CODE) -bxor $XOR_CODE
@@ -59,14 +59,15 @@ function ConvertTo-AID {
 
 function Get-Cover {
     param (
+        [string]$Id,
         [string]$Link,
         [string]$Name
     )
     if ([string]::IsNullOrWhiteSpace($Link)) {
-        return './footage/cover_lost.png'
+        return './footage/public/cover_lost.png'
     }
     $ext = ($Link -split '\.')[-1]
-    $folderPath = './pic'
+    $folderPath = './footage/covers'
     $fileName = "${Id}_${Name}.${ext}"
     $destination = Join-Path $folderPath $fileName
     if (-not (Test-Path $destination)) {
@@ -149,8 +150,8 @@ function Write-YamlList {
         $yamlStr.Add("  :length: $($item.length)")
         $yamlStr.Add('  :offset: 0')
     }
-    $yamlStr | Set-Content -Path "${FootageFolder}/${RankNum}_${Part}.yml" -Encoding UTF8
-    Write-Information "> 已生成 YAML: ${FootageFolder}/${RankNum}_${Part}.yml" -InformationAction Continue
+    $yamlStr | Set-Content -Path "${FootageFolder}/main/${RankNum}_${Part}.yml" -Encoding UTF8
+    Write-Information "> 已生成 YAML: ${FootageFolder}/main/${RankNum}_${Part}.yml" -InformationAction Continue
 }
 
 function Write-RankdoorCsv {
@@ -196,12 +197,18 @@ function Write-RankdoorCsv {
         }
     }
 
-    $csvPath = "${TruePath}/${RankNum}_rankdoor.csv"
+    $csvPath = "${TruePath}/ranking/#${RankNum}/${RankNum}_rankdoor.csv"
     $csvLines | Set-Content -Path $csvPath -Encoding UTF8
     Write-Information "> 已生成 Rankdoor CSV: ${csvPath}" -InformationAction Continue
 }
 
 function Main {
+    if (!(Test-Path "${FootageFolder}/main")) {
+        New-Item -ItemType Directory -Path "${FootageFolder}/main" | Out-Null
+    }
+    if (!(Test-Path "${FootageFolder}/sub")) {
+        New-Item -ItemType Directory -Path "${FootageFolder}/sub" | Out-Null
+    }
     $targetFiles = @('results_bangumi', 'guoman_bangumi', 'results_history', 'results' )
 
     foreach ($suffix in $targetFiles) {
@@ -250,14 +257,14 @@ function Main {
     Write-RankdoorCsv
     uv run .\generate.py --week $RankNum
     $rankStartTime = [DateTimeOffset]::FromUnixTimeSeconds(1276876800 + ([int64]$RankNum * 604800)).LocalDateTime
-    $archivePaths = @("${FootageFolder}/${RankNum}*.yml")
-    $pngFiles = Get-ChildItem -Path "${FootageFolder}/*.png" -File -ErrorAction SilentlyContinue | Where-Object { $_.CreationTime -gt $rankStartTime }
+    $archivePaths = @("${FootageFolder}/main/${RankNum}*.yml")
+    $pngFiles = Get-ChildItem -Path "${FootageFolder}/main/*.png" -File -ErrorAction SilentlyContinue | Where-Object { $_.CreationTime -gt $rankStartTime }
     if ($pngFiles.Count -gt 0) {
         $archivePaths += $pngFiles.FullName
     }
 
-    $archiveTemp = Join-Path ([System.IO.Path]::GetTempPath()) "bilibiliweek_${RankNum}_list1_$([Guid]::NewGuid().ToString('N'))"
-    $archiveListFolder = Join-Path $archiveTemp 'list1'
+    $archiveTemp = Join-Path ([System.IO.Path]::GetTempPath()) "bilibiliweek_${RankNum}_main_$([Guid]::NewGuid().ToString('N'))"
+    $archiveListFolder = Join-Path $archiveTemp 'main'
     try {
         New-Item -ItemType Directory -Path $archiveListFolder -Force | Out-Null
         foreach ($archivePath in $archivePaths) {
@@ -265,7 +272,7 @@ function Main {
                 Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $archiveListFolder $_.Name) -Force
             }
         }
-        Compress-Archive -Path $archiveListFolder -DestinationPath "${TruePath}/${RankNum}_list1.zip" -Force
+        Compress-Archive -Path $archiveListFolder -DestinationPath "${TruePath}/${RankNum}_main.zip" -Force
     } finally {
         if (Test-Path $archiveTemp) {
             Remove-Item -LiteralPath $archiveTemp -Recurse -Force

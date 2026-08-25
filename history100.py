@@ -190,7 +190,7 @@ def render_png(browser: Edge, item: Top100Payload, output: Path) -> None:
     print(output)
 
 
-def render_item(browser: Edge, render_data: Top100RenderItem) -> None:
+def render_item(browser: Edge, history_num, render_data: Top100RenderItem) -> None:
     name = render_data["name"]
     rank = render_data["rank"]
     info = get_info(name)
@@ -226,7 +226,7 @@ def render_item(browser: Edge, render_data: Top100RenderItem) -> None:
         "spText": render_data["labels"]["spText"],
         "top100Text": render_data["labels"]["top100Text"],
     }
-    render_png(browser, item, Path(f"./ranking/list100/{rank}_{name}.png"))
+    render_png(browser, item, Path(f"./ranking/history{history_num}/{rank}_{name}.png"))
 
 
 def main() -> None:
@@ -236,7 +236,7 @@ def main() -> None:
     )
     history_num = parser.parse_args().HistoryNum
     labels = top100_labels(history_num)
-    yml_path = Path(f"./ranking/list100/{history_num}.yml")
+    yml_path = Path(f"./ranking/history{history_num}/{history_num}.yml")
     with yml_path.open("r", encoding="utf-8-sig") as stream:
         items = yload(stream, Loader=BaseLoader) or []
     browser = create_browser()
@@ -244,6 +244,7 @@ def main() -> None:
         for item in items:
             render_item(
                 browser,
+                history_num,
                 {
                     "name": item[":name"],
                     "rank": int(item[":rank"]),

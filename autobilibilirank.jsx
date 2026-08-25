@@ -2,17 +2,18 @@
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 YUME = 1277009809;
 WEEK_NUM = Math.floor((Date.now() / 1000 - YUME + 133009) / 3600 / 24 / 7);
+WEEK_NUM = 844;
 
 CompFPS = 60;
 CompSize = [1920, 1080];
 RankSize = [1440, 810];
 AlbumSize = [188, 188];
-Prefix = './ranking/list1/';
+Prefix = './ranking/#' + WEEK_NUM + '/main/';
 Regex =
     /- :rank: (\d+)\n {2}:name: (\w+)\n {2}:length: (\d+)\n {2}:offset: (\d+)(\n {2}:short: \d+)?(\n {2}:no_pause: true)?/gm;
 Subst = '"$1": ["$2", $3, $4],';
 Parts = [3, 5, 7, 9, 11, 13, 15, 16];
-file = new File('LostFile.json');
+file = new File('./footage/LostFile.json');
 file.open('r');
 content = file.read();
 file.close();
@@ -58,96 +59,96 @@ WeeklyFolder = app.project.items.addFolder('WeeklyFootage');
 
 StaticFootage = {
     // IMAGE
-    投稿封面_1: './footage/ANNIVERSARY.png',
-    投稿封面_2: './footage/STANDARD.png',
-    投稿封面_3: './footage/CHARA.png',
-    蓝底: './public/blank.png',
-    棕底: './public/bg_2.png',
-    NEXT: './public/change.png',
-    夏之随想: './public/bgm.png',
-    Opening: './ranking/1_op/op_2.png',
-    规则说明: './ranking/pic/rule_1.png',
-    特殊说明: './ranking/pic/rule_2.png',
-    普通规则: './ranking/pic/rule_3.png',
-    新番规则: './ranking/pic/rule_4.png',
-    集计时间: './ranking/1_op/start.png',
-    标题: './ranking/1_op/title.png',
-    注意事项_1: './public/warn_1.png',
-    注意事项_2: './public/warn_2.png',
-    哔哩哔哩: './ranking/1_op/world.png',
-    Pickup_切换: './ranking/pic/_pickup.png',
-    主榜切换_1: './ranking/pic/_1.png',
-    国创副榜_1: './ranking/list4/bangumi_004.png',
-    国创副榜_2: './ranking/list4/bangumi_005.png',
-    国创副榜_3: './ranking/list4/bangumi_006.png',
-    国创切换: './ranking/pic/guochuang_zhu.png',
-    国创副榜: './ranking/pic/guochuang_fu.png',
-    影视切换: './ranking/pic/film.png',
-    影视副榜_1: './ranking/list3/tv_001.png',
-    影视副榜_2: './ranking/list3/tv_002.png',
-    影视副榜_3: './ranking/list3/tv_003.png',
-    主榜切换_2: './ranking/pic/_3.png',
-    新番切换: './ranking/pic/bangumi.png',
-    新番副榜_1: './ranking/list4/bangumi_001.png',
-    新番副榜_2: './ranking/list4/bangumi_002.png',
-    新番副榜_3: './ranking/list4/bangumi_003.png',
-    新番主榜: './ranking/pic/bangumitop10.png',
-    主榜切换_3: './ranking/pic/_4.png',
-    历史切换: './ranking/pic/history.png',
-    历史记录: './ranking/pic/history_record.png',
-    周刊Logo: './public/logo.png',
-    本周结语: './ranking/pic/over.png',
-    统计数据_1: './ranking/pic/stat_1.png',
-    统计数据_2: './ranking/pic/stat_2.png',
-    统计数据_3: './ranking/pic/stat_3.png',
-    插入素材: './ranking/2_ed/addr2.png',
-    EDCard: './ranking/2_ed/ed.png',
-    主榜切换_4: './footage/EDBGM.png',
-    ED封面: './ranking/2_ed/Cover.jpg',
-    STAFF_名单: './ranking/2_ed/staff.png',
-    视频失效: './public/invalid.png',
-    1: './ranking/list2/001.png',
-    2: './ranking/list2/002.png',
-    3: './ranking/list2/003.png',
-    4: './ranking/list2/004.png',
-    5: './ranking/list2/005.png',
-    6: './ranking/list2/006.png',
-    7: './ranking/list2/007.png',
-    8: './ranking/list2/008.png',
-    9: './ranking/list2/009.png',
-    10: './ranking/list2/010.png',
-    11: './ranking/list2/011.png',
-    12: './ranking/list2/012.png',
-    13: './ranking/list2/013.png',
-    14: './ranking/list2/014.png',
-    15: './ranking/list2/015.png',
-    16: './ranking/list2/016.png',
-    17: './ranking/list2/017.png',
-    18: './ranking/list2/018.png',
-    19: './ranking/list2/019.png',
-    20: './ranking/list2/020.png',
-    21: './ranking/list2/021.png',
-    22: './ranking/list2/022.png',
-    23: './ranking/list2/023.png',
-    24: './ranking/list2/024.png',
-    25: './ranking/list2/025.png',
-    26: './ranking/list2/026.png',
-    27: './ranking/list2/027.png',
-    28: './ranking/list2/028.png',
-    29: './ranking/list2/029.png',
-    30: './ranking/list2/030.png',
+    投稿封面_1: './footage/public/ANNIVERSARY.png',
+    投稿封面_2: './footage/public/STANDARD.png',
+    投稿封面_3: './footage/public/CHARA.png',
+    蓝底: './footage/public/blank.png',
+    棕底: './footage/public/bg_2.png',
+    NEXT: './footage/public/change.png',
+    夏之随想: './footage/public/bgm.png',
+    注意事项_1: './footage/public/warn_1.png',
+    注意事项_2: './footage/public/warn_2.png',
+    Pickup_切换: './footage/public/_pickup.png',
+    主榜切换_2: './footage/public/_3.png',
+    主榜切换_3: './footage/public/_4.png',
+    国创切换: './footage/public/guochuang_zhu.png',
+    国创副榜: './footage/public/guochuang_fu.png',
+    影视切换: './footage/public/film.png',
+    新番切换: './footage/public/bangumi.png',
+    新番主榜: './footage/public/bangumitop10.png',
+    周刊Logo: './footage/public/logo.png',
+    插入素材: './footage/public/addr2.png',
+    EDCard: './footage/public/ed.png',
+    主榜切换_4: './footage/public/EDBGM.png',
+    STAFF_名单: './footage/public/staff.png',
+    视频失效: './footage/public/invalid.png',
+    规则说明: './footage/public/rule_1.png',
+    普通规则: './footage/public/rule_3.png',
+    新番规则: './footage/public/rule_4.png',
+    主榜切换_1: './ranking/#' + WEEK_NUM + '/_1.png',
+    历史切换: './ranking/#' + WEEK_NUM + '/history.png',
+    特殊说明: './ranking/#' + WEEK_NUM + '/rule_2.png',
+    标题: './ranking/#' + WEEK_NUM + '/title.png',
+    集计时间: './ranking/#' + WEEK_NUM + '/start.png',
+    Opening: './ranking/#' + WEEK_NUM + '/op_2.png',
+    哔哩哔哩: './ranking/#' + WEEK_NUM + '/world.png',
+    历史记录: './ranking/#' + WEEK_NUM + '/history_record.png',
+    本周结语: './ranking/#' + WEEK_NUM + '/over.png',
+    统计数据_1: './ranking/#' + WEEK_NUM + '/stat_1.png',
+    统计数据_2: './ranking/#' + WEEK_NUM + '/stat_2.png',
+    统计数据_3: './ranking/#' + WEEK_NUM + '/stat_3.png',
+    ED封面: './ranking/#' + WEEK_NUM + '/Cover.jpg',
+    影视副榜_1: './ranking/#' + WEEK_NUM + '/sub/tv_001.png',
+    影视副榜_2: './ranking/#' + WEEK_NUM + '/sub/tv_002.png',
+    影视副榜_3: './ranking/#' + WEEK_NUM + '/sub/tv_003.png',
+    新番副榜_1: './ranking/#' + WEEK_NUM + '/sub/bangumi_001.png',
+    新番副榜_2: './ranking/#' + WEEK_NUM + '/sub/bangumi_002.png',
+    新番副榜_3: './ranking/#' + WEEK_NUM + '/sub/bangumi_003.png',
+    国创副榜_1: './ranking/#' + WEEK_NUM + '/sub/bangumi_004.png',
+    国创副榜_2: './ranking/#' + WEEK_NUM + '/sub/bangumi_005.png',
+    国创副榜_3: './ranking/#' + WEEK_NUM + '/sub/bangumi_006.png',
+    1: './ranking/#' + WEEK_NUM + '/sub/001.png',
+    2: './ranking/#' + WEEK_NUM + '/sub/002.png',
+    3: './ranking/#' + WEEK_NUM + '/sub/003.png',
+    4: './ranking/#' + WEEK_NUM + '/sub/004.png',
+    5: './ranking/#' + WEEK_NUM + '/sub/005.png',
+    6: './ranking/#' + WEEK_NUM + '/sub/006.png',
+    7: './ranking/#' + WEEK_NUM + '/sub/007.png',
+    8: './ranking/#' + WEEK_NUM + '/sub/008.png',
+    9: './ranking/#' + WEEK_NUM + '/sub/009.png',
+    10: './ranking/#' + WEEK_NUM + '/sub/010.png',
+    11: './ranking/#' + WEEK_NUM + '/sub/011.png',
+    12: './ranking/#' + WEEK_NUM + '/sub/012.png',
+    13: './ranking/#' + WEEK_NUM + '/sub/013.png',
+    14: './ranking/#' + WEEK_NUM + '/sub/014.png',
+    15: './ranking/#' + WEEK_NUM + '/sub/015.png',
+    16: './ranking/#' + WEEK_NUM + '/sub/016.png',
+    17: './ranking/#' + WEEK_NUM + '/sub/017.png',
+    18: './ranking/#' + WEEK_NUM + '/sub/018.png',
+    19: './ranking/#' + WEEK_NUM + '/sub/019.png',
+    20: './ranking/#' + WEEK_NUM + '/sub/020.png',
+    21: './ranking/#' + WEEK_NUM + '/sub/021.png',
+    22: './ranking/#' + WEEK_NUM + '/sub/022.png',
+    23: './ranking/#' + WEEK_NUM + '/sub/023.png',
+    24: './ranking/#' + WEEK_NUM + '/sub/024.png',
+    25: './ranking/#' + WEEK_NUM + '/sub/025.png',
+    26: './ranking/#' + WEEK_NUM + '/sub/026.png',
+    27: './ranking/#' + WEEK_NUM + '/sub/027.png',
+    28: './ranking/#' + WEEK_NUM + '/sub/028.png',
+    29: './ranking/#' + WEEK_NUM + '/sub/029.png',
+    30: './ranking/#' + WEEK_NUM + '/sub/030.png',
     // AUDIO
-    NEXT_BGM: './public/av2313.mp3',
-    主榜切换_BGM: './public/bilibili-mubox.wav',
-    夏之随想_BGM: './public/Summer.mp3',
-    Pickup_BGM: './public/a-3s-new.wav',
-    影视国创_BGM: './ranking/list4/04.MIRACLE RUSH (inst.).mp3',
-    新番副榜_BGM: './public/05 Zzz (Instrumental).mp3',
-    历史数据_BGM: './public/1.mp3',
-    哔哩哔哩_BGM: './public/bilibili.mp3',
-    ED_BGM: './ranking/2_ed/ed.mp3',
+    NEXT_BGM: './footage/audio/av2313.mp3',
+    主榜切换_BGM: './footage/audio/bilibili-mubox.wav',
+    夏之随想_BGM: './footage/audio/Summer.mp3',
+    Pickup_BGM: './footage/audio/a-3s-new.wav',
+    影视国创_BGM: './footage/audio/04.MIRACLE RUSH (inst.).mp3',
+    新番副榜_BGM: './footage/audio/05 Zzz (Instrumental).mp3',
+    历史数据_BGM: './footage/audio/1.mp3',
+    哔哩哔哩_BGM: './footage/audio/bilibili.mp3',
+    ED_BGM: './ranking/#' + WEEK_NUM + '/ed.mp3',
     // VIDEO
-    NotFound: './public/error.mp4'
+    NotFound: './footage/public/error.mp4'
 };
 
 for (key in StaticFootage) {
@@ -747,7 +748,7 @@ SubRankText.startTime = 4;
 SubRankText.outPoint = 4 + 5.9;
 SubRankText.property('Source Text').expression = TextExpression('HYm2gj', 'FFFFFF', 216, 108, 0, (LastRank + 1) + '-' + (LastRank + 120));
 SubRankText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.width/2+s.left, s.height/2+s.top];';
-file = new File('./ranking/2_ed/' + WEEK_NUM + '.txt');
+file = new File('./ranking/#' + WEEK_NUM + '/' + WEEK_NUM + '.txt');
 file.open('r');
 content = file.read();
 file.close();
@@ -813,12 +814,12 @@ AddLayer(CoverComp1, '投稿封面_3', 25, 0);
 AnniversaryLayer = AddText(CoverComp1, 'The 15th year', ParagraphJustification.LEFT_JUSTIFY, [540, 100], [128, 384]);
 AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60, 'The 15th year');
 AnniversaryLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
-AnniversaryLayer.applyPreset(new File('DropShadow.ffx'));
+AnniversaryLayer.applyPreset(new File('./footage/DropShadow.ffx'));
 AnniversaryLayer.enabled = false;
 WEEKLayer = AddText(CoverComp1, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [440, 140], [134, 254]);
 WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100, '#' + WEEK_NUM);
 WEEKLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
-WEEKLayer.applyPreset(new File('DropShadow.ffx'));
+WEEKLayer.applyPreset(new File('./footage/DropShadow.ffx'));
 CoverComp1.openInViewer();
 
 AddLayer(CoverComp2, '投稿封面_1', 25, 0);
@@ -827,12 +828,12 @@ AddLayer(CoverComp2, '投稿封面_3', 25, 0);
 AnniversaryLayer = AddText(CoverComp2, 'The 15th year', ParagraphJustification.LEFT_JUSTIFY, [540, 100], [48, 428]);
 AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60, 'The 15th year');
 AnniversaryLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
-AnniversaryLayer.applyPreset(new File('DropShadow.ffx'));
+AnniversaryLayer.applyPreset(new File('./footage/DropShadow.ffx'));
 AnniversaryLayer.enabled = false;
 WEEKLayer = AddText(CoverComp2, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [440, 140], [54, 298]);
 WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100, '#' + WEEK_NUM);
 WEEKLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
-WEEKLayer.applyPreset(new File('DropShadow.ffx'));
+WEEKLayer.applyPreset(new File('./footage/DropShadow.ffx'));
 CoverComp2.openInViewer();
 
 renderQueue = app.project.renderQueue;

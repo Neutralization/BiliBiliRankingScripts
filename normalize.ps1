@@ -7,9 +7,10 @@
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
-$DownloadFolder = "${TruePath}/ranking/list0"
-$FootageFolder = "${TruePath}/ranking/list1"
-$OutputFolder = if ($History) { "${TruePath}/ranking/list100" } else { $FootageFolder }
+$DownloadFolder = "${TruePath}/footage/videos"
+$FootageFolder = "${TruePath}/ranking/#${RankNum}"
+$HistoryFolder = "${TruePath}/ranking/history${HistoryNum}"
+$OutputFolder = if ($History) { $HistoryFolder } else { "${FootageFolder}/main" }
 
 $tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_nvenc -f null -' -RedirectStandardError '.\NUL'
 if ($tmp.ExitCode -eq 0 ) { $Nvdia = $true } else { $Nvdia = $false }
@@ -74,24 +75,24 @@ function EDNormalize {
     $Target = 'loudnorm=I=-23.0:LRA=+7.0:tp=-1.0'
     $AudioArg = @(
         '-y', '-hide_banner',
-        '-i', "./ranking/2_ed/${FileName}",
+        '-i', "./ranking/#${RankNum}/${FileName}",
         '-af', "${Target}:print_format=json",
         '-f', 'null', '-'
     )
-    $AudioInfo = './ranking/2_ed/ed.log'
+    $AudioInfo = "./ranking/#${RankNum}/ed.log"
     & ffmpeg.exe $AudioArg 2> $AudioInfo
     $AudioData = [Regex]::Match((Get-Content -Raw $AudioInfo), '(?s)({.+?})\r?\n').Value | ConvertFrom-Json
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
     $EncodeArg = @(
         '-y', '-hide_banner', '-loglevel', 'error',
-        '-i', "./ranking/2_ed/${FileName}",
-        '-i', './ranking/2_ed/Cover.jpg',
+        '-i', "./ranking/#${RankNum}/${FileName}",
+        '-i', "./ranking/#${RankNum}/Cover.jpg",
         '-map', '0:0', '-map', '1:0',
         '-id3v2_version', '3',
         '-metadata:s:v', "title='Album cover'", '-metadata:s:v', "comment='Cover (front)'",
         '-af', "${Target}:print_format=summary:linear=true:${Source}", '-ar', '48000',
         '-c:a', 'libmp3lame', '-q:a', '0',
-        './ranking/2_ed/ed.mp3'
+        "./ranking/#${RankNum}/ed.mp3"
     )
     Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 标准化音频音量" -InformationAction Continue
     & ffmpeg.exe @EncodeArg 2> $null
@@ -114,7 +115,7 @@ function Main {
         Get-ChildItem "${OutputFolder}/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
     }
     if ($History) {
-        $historyYmlPath = "${TruePath}/ranking/list100/${HistoryNum}.yml"
+        $historyYmlPath = "${HistoryFolder}/${HistoryNum}.yml"
         if (!(Test-Path -LiteralPath $historyYmlPath)) {
             throw "Missing history YAML: ${historyYmlPath}"
         }
@@ -122,7 +123,7 @@ function Main {
     } else {
         $Part = if ($null -ne $Part) { $Part } else { @('*') }
         foreach ($p in $Part) {
-            $Files += Get-Content -Raw "${FootageFolder}/${RankNum}_${p}.yml"
+            $Files += Get-Content -Raw "${FootageFolder}/main/${RankNum}_${p}.yml"
         }
     }
 
@@ -130,7 +131,7 @@ function Main {
         $items = (ConvertFrom-Yaml $content) | ForEach-Object { $_ } | ForEach-Object { $_ }
         $RankVideos += $items
     }
-    (Get-Content "${TruePath}/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
+    (Get-Content "${TruePath}/footage/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
         $LostVideos += $_
     }
 
@@ -160,11 +161,11 @@ function Main {
             "${_}", 'OnlyErrorDialogs', 'SendToRecycleBin')
     }
     if (!$History) {
-        $EDFile = Get-ChildItem -Path './ranking/2_ed/*' -Include *.mp3, *.flac | Where-Object Name -NotMatch 'ed.mp3' | Select-Object -ExpandProperty Name
+        $EDFile = Get-ChildItem -Path "${FootageFolder}/*" -Include *.mp3, *.flac | Where-Object Name -NotMatch 'ed.mp3' | Select-Object -ExpandProperty Name
         if ($null -ne $EDFile ) {
             EDNormalize $EDFile
             [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-                "${TruePath}/ranking/2_ed/${EDFile}", 'OnlyErrorDialogs', 'SendToRecycleBin')
+                "${FootageFolder}/${EDFile}", 'OnlyErrorDialogs', 'SendToRecycleBin')
         }
     }
 }

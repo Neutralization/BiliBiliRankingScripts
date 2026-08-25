@@ -6,7 +6,8 @@ $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $CookieFile = "${TruePath}/cookies.txt"
 $StampFile = "${TruePath}/stamp.json"
-$ReplyFile = "${TruePath}/${RankNum}_rankdoor.csv"
+$FootageFolder = "${TruePath}/ranking/#${RankNum}"
+$ReplyFile = "${FootageFolder}/${RankNum}_rankdoor.csv"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 $Session.UserAgent = $UserAgent
@@ -49,8 +50,8 @@ function ConvertTo-AID {
         $bvList[3], $bvList[9] = $bvList[9], $bvList[3]
         $bvList[4], $bvList[7] = $bvList[7], $bvList[4]
         $tmp = [int64]0
-        foreach ($char in $bvList[3..($BV_LEN - 1)]) {
-            $idx = $table[$char]
+        $bvList[3..($BV_LEN - 1)] | ForEach-Object {
+            $idx = $table[$_]
             $tmp = $tmp * $BASE + $idx
         }
         return ($tmp -band $MASK_CODE) -bxor $XOR_CODE
@@ -94,7 +95,7 @@ function Add-TimeStamp {
         $CID = $Result.data.pages[0].cid
         Write-Information -MessageData "取得视频 CID ${CID}" -InformationAction Continue
     }
-    $Stamp = Get-Content $StampFile -Encoding 'GB2312'
+    $Stamp = Get-Content $StampFile -Encoding 'UTF-8'
     $StampString = $Stamp | ConvertFrom-Json | ConvertTo-Json -Compress
     Write-Debug $StampString
     $Body = @{
@@ -161,7 +162,7 @@ function Add-Favourite {
     if ($AVID -match '^[aA]') {
         $AID = $AVID.Substring(2)
     } else {
-        $AID = ConvertTo-AID $AVID $true
+        $AID = ConvertTo-AID $AVID $false
     }
     $Body = @{
         'rid'           = $AID
@@ -195,7 +196,7 @@ function Get-Ranking {
         [parameter(position = 1)]$Part
     )
     $RankVideos = @()
-    $File = Get-Content -Raw "${TruePath}/ranking/list1/${RankNum}_${Part}.yml"
+    $File = Get-Content -Raw "${FootageFolder}/main/${RankNum}_${Part}.yml"
     $File | ForEach-Object {
         ConvertFrom-Yaml $_ | ForEach-Object {
             $_ | ForEach-Object {

@@ -12,7 +12,7 @@ WeeklyFolder = app.project.items.addFolder('HistoryResource');
 
 NormalRankSize = [1440, 810];
 VideoSize = [1920, 1080];
-DirectoryPrefix = './ranking/list100/';
+DirectoryPrefix = './ranking/history' + HistoryNum + '/';
 regex = /- :rank: (\d+)\n {2}:name: (\w+)\n {2}:length: (\d+)\n {2}:offset: (\d+)(\n {2}:short: \d+)?(\n {2}:no_pause: true)?/gm;
 subst = '$1: ["$2", $3, $4],';
 RankDataList = [];
@@ -23,7 +23,7 @@ file.close();
 RankList = ymlstring.replace(regex, subst).replace('\'', '"').replace('---', '{') + '}';
 RankList = RankList.replace(',\n}', '\n}');
 RankDataList[RankDataList.length] = JSON.parse(RankList);
-lostfile = new File('LostFile.json');
+lostfile = new File('./footage/LostFile.json');
 lostfile.open('r');
 content = lostfile.read();
 lostfile.close();
@@ -42,14 +42,14 @@ RankData = RankDataList[0];
 
 StaticResource = {
     // IMAGE
-    spop: './ranking/pic/spop.png',
-    sped: './ranking/pic/sped.png',
-    Invalid: './public/invalid.png',
+    spop: './footage/public/spop.png',
+    sped: './footage/public/sped.png',
+    Invalid: './footage/public/invalid.png',
     // AUDIO
-    op_audio: './public/54 - Subtitle 1.mp3',
-    ed_audio: './public/55 - Subtitle 2.mp3',
+    op_audio: './footage/audio/54 - Subtitle 1.mp3',
+    ed_audio: './footage/audio/55 - Subtitle 2.mp3',
     // VIDEO
-    NotFound: './public/error.mp4'
+    NotFound: './footage/public/error.mp4'
 };
 
 for (key in StaticResource) {

@@ -7,42 +7,42 @@
   <style>
     @font-face {
       font-family: YuanTi;
-      src: url("../footage/华文圆体粗体_Bold.ttf");
+      src: url("../footage/fonts/华文圆体粗体_Bold.ttf");
     }
 
     @font-face {
       font-family: SCYuanTi;
-      src: url("../footage/华文圆体 Bold_粗体.ttf");
+      src: url("../footage/fonts/华文圆体 Bold_粗体.ttf");
     }
 
     @font-face {
       font-family: SCYuan;
-      src: url("../footage/圆体-简_常规体.ttf");
+      src: url("../footage/fonts/圆体-简_常规体.ttf");
     }
 
     @font-face {
       font-family: HYQIHEI;
-      src: url("../footage/汉仪旗黑 105简繁_Regular.ttf");
+      src: url("../footage/fonts/汉仪旗黑 105简繁_Regular.ttf");
     }
 
     @font-face {
       font-family: HanNote;
-      src: url("../footage/手札体-简_标准体.ttf");
+      src: url("../footage/fonts/手札体-简_标准体.ttf");
     }
 
     @font-face {
       font-family: HYHeiMi;
-      src: url("../footage/汉仪黑咪体简_Regular.ttf");
+      src: url("../footage/fonts/汉仪黑咪体简_Regular.ttf");
     }
 
     @font-face {
       font-family: FZCuYuan;
-      src: url("../footage/方正粗圆_GBK_Regular.ttf");
+      src: url("../footage/fonts/方正粗圆_GBK_Regular.ttf");
     }
 
     @font-face {
       font-family: Emoji;
-      src: url("../footage/Segoe UI Emoji_Normal.ttf");
+      src: url("../footage/fonts/Segoe UI Emoji_Normal.ttf");
     }
 
     * {
@@ -122,59 +122,59 @@
     }
 
     #canvas.rank-main {
-      background-image: url("../footage/MAINRANKIMG.png");
+      background-image: url("../footage/public/MAINRANKIMG.png");
     }
 
     #canvas.rank-bangumi {
-      background-image: url("../footage/BANGUMIRANKIMG.png");
+      background-image: url("../footage/public/BANGUMIRANKIMG.png");
     }
 
     #canvas.rank-history {
-      background-image: url("../footage/HISTORYRANKIMG.png");
+      background-image: url("../footage/public/HISTORYRANKIMG.png");
     }
 
     #canvas.rank-pickup {
-      background-image: url("../footage/PICKUPIMG.png");
+      background-image: url("../footage/public/PICKUPIMG.png");
     }
 
     #canvas.sub-main {
-      background-image: url("../footage/SUBRANKIMG.png");
+      background-image: url("../footage/public/SUBRANKIMG.png");
     }
 
     #canvas.sub-bangumi {
-      background-image: url("../footage/SUBBANGUMIRANKIMG.png");
+      background-image: url("../footage/public/SUBBANGUMIRANKIMG.png");
     }
 
     #canvas.stat-1 {
-      background-image: url("../footage/STATONEIMG.png");
+      background-image: url("../footage/public/STATONEIMG.png");
     }
 
     #canvas.stat-2 {
-      background-image: url("../footage/STATTWOIMG.png");
+      background-image: url("../footage/public/STATTWOIMG.png");
     }
 
     #canvas.stat-3 {
-      background-image: url("../footage/STATTHREEIMG.png");
+      background-image: url("../footage/public/STATTHREEIMG.png");
     }
 
     #canvas.simple-opening {
-      background-image: url("../footage/MAINTITLEIMG.png");
+      background-image: url("../footage/public/MAINTITLEIMG.png");
     }
 
     #canvas.simple-long-term {
-      background-image: url("../footage/LONGIMG.png");
+      background-image: url("../footage/public/LONGIMG.png");
     }
 
     #canvas.simple-history-record {
-      background-image: url("../footage/HISTORYRECORDIMG.png");
+      background-image: url("../footage/public/HISTORYRECORDIMG.png");
     }
 
     #canvas.simple-top-diff {
-      background-image: url("../footage/TOPIMG.png");
+      background-image: url("../footage/public/TOPIMG.png");
     }
 
     #canvas.top100 {
-      background-image: url("../footage/TOP100.png");
+      background-image: url("../footage/public/TOP100.png");
     }
 
     #canvas.debug-grid::before {
@@ -258,15 +258,15 @@
     }
 
     .trend-up {
-      background-image: url("../footage/UPIMG.png");
+      background-image: url("../footage/public/UPIMG.png");
     }
 
     .trend-down {
-      background-image: url("../footage/DOWNIMG.png");
+      background-image: url("../footage/public/DOWNIMG.png");
     }
 
     .trend-draw {
-      background-image: url("../footage/DRAWIMG.png");
+      background-image: url("../footage/public/DRAWIMG.png");
     }
 
     .longtime-mark {
@@ -274,7 +274,7 @@
       top: 11px;
       width: 180px;
       height: 180px;
-      background-image: url("../footage/LONGTIMEIMG.png");
+      background-image: url("../footage/public/LONGTIMEIMG.png");
     }
 
     .title {
@@ -911,7 +911,7 @@
       reset(data);
       canvas.classList.add("top100");
       if (data.anniversary) {
-        image("../footage/FM.png", 1542, 707, 326, 203, { className: "contain" });
+        image("../footage/public/FM.png", 1542, 707, 326, 203, { className: "contain" });
         text("top100-anniversary-text shadow-black", data.anniversaryText);
       }
       text("top100-title title", data.title);
@@ -939,38 +939,38 @@
       if (data.template === "rank-card") {
         const variant = data.card.variant || (data.card.history ? "history" : "main");
         paths.push({
-          main: "../footage/MAINRANKIMG.png",
-          bangumi: "../footage/BANGUMIRANKIMG.png",
-          history: "../footage/HISTORYRANKIMG.png",
-          pickup: "../footage/PICKUPIMG.png"
+          main: "../footage/public/MAINRANKIMG.png",
+          bangumi: "../footage/public/BANGUMIRANKIMG.png",
+          history: "../footage/public/HISTORYRANKIMG.png",
+          pickup: "../footage/public/PICKUPIMG.png"
         }[variant]);
-        if (data.card.longtime) paths.push("../footage/LONGTIMEIMG.png");
-        if (data.card.pin) paths.push(`../footage/${data.card.pin.toUpperCase()}IMG.png`);
+        if (data.card.longtime) paths.push("../footage/public/LONGTIMEIMG.png");
+        if (data.card.pin) paths.push(`../footage/public/${data.card.pin.toUpperCase()}IMG.png`);
       }
       if (data.template === "sub-rank") {
-        paths.push(data.kind === "bangumi" ? "../footage/SUBBANGUMIRANKIMG.png" : "../footage/SUBRANKIMG.png");
+        paths.push(data.kind === "bangumi" ? "../footage/public/SUBBANGUMIRANKIMG.png" : "../footage/public/SUBRANKIMG.png");
       }
       if (data.template === "stat") {
         paths.push({
-          1: "../footage/STATONEIMG.png",
-          2: "../footage/STATTWOIMG.png",
-          3: "../footage/STATTHREEIMG.png"
+          1: "../footage/public/STATONEIMG.png",
+          2: "../footage/public/STATTWOIMG.png",
+          3: "../footage/public/STATTHREEIMG.png"
         }[data.kind]);
         data.rows.forEach((row) => {
-          if (row.trend) paths.push(`../footage/${row.trend.toUpperCase()}IMG.png`);
+          if (row.trend) paths.push(`../footage/public/${row.trend.toUpperCase()}IMG.png`);
         });
       }
       if (data.template === "simple") {
         paths.push({
-          opening: "../footage/MAINTITLEIMG.png",
-          "long-term": "../footage/LONGIMG.png",
-          "history-record": "../footage/HISTORYRECORDIMG.png",
-          "top-diff": "../footage/TOPIMG.png"
+          opening: "../footage/public/MAINTITLEIMG.png",
+          "long-term": "../footage/public/LONGIMG.png",
+          "history-record": "../footage/public/HISTORYRECORDIMG.png",
+          "top-diff": "../footage/public/TOPIMG.png"
         }[data.kind]);
       }
       if (data.template === "top100") {
-        paths.push("../footage/TOP100.png");
-        if (data.anniversary) paths.push("../footage/FM.png");
+        paths.push("../footage/public/TOP100.png");
+        if (data.anniversary) paths.push("../footage/public/FM.png");
       }
       return [...new Set(paths.filter(Boolean))];
     }
@@ -1003,20 +1003,20 @@
     }
 
     const realDebugScenes = [
-      { "id": "rank-main", "label": "主榜卡片", "note": "第 832 期主榜：1_BV1K3Gz6pEoo", "reference": "../ranking/list1/01_BV1Dx3i6nEm8.png", "payload": { "template": "rank-card", "card": { "author": "逗比的雀巢   投稿", "bv": "BV1K3Gz6pEoo", "cdate": "2026-05-23 19:22", "cover": "", "history": false, "invalid": "", "longtime": false, "score": "4,305,376", "scoreRank": "1", "title": "全世界笑点下降1000倍而我不变", "variant": "main", "week": 832, "category": "小剧场", "click": "10,824,656", "clickRank": "1", "comment": "19,585", "commentRank": "14", "lastRank": "0", "pin": "", "partText": "2P", "thirdValue": "196,459", "fourthValue": "307,674", "thirdRank": "5", "fourthRank": "2", "fixA": "×0.546", "fixB": "×23.54", "fixC": "×0.03", "fixB2": "×0.67", "fixD": "/0.656" } } },
-      { "id": "rank-bangumi", "label": "番剧卡片", "note": "第 832 期番剧样例：1_BV1fQL76sE58", "reference": "../ranking/list1/01_BV1fQL76sE58.png", "payload": { "template": "rank-card", "card": { "author": "投稿", "bv": "BV1fQL76sE58", "cdate": "2026-05-17 10:00", "cover": "../pic/116587138909910_cover.png", "history": false, "invalid": "", "longtime": false, "score": "1,342,666", "scoreRank": "1", "title": "【10月】假面骑士ZZZ 35", "variant": "bangumi", "week": 832, "click": "1,549,906", "clickRank": "1", "comment": "12,497", "commentRank": "1", "lastRank": "1", "pin": "draw", "thirdValue": "4,489", "fourthValue": "11,362", "thirdRank": "1", "fourthRank": "1", "fixA": "×0.565", "fixB": "×35.63", "fixC": "×5.79" } } },
-      { "id": "rank-history", "label": "历史榜卡片", "note": "第 832 期历史榜样例：1_BV1gijEzbEoJ", "reference": "../ranking/list1/01_BV1gijEzbEoJ.png", "payload": { "template": "rank-card", "card": { "author": "HOLA小测佬   投稿", "bv": "BV1gijEzbEoJ", "cdate": "2025-05-23 18:00", "cover": "", "history": true, "invalid": "", "longtime": false, "score": "2,269,808", "scoreRank": "1", "title": "全球排名第一超市！一颗草莓20美金！到底有多离谱？", "variant": "history", "week": 780, "category": "美食" } } },
-      { "id": "rank-pickup", "label": "Pickup 卡片", "note": "第 832 期pickup 样例：1_BV1XAZFBYEB8", "reference": "../ranking/list1/01_BV1XAZFBYEB8.png", "payload": { "template": "rank-card", "card": { "author": "_傑傑菌_   投稿", "bv": "BV1XAZFBYEB8", "category": "", "cdate": "2026-04-26 11:37", "cover": "", "invalid": "", "title": "“品酒如品姛唇，越品越香醇”「上伊那牡丹/百合/MAD」", "variant": "pickup" } } },
-      { "id": "sub-main", "label": "副榜列表", "note": "第 832 期副榜第一页：ranking/list2/001.png", "reference": "../ranking/list2/001.png", "payload": { "template": "sub-rank", "kind": "main", "rows": [{ "bv": "BV1eoLs6NE4C", "click": "5,295,380", "comment": "1,722", "cover": "../pic/BV1eoLs6NE4C_pic.jpg", "cdate": "2026-05-21 12:21", "lastRank": "上周：329", "score": "1,689,859", "scoreRank": "31", "title": "1000人海上木筏求生挑战 坚持7天瓜分10亿奖金！", "clickRank": "15", "commentRank": "2,301", "fourthRank": "591", "fourthValue": "26,469", "thirdRank": "1,034", "thirdValue": "5,951" }, { "bv": "BV1iTLe68Ef7", "click": "4,810,385", "comment": "1,322", "cover": "../pic/BV1iTLe68Ef7_pic.jpg", "cdate": "2026-05-22 17:30", "lastRank": "上周：30054", "score": "1,687,961", "scoreRank": "32", "title": "一天花掉当地一个月工资！我在破产国家当富豪，混进印度富人圈！", "clickRank": "26", "commentRank": "3,526", "fourthRank": "933", "fourthValue": "20,861", "thirdRank": "342", "thirdValue": "13,164" }, { "bv": "BV1F3Lh6cESZ", "click": "4,701,337", "comment": "4,560", "cover": "../pic/BV1F3Lh6cESZ_pic.jpg", "cdate": "2026-05-21 23:50", "lastRank": "上周：529", "score": "1,680,817", "scoreRank": "33", "title": "我的腮帮子强得可怕！", "clickRank": "33", "commentRank": "380", "fourthRank": "718", "fourthValue": "23,874", "thirdRank": "1,386", "thirdValue": "4,715" }, { "bv": "BV1CeGB62Epy", "click": "5,101,238", "comment": "967", "cover": "../pic/BV1CeGB62Epy_pic.jpg", "cdate": "2026-05-23 19:44", "lastRank": "", "score": "1,660,649", "scoreRank": "34", "title": "选一条路，决定你接下来的旅途", "clickRank": "19", "commentRank": "5,579", "fourthRank": "14", "fourthValue": "124,842", "thirdRank": "125", "thirdValue": "26,035" }] } },
-      { "id": "sub-tv", "label": "TV 副榜列表", "note": "第 832 期 TV 副榜第一页：ranking/list3/tv_001.png", "reference": "../ranking/list3/tv_001.png", "payload": { "template": "sub-rank", "kind": "main", "rows": [{ "bv": "BV1fkL16NE4h", "click": "2,006,415", "comment": "1,012", "cover": "../pic/BV1fkL16NE4h_pic.png", "cdate": "2026-05-22 10:00", "lastRank": "上周：4", "score": "963,546", "scoreRank": "1", "title": "【惊蛰无声】国安版无间道", "clickRank": "290", "commentRank": "5,223", "fourthRank": "15,855", "fourthValue": "3,068", "thirdRank": "5,868", "thirdValue": "1,398" }, { "bv": "BV1icG16pENy", "click": "1,139,329", "comment": "477", "cover": "../pic/BV1icG16pENy_pic.jpg", "cdate": "2026-05-29 20:00", "lastRank": "", "score": "632,785", "scoreRank": "2", "title": "【纪录片】闪闪的儿科医生4 第1集 “窜天娃”历险记", "clickRank": "974", "commentRank": "14,467", "fourthRank": "45,850", "fourthValue": "1,163", "thirdRank": "5,211", "thirdValue": "1,560" }, { "bv": "BV1fX96B2ETT", "click": "871,719", "comment": "277", "cover": "../pic/BV1fX96B2ETT_pic.png", "cdate": "2026-04-30 09:31", "lastRank": "上周：2", "score": "512,671", "scoreRank": "3", "title": "【飞驰人生3】国王和王后回来了！", "clickRank": "2,019", "commentRank": "27,203", "fourthRank": "35,592", "fourthValue": "1,493", "thirdRank": "2,119", "thirdValue": "3,365" }, { "bv": "BV1gifCB9Ehx", "click": "1,088,963", "comment": "24", "cover": "../pic/BV1gifCB9Ehx_pic.jpg", "cdate": "2026-02-27 20:00", "lastRank": "上周：5", "score": "470,022", "scoreRank": "4", "title": "【纪录片】守护解放西·探案季 第1集  看不见的黑手", "clickRank": "1,069", "commentRank": "179,346", "fourthRank": "104,247", "fourthValue": "446", "thirdRank": "19,516", "thirdValue": "448" }] } },
-      { "id": "sub-guoman", "label": "国创副榜列表", "note": "第 832 期国创副榜第一页：ranking/list4/bangumi_004.png", "reference": "../ranking/list4/bangumi_004.png", "payload": { "template": "sub-rank", "kind": "bangumi", "rows": [{ "bv": "BV1H5Lc62Ep3", "click": "223,336", "comment": "165", "cover": "../pic/BV1H5Lc62Ep3_pic.jpg", "cdate": "2026-05-19 09:00", "lastRank": "上周：12", "score": "225,126", "scoreRank": "11", "title": "【独家】盗妖行 第28集 我是你祖宗【3月国创】", "thirdValue": "582" }, { "bv": "BV1EALm66EJ5", "click": "87,572", "comment": "98", "cover": "../pic/BV1EALm66EJ5_pic.jpg", "cdate": "2026-05-21 11:00", "lastRank": "上周：13", "score": "194,212", "scoreRank": "12", "title": "【独家】驭灵师 第15集 凌家宝库？都是我的了！【2月国创】", "thirdValue": "255" }, { "bv": "BV1QMLu6XEoK", "click": "153,621", "comment": "14", "cover": "../pic/BV1QMLu6XEoK_pic.jpg", "cdate": "2026-05-22 18:00", "lastRank": "上周：14", "score": "154,317", "scoreRank": "13", "title": "冰雪荣耀（下）", "thirdValue": "33" }, { "bv": "BV1CvLs6JEKV", "click": "67,826", "comment": "141", "cover": "../pic/BV1CvLs6JEKV_pic.png", "cdate": "2026-05-22 12:00", "lastRank": "上周：15", "score": "99,213", "scoreRank": "14", "title": "【独家】《开拍啦！怪兽大电影》第6话 他的名字【4月国创】", "thirdValue": "337" }] } },
+      { "id": "rank-main", "label": "主榜卡片", "note": "第 832 期主榜：1_BV1K3Gz6pEoo", "reference": "../ranking/main/01_BV1Dx3i6nEm8.png", "payload": { "template": "rank-card", "card": { "author": "逗比的雀巢   投稿", "bv": "BV1K3Gz6pEoo", "cdate": "2026-05-23 19:22", "cover": "", "history": false, "invalid": "", "longtime": false, "score": "4,305,376", "scoreRank": "1", "title": "全世界笑点下降1000倍而我不变", "variant": "main", "week": 832, "category": "小剧场", "click": "10,824,656", "clickRank": "1", "comment": "19,585", "commentRank": "14", "lastRank": "0", "pin": "", "partText": "2P", "thirdValue": "196,459", "fourthValue": "307,674", "thirdRank": "5", "fourthRank": "2", "fixA": "×0.546", "fixB": "×23.54", "fixC": "×0.03", "fixB2": "×0.67", "fixD": "/0.656" } } },
+      { "id": "rank-bangumi", "label": "番剧卡片", "note": "第 832 期番剧样例：1_BV1fQL76sE58", "reference": "../ranking/main/01_BV1fQL76sE58.png", "payload": { "template": "rank-card", "card": { "author": "投稿", "bv": "BV1fQL76sE58", "cdate": "2026-05-17 10:00", "cover": "../pic/116587138909910_cover.png", "history": false, "invalid": "", "longtime": false, "score": "1,342,666", "scoreRank": "1", "title": "【10月】假面骑士ZZZ 35", "variant": "bangumi", "week": 832, "click": "1,549,906", "clickRank": "1", "comment": "12,497", "commentRank": "1", "lastRank": "1", "pin": "draw", "thirdValue": "4,489", "fourthValue": "11,362", "thirdRank": "1", "fourthRank": "1", "fixA": "×0.565", "fixB": "×35.63", "fixC": "×5.79" } } },
+      { "id": "rank-history", "label": "历史榜卡片", "note": "第 832 期历史榜样例：1_BV1gijEzbEoJ", "reference": "../ranking/main/01_BV1gijEzbEoJ.png", "payload": { "template": "rank-card", "card": { "author": "HOLA小测佬   投稿", "bv": "BV1gijEzbEoJ", "cdate": "2025-05-23 18:00", "cover": "", "history": true, "invalid": "", "longtime": false, "score": "2,269,808", "scoreRank": "1", "title": "全球排名第一超市！一颗草莓20美金！到底有多离谱？", "variant": "history", "week": 780, "category": "美食" } } },
+      { "id": "rank-pickup", "label": "Pickup 卡片", "note": "第 832 期pickup 样例：1_BV1XAZFBYEB8", "reference": "../ranking/main/01_BV1XAZFBYEB8.png", "payload": { "template": "rank-card", "card": { "author": "_傑傑菌_   投稿", "bv": "BV1XAZFBYEB8", "category": "", "cdate": "2026-04-26 11:37", "cover": "", "invalid": "", "title": "“品酒如品姛唇，越品越香醇”「上伊那牡丹/百合/MAD」", "variant": "pickup" } } },
+      { "id": "sub-main", "label": "副榜列表", "note": "第 832 期副榜第一页：ranking/sub/001.png", "reference": "../ranking/sub/001.png", "payload": { "template": "sub-rank", "kind": "main", "rows": [{ "bv": "BV1eoLs6NE4C", "click": "5,295,380", "comment": "1,722", "cover": "../pic/BV1eoLs6NE4C_pic.jpg", "cdate": "2026-05-21 12:21", "lastRank": "上周：329", "score": "1,689,859", "scoreRank": "31", "title": "1000人海上木筏求生挑战 坚持7天瓜分10亿奖金！", "clickRank": "15", "commentRank": "2,301", "fourthRank": "591", "fourthValue": "26,469", "thirdRank": "1,034", "thirdValue": "5,951" }, { "bv": "BV1iTLe68Ef7", "click": "4,810,385", "comment": "1,322", "cover": "../pic/BV1iTLe68Ef7_pic.jpg", "cdate": "2026-05-22 17:30", "lastRank": "上周：30054", "score": "1,687,961", "scoreRank": "32", "title": "一天花掉当地一个月工资！我在破产国家当富豪，混进印度富人圈！", "clickRank": "26", "commentRank": "3,526", "fourthRank": "933", "fourthValue": "20,861", "thirdRank": "342", "thirdValue": "13,164" }, { "bv": "BV1F3Lh6cESZ", "click": "4,701,337", "comment": "4,560", "cover": "../pic/BV1F3Lh6cESZ_pic.jpg", "cdate": "2026-05-21 23:50", "lastRank": "上周：529", "score": "1,680,817", "scoreRank": "33", "title": "我的腮帮子强得可怕！", "clickRank": "33", "commentRank": "380", "fourthRank": "718", "fourthValue": "23,874", "thirdRank": "1,386", "thirdValue": "4,715" }, { "bv": "BV1CeGB62Epy", "click": "5,101,238", "comment": "967", "cover": "../pic/BV1CeGB62Epy_pic.jpg", "cdate": "2026-05-23 19:44", "lastRank": "", "score": "1,660,649", "scoreRank": "34", "title": "选一条路，决定你接下来的旅途", "clickRank": "19", "commentRank": "5,579", "fourthRank": "14", "fourthValue": "124,842", "thirdRank": "125", "thirdValue": "26,035" }] } },
+      { "id": "sub-tv", "label": "TV 副榜列表", "note": "第 832 期 TV 副榜第一页：ranking/sub/tv_001.png", "reference": "../ranking/sub/tv_001.png", "payload": { "template": "sub-rank", "kind": "main", "rows": [{ "bv": "BV1fkL16NE4h", "click": "2,006,415", "comment": "1,012", "cover": "../pic/BV1fkL16NE4h_pic.png", "cdate": "2026-05-22 10:00", "lastRank": "上周：4", "score": "963,546", "scoreRank": "1", "title": "【惊蛰无声】国安版无间道", "clickRank": "290", "commentRank": "5,223", "fourthRank": "15,855", "fourthValue": "3,068", "thirdRank": "5,868", "thirdValue": "1,398" }, { "bv": "BV1icG16pENy", "click": "1,139,329", "comment": "477", "cover": "../pic/BV1icG16pENy_pic.jpg", "cdate": "2026-05-29 20:00", "lastRank": "", "score": "632,785", "scoreRank": "2", "title": "【纪录片】闪闪的儿科医生4 第1集 “窜天娃”历险记", "clickRank": "974", "commentRank": "14,467", "fourthRank": "45,850", "fourthValue": "1,163", "thirdRank": "5,211", "thirdValue": "1,560" }, { "bv": "BV1fX96B2ETT", "click": "871,719", "comment": "277", "cover": "../pic/BV1fX96B2ETT_pic.png", "cdate": "2026-04-30 09:31", "lastRank": "上周：2", "score": "512,671", "scoreRank": "3", "title": "【飞驰人生3】国王和王后回来了！", "clickRank": "2,019", "commentRank": "27,203", "fourthRank": "35,592", "fourthValue": "1,493", "thirdRank": "2,119", "thirdValue": "3,365" }, { "bv": "BV1gifCB9Ehx", "click": "1,088,963", "comment": "24", "cover": "../pic/BV1gifCB9Ehx_pic.jpg", "cdate": "2026-02-27 20:00", "lastRank": "上周：5", "score": "470,022", "scoreRank": "4", "title": "【纪录片】守护解放西·探案季 第1集  看不见的黑手", "clickRank": "1,069", "commentRank": "179,346", "fourthRank": "104,247", "fourthValue": "446", "thirdRank": "19,516", "thirdValue": "448" }] } },
+      { "id": "sub-guoman", "label": "国创副榜列表", "note": "第 832 期国创副榜第一页：ranking/sub/bangumi_004.png", "reference": "../ranking/sub/bangumi_004.png", "payload": { "template": "sub-rank", "kind": "bangumi", "rows": [{ "bv": "BV1H5Lc62Ep3", "click": "223,336", "comment": "165", "cover": "../pic/BV1H5Lc62Ep3_pic.jpg", "cdate": "2026-05-19 09:00", "lastRank": "上周：12", "score": "225,126", "scoreRank": "11", "title": "【独家】盗妖行 第28集 我是你祖宗【3月国创】", "thirdValue": "582" }, { "bv": "BV1EALm66EJ5", "click": "87,572", "comment": "98", "cover": "../pic/BV1EALm66EJ5_pic.jpg", "cdate": "2026-05-21 11:00", "lastRank": "上周：13", "score": "194,212", "scoreRank": "12", "title": "【独家】驭灵师 第15集 凌家宝库？都是我的了！【2月国创】", "thirdValue": "255" }, { "bv": "BV1QMLu6XEoK", "click": "153,621", "comment": "14", "cover": "../pic/BV1QMLu6XEoK_pic.jpg", "cdate": "2026-05-22 18:00", "lastRank": "上周：14", "score": "154,317", "scoreRank": "13", "title": "冰雪荣耀（下）", "thirdValue": "33" }, { "bv": "BV1CvLs6JEKV", "click": "67,826", "comment": "141", "cover": "../pic/BV1CvLs6JEKV_pic.png", "cdate": "2026-05-22 12:00", "lastRank": "上周：15", "score": "99,213", "scoreRank": "14", "title": "【独家】《开拍啦！怪兽大电影》第6话 他的名字【4月国创】", "thirdValue": "337" }] } },
       { "id": "stat-1", "label": "统计页 1", "note": "第 832 期统计页 stat_1。", "reference": "../ranking/pic/stat_1.png", "payload": { "template": "stat", "kind": 1, "rows": [{ "category": "游戏", "trend": "draw", "rank": "1", "score": "2,341,904,562" }, { "category": "动画", "trend": "draw", "rank": "2", "score": "1,022,850,136" }, { "category": "影视", "trend": "draw", "rank": "3", "score": "821,000,530" }, { "category": "知识", "trend": "draw", "rank": "4", "score": "715,207,512" }, { "category": "——", "trend": "draw", "rank": "5", "score": "630,901,167" }, { "category": "小剧场", "trend": "draw", "rank": "6", "score": "576,103,519" }, { "category": "音乐", "trend": "draw", "rank": "7", "score": "417,516,437" }] } },
       { "id": "stat-2", "label": "统计页 2", "note": "第 832 期统计页 stat_2。", "reference": "../ranking/pic/stat_2.png", "payload": { "template": "stat", "kind": 2, "rows": [{ "category": "美食", "trend": "draw", "rank": "8", "score": "346,694,468" }, { "category": "动物", "trend": "draw", "rank": "9", "score": "324,347,111" }, { "category": "娱乐", "trend": "up", "rank": "11", "score": "291,905,508" }, { "category": "资讯", "trend": "down", "rank": "10", "score": "262,552,724" }, { "category": "科技数码", "trend": "draw", "rank": "12", "score": "202,033,181" }, { "category": "体育运动", "trend": "draw", "rank": "13", "score": "174,841,853" }, { "category": "汽车", "trend": "draw", "rank": "14", "score": "128,514,523" }] } },
       { "id": "stat-3", "label": "统计页 3", "note": "第 832 期统计页 stat_3。", "reference": "../ranking/pic/stat_3.png", "payload": { "template": "stat", "kind": 3, "rows": [{ "current": "23,853,686,351", "last": "24,049,863,474", "trend": "down" }, { "current": "37,635,588", "last": "37,334,907", "trend": "up" }, { "current": "269,352,128", "last": "270,902,028", "trend": "down" }, { "current": "27,456,096", "last": "26,363,500", "trend": "up" }, { "current": "57,589,546", "last": "56,258,281", "trend": "up" }] } },
       { "id": "simple-opening", "label": "开场标题", "note": "第 832 期开场标题。", "reference": "../ranking/1_op/title.png", "payload": { "template": "simple", "kind": "opening", "title": "2026年5月第5周", "week": "#832" } },
       { "id": "simple-long", "label": "长期作品页", "note": "第 832 期长期作品页。", "reference": "../ranking/pic/_1.png", "payload": { "template": "simple", "kind": "long-term", "range": "30-21", "description": "长期作品：没有" } },
       { "id": "simple-history", "label": "历史回顾页", "note": "第 832 期历史回顾页。", "reference": "../ranking/pic/history.png", "payload": { "template": "simple", "kind": "history-record", "count": "该期集计投稿数：392,552", "title": "周刊哔哩哔哩排行榜#780 (av114608182467569)" } },
-      { "id": "simple-top", "label": "前三差距页", "note": "第 832 期前三差距页。", "reference": "../ranking/list1/01_BV1K3Gz6pEoo_.png", "payload": { "template": "simple", "kind": "top-diff", "place": "1", "diffText": "比第2名高出1,069,987pts." } },
+      { "id": "simple-top", "label": "前三差距页", "note": "第 832 期前三差距页。", "reference": "../ranking/main/01_BV1K3Gz6pEoo_.png", "payload": { "template": "simple", "kind": "top-diff", "place": "1", "diffText": "比第2名高出1,069,987pts." } },
       { "id": "top100", "label": "Top100 卡片", "note": "Top100 样例：第 800 期历史百期回顾。", "reference": "../ranking/list100/784_av114715137150680.png", "payload": { "template": "top100", "author": "KANGBAS卓拉  投稿", "bvid": "BV19hKwzhEd6", "category": "综合", "cdate": "2025-06-20 10:12", "title": "自学动画 爆肝两月 自创一集《猫和老鼠》", "week": 784, "rankTime": "2025年6月第4周", "anniversaryText": "The 16th year", "anniversary": true, "spText": "八百期SP", "top100Text": "八百期纪念" } }
     ];
 
