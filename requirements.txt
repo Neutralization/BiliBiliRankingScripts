@@ -1,4 +1,0 @@
-arrow
-PyYAML
-requests
-selenium
