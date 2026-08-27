@@ -1,16 +1,4 @@
-from typing import Final, TypedDict
-
-
-class VideoInfo(TypedDict):
-    aid: str
-    bvid: str
-    tname: str
-    pubdate: int | str
-    owner: str
-    title: str
-
-
-LOST_INFO: Final[dict[str, VideoInfo]] = {
+LOST_INFO = {
     "1906108321": {
         "aid": "1906108321",
         "bvid": "BV1fKCzYWEkU",

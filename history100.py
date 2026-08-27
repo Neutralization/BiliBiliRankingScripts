@@ -2,7 +2,6 @@ import argparse
 import re
 import time
 from pathlib import Path
-from typing import Final, TypedDict
 from unicodedata import combining, normalize
 
 import requests
@@ -12,47 +11,22 @@ from selenium.webdriver.edge.options import Options
 from yaml import BaseLoader
 from yaml import load as yload
 
-from history100_lost_info import LOST_INFO, VideoInfo
+from history100_lost_info import LOST_INFO
 
-YUME: Final = 1277009809
-CONTROL: Final = re.compile(r"[\u0000-\u0019\u007F-\u00A0]")
-UA: Final = (
+YUME = 1277009809
+CONTROL = re.compile(r"[\u0000-\u0019\u007F-\u00A0]")
+UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0"
 )
-RENDER_TEMPLATE: Final = Path("templates/render.html").resolve().as_uri()
-PAGE_WIDTH: Final = 1920
-PAGE_HEIGHT: Final = 1080
-REQUEST_TIMEOUT: Final = 20
-SECONDS_PER_DAY: Final = 24 * 3600
-SECONDS_PER_WEEK: Final = 7 * SECONDS_PER_DAY
+RENDER_TEMPLATE = Path("templates/render.html").resolve().as_uri()
+PAGE_WIDTH = 1920
+PAGE_HEIGHT = 1080
+REQUEST_TIMEOUT = 20
+SECONDS_PER_DAY = 24 * 3600
+SECONDS_PER_WEEK = 7 * SECONDS_PER_DAY
 
 
-class Top100Payload(TypedDict):
-    author: str
-    bvid: str
-    category: str
-    cdate: str
-    title: str
-    week: int
-    rankTime: str
-    anniversaryText: str
-    anniversary: bool
-    spText: str
-    top100Text: str
-
-
-class Top100Labels(TypedDict):
-    spText: str
-    top100Text: str
-
-
-class Top100RenderItem(TypedDict):
-    name: str
-    rank: int
-    labels: Top100Labels
-
-
-HISTORY_NUM_TEXT: Final[dict[int, str]] = dict(
+HISTORY_NUM_TEXT = dict(
     zip(
         range(100, 2100, 100),
         [
@@ -82,16 +56,16 @@ HISTORY_NUM_TEXT: Final[dict[int, str]] = dict(
 )
 
 
-def current_week(timestamp: int | None = None) -> int:
+def current_week(timestamp = None):
     now = int(time.time()) if timestamp is None else timestamp
     return (now - YUME + 133009) // 3600 // 24 // 7
 
 
-def default_history_num(timestamp: int | None = None) -> int:
+def default_history_num(timestamp = None):
     return current_week(timestamp) // 100 * 100
 
 
-def top100_labels(history_num: int) -> Top100Labels:
+def top100_labels(history_num):
     chinese_text = HISTORY_NUM_TEXT[history_num]
     return {
         "spText": f"{chinese_text}期SP",
@@ -99,29 +73,32 @@ def top100_labels(history_num: int) -> Top100Labels:
     }
 
 
-def clean_title(title: str) -> str:
+def clean_title(title):
     nfc_title = normalize("NFC", title)
     return CONTROL.sub("", "".join(char for char in nfc_title if combining(char) == 0))
 
 
-def get_info(name: str) -> VideoInfo | None:
+def get_info(name):
     normalized_name = name.strip()
     parameter = "bvid" if normalized_name.lower().startswith("bv") else "aid"
     value = (
         normalized_name if parameter == "bvid" else normalized_name.removeprefix("av")
     )
-    response = requests.get(
-        "https://api.bilibili.com/x/web-interface/view",
-        params={parameter: value},
-        headers={"User-Agent": UA},
-        timeout=REQUEST_TIMEOUT,
-    )
-    response.raise_for_status()
-    result = response.json()
-    if result["code"] != 0:
+    try:
+        response = requests.get(
+            "https://api.bilibili.com/x/web-interface/view",
+            params={parameter: value},
+            headers={"User-Agent": UA},
+            timeout=REQUEST_TIMEOUT,
+        )
+        response.raise_for_status()
+        result = response.json()
+        if result["code"] != 0:
+            return None
+        data = result["data"]
+    except (requests.RequestException, ValueError, KeyError, TypeError):
         return None
-    data = result["data"]
-    info: VideoInfo = {
+    info = {
         "aid": str(data["aid"]),
         "bvid": str(data["bvid"]),
         "tname": str(data["tname"]),
@@ -133,7 +110,7 @@ def get_info(name: str) -> VideoInfo | None:
     return info
 
 
-def fallback_info(name: str) -> VideoInfo:
+def fallback_info(name):
     aid = name[2:] if name.lower().startswith("av") else name
     if aid in LOST_INFO:
         return LOST_INFO[aid]
@@ -143,7 +120,7 @@ def fallback_info(name: str) -> VideoInfo:
     raise KeyError(f"No fallback metadata for {name}")
 
 
-def create_browser() -> Edge:
+def create_browser():
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--window-size=4096,500")
@@ -156,7 +133,7 @@ def create_browser() -> Edge:
     return browser
 
 
-def render_png(browser: Edge, item: Top100Payload, output: Path) -> None:
+def render_png(browser, item, output):
     payload = {
         "template": "top100",
         "width": PAGE_WIDTH,
@@ -190,7 +167,7 @@ def render_png(browser: Edge, item: Top100Payload, output: Path) -> None:
     print(output)
 
 
-def render_item(browser: Edge, history_num, render_data: Top100RenderItem) -> None:
+def render_item(browser, history_num, render_data):
     name = render_data["name"]
     rank = render_data["rank"]
     info = get_info(name)
@@ -211,7 +188,7 @@ def render_item(browser: Edge, history_num, render_data: Top100RenderItem) -> No
     rank_date = time.gmtime(YUME + rank * SECONDS_PER_WEEK - SECONDS_PER_DAY)
     rank_week_of_month = (rank_date.tm_mday + 6) // 7
     anniversary = rank_date.tm_mon == 6 and rank_week_of_month == 4
-    item: Top100Payload = {
+    item = {
         "author": f"{info['owner']}   投稿",
         "bvid": info["bvid"],
         "category": info["tname"],
@@ -229,7 +206,7 @@ def render_item(browser: Edge, history_num, render_data: Top100RenderItem) -> No
     render_png(browser, item, Path(f"./ranking/history{history_num}/{rank}_{name}.png"))
 
 
-def main() -> None:
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "HistoryNum", nargs="?", type=int, default=default_history_num()
