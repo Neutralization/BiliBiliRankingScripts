@@ -1,5 +1,5 @@
 ﻿param (
-    [string]$RankNum = [Math]::Floor(
+    [int]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 )
 $ProgressPreference = 'SilentlyContinue'
@@ -8,7 +8,7 @@ $FootageFolder = "${TruePath}/ranking/#${RankNum}"
 $LOST_FILE = "${TruePath}/footage/LostFile.json"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
-Write-Information ">>> 周刊哔哩哔哩排行榜#${RankNum}" -InformationAction Continue
+Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 周刊哔哩哔哩排行榜#${RankNum}" -InformationAction Continue
 
 function ConvertTo-AID {
     param (
@@ -66,13 +66,10 @@ function Get-Cover {
     if ([string]::IsNullOrWhiteSpace($Link)) {
         return './footage/public/cover_lost.png'
     }
-    $ext = ($Link -split '\.')[-1]
-    $folderPath = './footage/covers'
-    $fileName = "${Id}_${Name}.${ext}"
-    $destination = Join-Path $folderPath $fileName
+    $destination = Join-Path './footage/covers' "${Id}_${Name}.$((($Link -split '\.')[-1]))"
     if (-not (Test-Path $destination)) {
-        if (-not (Test-Path $folderPath)) {
-            New-Item -ItemType Directory -Path $folderPath | Out-Null
+        if (-not (Test-Path './footage/covers')) {
+            New-Item -ItemType Directory -Path './footage/covers' | Out-Null
         }
         try {
             Invoke-WebRequest -Uri $Link -OutFile $destination -UserAgent $UserAgent
@@ -85,29 +82,29 @@ function Get-Cover {
 function Get-VideoTitle {
     param ([int64]$Aid)
 
-    $url = 'https://api.bilibili.com/x/web-interface/view'
-    $headers = @{ 'User-Agent' = $UserAgent; 'DNT' = '1' }
-
     try {
-        $resp = Invoke-RestMethod -Uri "${url}?aid=${Aid}" -Headers $headers -Method Get
+        $resp = Invoke-RestMethod -Uri "https://api.bilibili.com/x/web-interface/view?aid=${Aid}" -Headers @{ 'User-Agent' = $UserAgent; 'DNT' = '1' } -Method Get
         if ($resp.code -eq 0) {
             return @{ title = $resp.data.title; tname = $resp.data.tname_v2 }
         } else {
             # 记录失效视频
-            $codemsg = @{ -404 = '管理员锁定'; 62002 = '用户自删除'; 62012 = '用户仅自见' }
-            $msg = if ($codemsg.ContainsKey([int32]$resp.code)) { $codemsg[[int32]$resp.code] } else { '未知错误' }
+            $msg = switch ([int32]$resp.code) {
+                -404 { '管理员锁定' }
+                62002 { '用户自删除' }
+                62012 { '用户仅自见' }
+                default { '未知错误' }
+            }
             $lost = if (Test-Path $LOST_FILE) { Get-Content $LOST_FILE -Raw | ConvertFrom-Json -AsHashtable }
             $lost = if ($null -ne $lost) { $lost } else { [ordered]@{} }
-            $Bvid = ConvertTo-AID -Source $Aid -Reverse $true
-            $lost["av$Aid"] = $msg; $lost["$Bvid"] = $msg
+            $lost["av$Aid"] = $msg; $lost["$(ConvertTo-AID -Source $Aid -Reverse $true)"] = $msg
             $lost | ConvertTo-Json -Depth 10 | Set-Content $LOST_FILE -Encoding UTF8
-            Write-Information "> 视频失效: av${Aid} (${msg})" -InformationAction Continue
+            Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 视频失效: av${Aid} (${msg})" -InformationAction Continue
             return $null
         }
     } catch { return $null }
 }
 
-function Write-YamlList {
+function Get-YamlItem {
     param (
         [string]$Suffix,
         [int]$Max,
@@ -116,42 +113,66 @@ function Write-YamlList {
     )
 
     $jsonPath = "./${RankNum}_${Suffix}.json"
-    if (-not (Test-Path $jsonPath)) { return }
+    if (-not (Test-Path $jsonPath)) { return $null }
     $content = Get-Content $jsonPath -Raw | ConvertFrom-Json
     $rankFrom = $content[0].rank_from
-    $yamlList = New-Object System.Collections.Generic.List[PSObject]
+    $yamlItems = New-Object System.Collections.Generic.List[PSObject]
 
     foreach ($x in $content) {
         if ($null -eq $x.info -and $x.sp_type_id -ne 2) {
             $rank = if ($null -ne $x.score_rank) { $x.score_rank } else { $x.rank }
             $Bvid = $x.bv -replace '^bv', 'BV'
-
             $len = 20
             if ($Part -in @(7, 11, 15)) { $len = 15 } elseif ($Part -eq 16) { $len = 30 }
             if ($x.changqi) { $len -= 10 }
-
             if ($rankFrom -le $Max) { $Max = $rankFrom }
             if ($rank -le $Max -and $rank -ge $Min) {
-                $yamlList.Add([PSCustomObject]@{
-                        rank   = $rank
-                        name   = $Bvid
-                        length = $len
-                    })
+                $yamlItems.Add([PSCustomObject]@{ rank = $rank; name = $Bvid; length = $len })
             }
         }
     }
 
-    $yamlStr = New-Object System.Collections.Generic.List[string]
-    $yamlStr.Add('---')
-    for ($i = $yamlList.Count - 1; $i -ge 0; $i--) {
-        $item = $yamlList[$i]
-        $yamlStr.Add("- :rank: $($item.rank)")
-        $yamlStr.Add("  :name: $($item.name)")
-        $yamlStr.Add("  :length: $($item.length)")
-        $yamlStr.Add('  :offset: 0')
+    return $yamlItems
+}
+
+function Convert-YamlItemToLineList {
+    param (
+        [System.Collections.Generic.List[PSObject]]$YamlItems
+    )
+
+    $yamlLines = New-Object System.Collections.Generic.List[string]
+    $yamlLines.Add('---')
+    for ($i = $YamlItems.Count - 1; $i -ge 0; $i--) {
+        $item = $YamlItems[$i]
+        $yamlLines.Add("- :rank: $($item.rank)")
+        $yamlLines.Add("  :name: $($item.name)")
+        $yamlLines.Add("  :length: $($item.length)")
+        $yamlLines.Add('  :offset: 0')
     }
-    $yamlStr | Set-Content -Path "${FootageFolder}/main/${RankNum}_${Part}.yml" -Encoding UTF8
-    Write-Information "> 已生成 YAML: ${FootageFolder}/main/${RankNum}_${Part}.yml" -InformationAction Continue
+    return $yamlLines
+}
+
+function Write-YamlOutput {
+    param (
+        [System.Collections.Generic.List[string]]$YamlLines,
+        [int]$Part
+    )
+
+    $YamlLines | Set-Content -Path "${FootageFolder}/main/${RankNum}_${Part}.yml" -Encoding UTF8
+    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 已生成 YAML: ${FootageFolder}/main/${RankNum}_${Part}.yml" -InformationAction Continue
+}
+
+function Write-YamlItemList {
+    param (
+        [string]$Suffix,
+        [int]$Max,
+        [int]$Min,
+        [int]$Part
+    )
+    $yamlItems = Get-YamlItem -Suffix $Suffix -Max $Max -Min $Min -Part $Part
+    if ($null -eq $yamlItems) { return }
+    $yamlLines = Convert-YamlItemToLineList -YamlItems $yamlItems
+    Write-YamlOutput -YamlLines $yamlLines -Part $Part
 }
 
 function Write-RankdoorCsv {
@@ -199,22 +220,16 @@ function Write-RankdoorCsv {
 
     $csvPath = "${TruePath}/ranking/#${RankNum}/${RankNum}_rankdoor.csv"
     $csvLines | Set-Content -Path $csvPath -Encoding UTF8
-    Write-Information "> 已生成 Rankdoor CSV: ${csvPath}" -InformationAction Continue
+    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 已生成 Rankdoor CSV: ${csvPath}" -InformationAction Continue
 }
 
 function Main {
-    if (!(Test-Path "${FootageFolder}/main")) {
-        New-Item -ItemType Directory -Path "${FootageFolder}/main" | Out-Null
-    }
-    if (!(Test-Path "${FootageFolder}/sub")) {
-        New-Item -ItemType Directory -Path "${FootageFolder}/sub" | Out-Null
-    }
-    $targetFiles = @('results_bangumi', 'guoman_bangumi', 'results_history', 'results' )
+    function Get-SourceJson {
+        param ([string]$Suffix)
 
-    foreach ($suffix in $targetFiles) {
-        $file = "./${RankNum}_${suffix}.json"
-        if (-not (Test-Path $file)) { continue }
-        Write-Information "> 正在处理文件: $file" -InformationAction Continue
+        $file = "./${RankNum}_${Suffix}.json"
+        if (-not (Test-Path $file)) { return }
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 正在处理文件: $file" -InformationAction Continue
         $data = Get-Content $file -Raw | ConvertFrom-Json
 
         foreach ($item in $data) {
@@ -225,8 +240,8 @@ function Main {
                 $info = Get-VideoTitle -Aid $item.wid
                 if ($null -ne $info) {
                     if ($info.title -ne '' -and $info.title -ne $item.name) {
-                        Write-Information "> 正在更新标题：原 $($item.wid) / $($item.name)" -InformationAction Continue
-                        Write-Information "> 正在更新标题: 现 $($info.title)" -InformationAction Continue
+                        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 正在更新标题：原 $($item.name)" -InformationAction Continue
+                        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 正在更新标题: 现 $($info.title)" -InformationAction Continue
                         $item.name = $info.title
                     }
                     if ($info.tname -ne '' -and $item.wtype -ne $info.tname) { $item.wtype = $info.tname }
@@ -235,11 +250,11 @@ function Main {
                 $cover = $item.cover
                 $id = ConvertTo-AID -Source $item.wid -Reverse $true
                 if ($null -ne $pic) {
-                    Write-Information "> 正在下载封面: ${pic} > ${id}_pic" -InformationAction Continue
+                    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 正在下载封面: ${pic} > ${id}_pic" -InformationAction Continue
                     Get-Cover -Id $id -Link $pic -Name 'pic'
                 }
                 if ($null -ne $cover) {
-                    Write-Information "> 正在下载封面: ${cover} > ${id}_cover" -InformationAction Continue
+                    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 正在下载封面: ${cover} > ${id}_cover" -InformationAction Continue
                     Get-Cover -Id $id -Link $cover -Name 'cover'
                 }
             }
@@ -247,37 +262,57 @@ function Main {
         $data | ConvertTo-Json -Depth 10 -Compress | Set-Content $file -Encoding UTF8
     }
 
-    Write-YamlList -Suffix 'results' -Max 99 -Min 21 -Part 5
-    Write-YamlList -Suffix 'guoman_bangumi' -Max 10 -Min 1 -Part 7
-    Write-YamlList -Suffix 'results' -Max 20 -Min 11 -Part 9
-    Write-YamlList -Suffix 'results_bangumi' -Max 10 -Min 1 -Part 11
-    Write-YamlList -Suffix 'results' -Max 10 -Min 4 -Part 13
-    Write-YamlList -Suffix 'results_history' -Max 5 -Min 1 -Part 15
-    Write-YamlList -Suffix 'results' -Max 3 -Min 1 -Part 16
-    Write-RankdoorCsv
-    uv run .\generate.py --week $RankNum
-    $rankStartTime = [DateTimeOffset]::FromUnixTimeSeconds(1276876800 + ([int64]$RankNum * 604800)).LocalDateTime
-    $archivePaths = @("${FootageFolder}/main/${RankNum}*.yml")
-    $pngFiles = Get-ChildItem -Path "${FootageFolder}/main/*.png" -File -ErrorAction SilentlyContinue | Where-Object { $_.CreationTime -gt $rankStartTime }
-    if ($pngFiles.Count -gt 0) {
-        $archivePaths += $pngFiles.FullName
+    function Get-DerivedAsset {
+        Write-YamlItemList -Suffix 'results' -Max 99 -Min 21 -Part 5
+        Write-YamlItemList -Suffix 'guoman_bangumi' -Max 10 -Min 1 -Part 7
+        Write-YamlItemList -Suffix 'results' -Max 20 -Min 11 -Part 9
+        Write-YamlItemList -Suffix 'results_bangumi' -Max 10 -Min 1 -Part 11
+        Write-YamlItemList -Suffix 'results' -Max 10 -Min 4 -Part 13
+        Write-YamlItemList -Suffix 'results_history' -Max 5 -Min 1 -Part 15
+        Write-YamlItemList -Suffix 'results' -Max 3 -Min 1 -Part 16
+        Write-RankdoorCsv
+        uv run .\generate.py --week $RankNum
     }
 
-    $archiveTemp = Join-Path ([System.IO.Path]::GetTempPath()) "bilibiliweek_${RankNum}_main_$([Guid]::NewGuid().ToString('N'))"
-    $archiveListFolder = Join-Path $archiveTemp 'main'
-    try {
-        New-Item -ItemType Directory -Path $archiveListFolder -Force | Out-Null
-        foreach ($archivePath in $archivePaths) {
-            Get-ChildItem -Path $archivePath -File -ErrorAction SilentlyContinue | ForEach-Object {
-                Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $archiveListFolder $_.Name) -Force
+    function Get-OutputArchive {
+        $rankStartTime = [DateTimeOffset]::FromUnixTimeSeconds(1276876800 + ([int64]$RankNum * 604800)).LocalDateTime
+        $archivePaths = @("${FootageFolder}/main/${RankNum}*.yml")
+        $pngFiles = Get-ChildItem -Path "${FootageFolder}/main/*.png" -File -ErrorAction SilentlyContinue | Where-Object { $_.CreationTime -gt $rankStartTime }
+        if ($pngFiles.Count -gt 0) {
+            $archivePaths += $pngFiles.FullName
+        }
+
+        $archiveTemp = Join-Path ([System.IO.Path]::GetTempPath()) "bilibiliweek_${RankNum}_main_$([Guid]::NewGuid().ToString('N'))"
+        $archiveListFolder = Join-Path $archiveTemp 'main'
+        try {
+            New-Item -ItemType Directory -Path $archiveListFolder -Force | Out-Null
+            foreach ($archivePath in $archivePaths) {
+                Get-ChildItem -Path $archivePath -File -ErrorAction SilentlyContinue | ForEach-Object {
+                    Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $archiveListFolder $_.Name) -Force
+                }
+            }
+            Compress-Archive -Path $archiveListFolder -DestinationPath "${TruePath}/${RankNum}_main.zip" -Force
+        } finally {
+            if (Test-Path $archiveTemp) {
+                Remove-Item -LiteralPath $archiveTemp -Recurse -Force
             }
         }
-        Compress-Archive -Path $archiveListFolder -DestinationPath "${TruePath}/${RankNum}_main.zip" -Force
-    } finally {
-        if (Test-Path $archiveTemp) {
-            Remove-Item -LiteralPath $archiveTemp -Recurse -Force
-        }
     }
+
+    if (!(Test-Path "${FootageFolder}/main")) {
+        New-Item -ItemType Directory -Path "${FootageFolder}/main" | Out-Null
+    }
+    if (!(Test-Path "${FootageFolder}/sub")) {
+        New-Item -ItemType Directory -Path "${FootageFolder}/sub" | Out-Null
+    }
+    $targetFiles = @('results_bangumi', 'guoman_bangumi', 'results_history', 'results' )
+
+    foreach ($suffix in $targetFiles) {
+        Get-SourceJson -Suffix $suffix
+    }
+
+    Get-DerivedAsset
+    Get-OutputArchive
 }
 
 Main

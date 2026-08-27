@@ -75,7 +75,7 @@ function ConvertTo-AID {
     if ($Reverse) { return av2bv $Source } else { return bv2av $Source }
 }
 
-function Add-TimeStamp {
+function Add-Timestamp {
     param (
         [parameter(position = 1)]$AVID
     )
@@ -89,11 +89,11 @@ function Add-TimeStamp {
             -Body $Body
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Information -MessageData $Result.message -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - $Result.message" -InformationAction Continue
         return 1
     } else {
         $CID = $Result.data.pages[0].cid
-        Write-Information -MessageData "取得视频 CID ${CID}" -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 取得视频 CID ${CID}" -InformationAction Continue
     }
     $Stamp = Get-Content $StampFile -Encoding 'UTF-8'
     $StampString = $Stamp | ConvertFrom-Json | ConvertTo-Json -Compress
@@ -115,10 +115,10 @@ function Add-TimeStamp {
             -Body $Body
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Information -MessageData $Result.message -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - $Result.message" -InformationAction Continue
         return 1
     } else {
-        Write-Information -MessageData '添加视频分段章节成功' -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - '添加视频分段章节成功'" -InformationAction Continue
     }
 }
 
@@ -135,23 +135,21 @@ function Get-FIDList {
 }
 
 function Get-SelfAID {
-    $Body = @{
-        'status'      = 'is_pubing,pubed,not_pubed'
-        'pn'          = '1'
-        'ps'          = '10'
-        'keyword'     = "周刊哔哩哔哩排行榜#${RankNum}"
-        'coop'        = '1'
-        'interactive' = '1'
-    }
     $Result = (
         Invoke-WebRequest -Uri 'https://member.bilibili.com/x/web/archives' `
             -WebSession $Session `
             -Headers $Headers `
-            -Body $Body
+            -Body @{
+            'status'      = 'is_pubing,pubed,not_pubed'
+            'pn'          = '1'
+            'ps'          = '10'
+            'keyword'     = "周刊哔哩哔哩排行榜#${RankNum}"
+            'coop'        = '1'
+            'interactive' = '1'
+        }
     ).Content | ConvertFrom-Json
-    Write-Information "周刊哔哩哔哩排行榜#${RankNum} - $($Result.data.arc_audits[0].Archive.bvid)" -InformationAction Continue
-    $SelfAID = "av$($Result.data.arc_audits[0].Archive.aid)"
-    return $SelfAID
+    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 周刊哔哩哔哩排行榜#${RankNum} - $($Result.data.arc_audits[0].Archive.bvid)" -InformationAction Continue
+    return "av$($Result.data.arc_audits[0].Archive.aid)"
 }
 
 function Add-Favourite {
@@ -164,30 +162,29 @@ function Add-Favourite {
     } else {
         $AID = ConvertTo-AID $AVID $false
     }
-    $Body = @{
-        'rid'           = $AID
-        'type'          = '2'
-        'add_media_ids' = $FID
-        'del_media_ids' = ''
-        'platform'      = 'web'
-        'eab_x'         = '2'
-        'ramval'        = '0'
-        'ga'            = '1'
-        'gaia_source'   = 'web_normal'
-        'csrf'          = $CSRF
-    }
     $Result = (
         Invoke-WebRequest -Uri 'https://api.bilibili.com/x/v3/fav/resource/deal' `
             -Method POST `
             -WebSession $Session `
             -Headers $Headers `
-            -Body $Body
+            -Body @{
+            'rid'           = $AID
+            'type'          = '2'
+            'add_media_ids' = $FID
+            'del_media_ids' = ''
+            'platform'      = 'web'
+            'eab_x'         = '2'
+            'ramval'        = '0'
+            'ga'            = '1'
+            'gaia_source'   = 'web_normal'
+            'csrf'          = $CSRF
+        }
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Information -MessageData $Result.message -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - $Result.message" -InformationAction Continue
         return 1
     } else {
-        Write-Information -MessageData "收藏视频 av${AID} 成功" -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 收藏视频 av${AID} 成功" -InformationAction Continue
     }
 }
 
@@ -232,10 +229,10 @@ function Set-TopReply {
                 -Body $Body
         ).Content | ConvertFrom-Json
         if ($Result.code -ne 0) {
-            Write-Information -MessageData $Result.message -InformationAction Continue
+            Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - $Result.message" -InformationAction Continue
             return 1
         } else {
-            Write-Information -MessageData "评论置顶成功`nhttps://www.bilibili.com/video/av${AID}#reply${RPID}" -InformationAction Continue
+            Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 评论置顶成功`nhttps://www.bilibili.com/video/av${AID}#reply${RPID}" -InformationAction Continue
         }
     }
 }
@@ -268,40 +265,29 @@ function Add-Reply {
             -Body $Body
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Information -MessageData $Result.message -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - $Result.message" -InformationAction Continue
         return 1
     } else {
         $RPID = $Result.data.rpid
-        Write-Information -MessageData "评论发送成功`nhttps://www.bilibili.com/video/av${AID}#reply${RPID}" -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 评论发送成功`nhttps://www.bilibili.com/video/av${AID}#reply${RPID}" -InformationAction Continue
         return $RPID
     }
 }
 
 function Get-RankList {
-    function Join-RankList {
-        param (
-            [array]$LineList
-        )
-        $Strings = @()
-        $LineList | ForEach-Object {
-            if ($null -eq $_.Split(',')[1]) {
-                $CurrentLine = "$($_.Split(',')[0])"
+    return @(
+        Get-Content $ReplyFile -Encoding 'UTF8BOM' | Select-Object -Skip 0 | ForEach-Object {
+            $parts = $_.Split(',')
+            if ($null -eq $parts[1]) {
+                $parts[0]
             } else {
-                $CurrentLine = "$($_.Split(',')[0])`t$($_.Split(',')[1])"
+                "$($parts[0])`t$($parts[1])"
             }
-            $Strings += $CurrentLine
         }
-        $RankString = $Strings -join "`n"
-        return $RankString
-    }
-
-    $RankList = @()
-    $SplitList = Get-Content $ReplyFile -Encoding 'UTF8BOM' | Select-Object -Skip 0
-    $RankList += Join-RankList $SplitList
-    return $RankList
+    ) -join "`n"
 }
 
-function Set-MasterPiece {
+function Set-Masterpiece {
     [CmdletBinding(SupportsShouldProcess)]
     [OutputType([int])]
     param (
@@ -318,14 +304,14 @@ function Set-MasterPiece {
             -Headers $Headers
     ).Content | ConvertFrom-Json
     if ($Result.code -ne 0) {
-        Write-Information -MessageData $Result.message -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - $Result.message" -InformationAction Continue
         return 1
     } else {
         $BeforeAID = $Result.data | Where-Object -Property 'title' -Like '*周刊哔哩哔哩排行榜*' | Select-Object -ExpandProperty 'aid'
         if ($null -eq $BeforeAID) {
-            Write-Information -MessageData '目前没有代表作' -InformationAction Continue
+            Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - '目前没有代表作'" -InformationAction Continue
         } else {
-            Write-Information -MessageData "目前代表作 av${BeforeAID}" -InformationAction Continue
+            Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 目前代表作 av${BeforeAID}" -InformationAction Continue
             $Body = @{
                 'aid'  = $BeforeAID
                 'csrf' = $CSRF
@@ -340,10 +326,10 @@ function Set-MasterPiece {
                         -Body $Body
                 ).Content | ConvertFrom-Json
                 if ($Result.code -ne 0) {
-                    Write-Information -MessageData $Result.message -InformationAction Continue
+                    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - $Result.message" -InformationAction Continue
                     return 1
                 } else {
-                    Write-Information -MessageData "取消代表作 av${BeforeAID} 成功" -InformationAction Continue
+                    Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 取消代表作 av${BeforeAID} 成功" -InformationAction Continue
                 }
             }
         }
@@ -361,10 +347,10 @@ function Set-MasterPiece {
                     -Body $Body
             ).Content | ConvertFrom-Json
             if ($Result.code -ne 0) {
-                Write-Information -MessageData $Result.message -InformationAction Continue
+                Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - $Result.message" -InformationAction Continue
                 return 1
             } else {
-                Write-Information -MessageData "设置新代表作 av${AID} 成功" -InformationAction Continue
+                Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 设置新代表作 av${AID} 成功" -InformationAction Continue
             }
         }
     }
@@ -377,11 +363,6 @@ function Set-TopVideo {
         [parameter(position = 1)]$AVID
     )
     $AID = $AVID.Substring(2)
-    $Body = @{
-        'aid'    = $AID
-        'reason' = ''
-        'csrf'   = $CSRF
-    }
     if ($PSCmdlet.ShouldProcess("av${AID}", 'Set top video')) {
         $Result = (
             Invoke-WebRequest -Uri 'https://api.bilibili.com/x/space/top/arc/set' `
@@ -389,13 +370,17 @@ function Set-TopVideo {
                 -WebSession $Session `
                 -Headers $Headers `
                 -ContentType 'application/x-www-form-urlencoded' `
-                -Body $Body
+                -Body @{
+                'aid'    = $AID
+                'reason' = ''
+                'csrf'   = $CSRF
+            }
         ).Content | ConvertFrom-Json
         if ($Result.code -ne 0) {
-            Write-Information -MessageData $Result.message -InformationAction Continue
+            Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - $Result.message" -InformationAction Continue
             return 1
         } else {
-            Write-Information -MessageData "设置空间置顶 av${AID} 成功" -InformationAction Continue
+            Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 设置空间置顶 av${AID} 成功" -InformationAction Continue
         }
     }
 }
@@ -403,17 +388,15 @@ function Set-TopVideo {
 function Main {
     $FIDData = Get-FIDList
     $SelfAID = Get-SelfAID
-    Add-TimeStamp $SelfAID
+    Add-Timestamp $SelfAID
     Add-Favourite $FIDData['周刊合集'] $SelfAID
-    $Top1 = (Get-Ranking 16)[-1]
-    Add-Favourite $FIDData['周刊一位'] $Top1
+    Add-Favourite $FIDData['周刊一位'] (Get-Ranking 16)[-1]
     Get-Ranking 3 | ForEach-Object {
         Add-Favourite $FIDData['周刊 Pickup 2'] $_
     }
-    Set-MasterPiece $SelfAID
+    Set-Masterpiece $SelfAID
     Set-TopVideo $SelfAID
-    $RankList = Get-RankList
-    $ROOT = Add-Reply -AVID $SelfAID -Parent '0' -Message $RankList
+    $ROOT = Add-Reply -AVID $SelfAID -Parent '0' -Message (Get-RankList)
     Start-Sleep -Seconds 1
     Set-TopReply $SelfAID $ROOT
 }

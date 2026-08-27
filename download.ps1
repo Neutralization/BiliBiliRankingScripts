@@ -1,12 +1,16 @@
 ﻿param (
-    [string]$RankNum = [Math]::Floor(
+    [int]$RankNum = [Math]::Floor(
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7),
+    [int]$HistoryNum = [Math]::Floor(
+        (((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7) / 100
+    ) * 100,
     [array]$Part = $null
 )
 $ProgressPreference = 'SilentlyContinue'
 $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $DownloadFolder = "${TruePath}/footage/videos"
-$FootageFolder = "${TruePath}/ranking/#${RankNum}"
+$UseHistory = $PSBoundParameters.ContainsKey('HistoryNum')
+$FootageFolder = if ($UseHistory) { "${TruePath}/ranking/history${HistoryNum}" } else { "${TruePath}/ranking/#${RankNum}" }
 $CookieFile = "${TruePath}/bilibili.com_cookies.txt"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
@@ -111,6 +115,63 @@ function Get-Aria2cArgument {
     )
 }
 
+function Get-YamlFile {
+    if ($UseHistory) {
+        return @(Get-Content -Raw "${FootageFolder}/${HistoryNum}.yml")
+    }
+
+    $Parts = if ($null -ne $Part) { $Part } else { @('*') }
+    return @(
+        $Parts | ForEach-Object {
+            Get-Content -Raw "${FootageFolder}/main/${RankNum}_${_}.yml"
+        }
+    )
+}
+
+function Get-RankVideo {
+    param (
+        [array]$Files
+    )
+
+    return @(
+        $Files | ForEach-Object {
+            (ConvertFrom-Yaml $_) | ForEach-Object { $_ } | ForEach-Object { $_.':name' }
+        }
+    )
+}
+
+function Get-LocalVideo {
+    if ($null -ne $Part) {
+        return @()
+    }
+
+    return @(Get-ChildItem "${DownloadFolder}/*.mp4" | ForEach-Object { $_.BaseName })
+}
+
+function Get-LostVideo {
+    return @((Get-Content "${TruePath}/footage/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name)
+}
+
+function Clear-OldVideo {
+    param (
+        [array]$OldVideos
+    )
+
+    Add-Type -AssemblyName Microsoft.VisualBasic
+    $OldVideos | ForEach-Object {
+        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
+            (Resolve-Path "${DownloadFolder}/${_}.mp4"), 'OnlyErrorDialogs', 'SendToRecycleBin')
+    }
+}
+
+function Clear-DownloadTempFile {
+    Add-Type -AssemblyName Microsoft.VisualBasic
+    Get-ChildItem "${DownloadFolder}/*" -Exclude *.mp4 | ForEach-Object {
+        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
+            (Resolve-Path "${_}"), 'OnlyErrorDialogs', 'SendToRecycleBin')
+    }
+}
+
 function BiliDown {
     param (
         [parameter(position = 1)]$ID,
@@ -128,25 +189,24 @@ function BiliDown {
     } else {
         return
     }
-    $pageUrl = "https://api.bilibili.com/x/player/pagelist?aid=${AID}&jsonp=jsonp"
+    $pagePath = "/x/player/pagelist?aid=${AID}&jsonp=jsonp"
     $Headers.referer = "https://www.bilibili.com/video/av${AID}/"
-    $Headers.path = "/x/player/pagelist?aid=${AID}&jsonp=jsonp"
-    $pages = Invoke-WebRequest -UseBasicParsing -Uri $pageUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
+    $Headers.path = $pagePath
+    $pages = Invoke-WebRequest -UseBasicParsing -Uri "https://api.bilibili.com${pagePath}" -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $CID = $pages.data | Where-Object -Property 'page' -EQ $Part | Select-Object -ExpandProperty 'cid'
 
-    $ccUrl = "https://api.bilibili.com/x/player/wbi/v2?aid=${AID}&cid=${CID}&isGaiaAvoided=false"
-    $ccData = Invoke-WebRequest -UseBasicParsing -Uri $ccUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
+    $ccData = Invoke-WebRequest -UseBasicParsing -Uri "https://api.bilibili.com/x/player/wbi/v2?aid=${AID}&cid=${CID}&isGaiaAvoided=false" -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $subtitle = $ccData.data.subtitle.subtitles[0]
     if ($null -ne $subtitle.subtitle_url -and $subtitle.lan -notmatch 'ai-') {
         Invoke-WebRequest -Uri "http:$($subtitle.subtitle_url)" -WebSession $Session -Headers $Headers -OutFile "${FootageFolder}/main/${ID}.json"
     }
 
-    $sourceUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=${AID}&bvid=${BID}&cid=${CID}&qn=120&fnver=0&fnval=4048&fourk=1"
-    $pgcTest = Invoke-WebRequest -UseBasicParsing -Uri $sourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
-    $sourceUrl = if (-404 -eq $pgcTest.code) { "https://api.bilibili.com/x/player/playurl?avid=${AID}&bvid=${BID}&cid=${CID}&qn=120&fnver=0&fnval=4048&fourk=1" } else { $sourceUrl }
+    $playUrl = "https://api.bilibili.com/pgc/player/web/v2/playurl?avid=${AID}&bvid=${BID}&cid=${CID}&qn=120&fnver=0&fnval=4048&fourk=1"
+    $pgcTest = Invoke-WebRequest -UseBasicParsing -Uri $playUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
+    $resolvedUrl = if (-404 -eq $pgcTest.code) { "https://api.bilibili.com/x/player/playurl?avid=${AID}&bvid=${BID}&cid=${CID}&qn=120&fnver=0&fnval=4048&fourk=1" } else { $playUrl }
     $Headers.referer = "https://www.bilibili.com/video/av${AID}/"
-    $Headers.path = $sourceUrl.Substring('https://api.bilibili.com'.Length)
-    $videoInfo = Invoke-WebRequest -UseBasicParsing -Uri $sourceUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
+    $Headers.path = $resolvedUrl.Substring('https://api.bilibili.com'.Length)
+    $videoInfo = Invoke-WebRequest -UseBasicParsing -Uri $resolvedUrl -WebSession $Session -Headers $Headers | Select-Object -ExpandProperty 'Content' | ConvertFrom-Json
     $videoData = if (-404 -eq $pgcTest.code) { $videoInfo.data } else { $videoInfo.result.video_info }
     if ($null -eq $videoData) {
         [Console]::Out.WriteLine("$($PSStyle.Foreground.Red)$(Get-Date -Format 'MM/dd HH:mm:ss') - ${ID} 解析失败，跳过$($PSStyle.Reset)")
@@ -198,52 +258,22 @@ function BiliDown {
 }
 
 function Main {
-    param (
-        [string]$RankNum,
-        [array]$Part
-    )
-
     Import-Module powershell-yaml
-    $Files = @()
-    $LocalVideos = @()
-    $LostVideos = @()
-    $RankVideos = @()
+    $Files = Get-YamlFile
+    $LocalVideos = Get-LocalVideo
+    $LostVideos = Get-LostVideo
+    $RankVideos = Get-RankVideo $Files
 
-    if ($null -eq $Part) {
-        Get-ChildItem "${DownloadFolder}/*.mp4" | ForEach-Object { $LocalVideos += $_.BaseName }
-    }
-    $Part = if ($null -ne $Part) { $Part } else { @('*') }
-    $Part | ForEach-Object {
-        $Files += Get-Content -Raw "${FootageFolder}/main/${RankNum}_${_}.yml"
-    }
-    $Files | ForEach-Object {
-        $items = (ConvertFrom-Yaml $_) | ForEach-Object { $_ } | ForEach-Object { $_.':name' }
-        $RankVideos += $items
-    }
-    (Get-Content "${TruePath}/footage/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
-        $LostVideos += $_
-    }
     $TaskQueue = $RankVideos | Where-Object { $LocalVideos -notcontains $_ } | Where-Object { $LostVideos -notcontains $_ }
     $OldVideos = $LocalVideos | Where-Object { $RankVideos -notcontains $_ }
     $RankVideos | Where-Object { $LocalVideos -contains $_ } | ForEach-Object {
         [Console]::Out.WriteLine("$($PSStyle.Foreground.Yellow)$(Get-Date -Format 'MM/dd HH:mm:ss') - ${_} 已存在，跳过下载$($PSStyle.Reset)")
     }
-    Add-Type -AssemblyName Microsoft.VisualBasic
-    $OldVideos | ForEach-Object {
-        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            (Resolve-Path "${DownloadFolder}/${_}.mp4"), 'OnlyErrorDialogs', 'SendToRecycleBin')
-    }
-    Get-ChildItem "${DownloadFolder}/*" -Exclude *.mp4, *.m4s | ForEach-Object {
-        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            (Resolve-Path "${_}"), 'OnlyErrorDialogs', 'SendToRecycleBin')
-    }
+    if ($OldVideos.Length -ne 0) { Clear-OldVideo $OldVideos }
     $TaskQueue | ForEach-Object {
         BiliDown $_
     }
-    Get-ChildItem "${DownloadFolder}/*" -Include *.log, *.m4s | ForEach-Object {
-        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile(
-            (Resolve-Path "${_}"), 'OnlyErrorDialogs', 'SendToRecycleBin')
-    }
+    Clear-DownloadTempFile
 }
 
-Main -RankNum $RankNum -Part $Part
+Main

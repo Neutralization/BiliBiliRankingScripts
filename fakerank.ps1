@@ -22,15 +22,14 @@ $TaskQueue | ForEach-Object -ThrottleLimit $TaskLimit -Parallel {
     $rank = $_.':rank'.ToString().PadLeft(2, '0')
     $name = $_.':name'
     $len = [int]$_.':length'
-    $folder = $using:FootageFolder
     $fileName = "${rank}_${name}"
 
-    if (-not (Test-Path -LiteralPath "${folder}/main/${fileName}.png")) {
-        Copy-Item './footage/public/MAINRANKIMG.png' "${folder}/${fileName}.png"
+    if (-not (Test-Path -LiteralPath "${using:FootageFolder}/main/${fileName}.png")) {
+        Copy-Item './footage/public/MAINRANKIMG.png' "${using:FootageFolder}/main/${fileName}.png"
     }
     if ($len -ge 30) {
-        if (-not (Test-Path -LiteralPath "${folder}/main/${fileName}_.png")) {
-            Copy-Item './footage/public/TOPIMG.png' "${folder}/main/${fileName}_.png"
+        if (-not (Test-Path -LiteralPath "${using:FootageFolder}/main/${fileName}_.png")) {
+            Copy-Item './footage/public/TOPIMG.png' "${using:FootageFolder}/main/${fileName}_.png"
         }
     }
 
@@ -40,7 +39,7 @@ $TaskQueue | ForEach-Object -ThrottleLimit $TaskLimit -Parallel {
         '-f', 'lavfi', '-i', 'anullsrc',
         '-f', 'lavfi', '-i', "smptebars=duration=${len}:size=1280x720:rate=1",
         '-vf', "drawtext=fontfile='C\:/Windows/Fonts/msyh.ttc':fontsize=100:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:text='${fileName}'",
-        "${folder}/main/${fileName}.mp4"
+        "${using:FootageFolder}/main/${fileName}.mp4"
     )
 
     & ffmpeg.exe @fakeArgs 2> $null

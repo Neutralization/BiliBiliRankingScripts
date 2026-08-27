@@ -23,13 +23,18 @@ node_modules/
 !.vscode/tasks.json
 !.vscode/PSScriptAnalyzerSettings.psd1
 
-footage/
-pic/
-public/
+footage/fonts
+footage/audio
+footage/z_fm
 ranking/
-z_fm/
+*.aep
+*.csv
 *.jpg
+*.json
+*.mp3
 *.mp4
 *.png
 *.psd
 *.txt
+*.avi
+*.yml
