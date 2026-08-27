@@ -1,10 +1,8 @@
 import argparse
 import json
 import re
-from dataclasses import dataclass
 from math import floor, log10
 from pathlib import Path
-from typing import Any
 from unicodedata import combining, normalize
 from urllib.parse import urlparse
 
@@ -34,7 +32,7 @@ ALPHABET = "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf"
 TABLE = {char: index for index, char in enumerate(ALPHABET)}
 
 
-def av2bv(avid: int):
+def av2bv(avid):
     bv_list = list("BV1000000000")
     bv_idx = BV_LEN - 1
     tmp = (MAX_AID | avid) ^ XOR_CODE
@@ -47,7 +45,7 @@ def av2bv(avid: int):
     return "".join(bv_list)
 
 
-def bv2av(bvid: str):
+def bv2av(bvid):
     bv_list = list(bvid)
     bv_list[3], bv_list[9] = bv_list[9], bv_list[3]
     bv_list[4], bv_list[7] = bv_list[7], bv_list[4]
@@ -77,27 +75,11 @@ REQUEST_TIMEOUT = 20
 COVER_LOST = "./footage/public/cover_lost.png"
 
 
-@dataclass
-class GenerateContext:
-    week: int
-    m_rank: list[dict[str, Any]]
-    b_rank: list[dict[str, Any]]
-    g_rank: list[dict[str, Any]]
-    h_rank: list[dict[str, Any]]
-    s_rank_data: dict[int, Any]
-    invalid: dict[str, str]
-    m_rank_data: dict[Any, dict[str, Any]]
-    b_rank_data: dict[Any, dict[str, Any]]
-    g_rank_data: dict[Any, dict[str, Any]]
-    h_rank_data: dict[Any, dict[str, Any]]
-    all_data: dict[Any, dict[str, Any]]
-
-
 def file_url(path):
     return Path(path).resolve().as_uri()
 
 
-def load_json_file(path: str | Path):
+def load_json_file(path):
     file_path = Path(path)
     if not file_path.exists():
         raise FileNotFoundError(f"Missing input file: {file_path}")
@@ -108,7 +90,7 @@ def load_json_file(path: str | Path):
         raise ValueError(f"Invalid JSON in {file_path}: {error}") from error
 
 
-def normalize_rank_data(name: str, data):
+def normalize_rank_data(name, data):
     if isinstance(data, dict):
         return [data]
     if isinstance(data, list):
@@ -116,24 +98,18 @@ def normalize_rank_data(name: str, data):
     raise ValueError(f"{name} must be a rank object or list")
 
 
-def require_non_empty_list(name: str, value):
+def require_non_empty_list(name, value):
     if not isinstance(value, list) or not value:
         raise ValueError(f"{name} must be a non-empty list")
 
 
-def require_item_keys(name: str, item: dict[str, Any], keys: set[str]):
+def require_item_keys(name, item, keys):
     missing = sorted(keys - set(item))
     if missing:
         raise ValueError(f"{name} item is missing keys: {', '.join(missing)}")
 
 
-def validate_rank(
-    name: str,
-    data: list[dict[str, Any]],
-    keys: set[str],
-    *,
-    allow_empty_items: bool = False,
-):
+def validate_rank(name, data, keys, *, allow_empty_items=False):
     require_non_empty_list(name, data)
     items = [x for x in data if isinstance(x, dict) and x.get("info") is None]
     if not items:
@@ -143,7 +119,7 @@ def validate_rank(
     require_item_keys(name, items[0], keys)
 
 
-def validate_stat(data: list[dict[str, Any]]):
+def validate_stat(data):
     require_non_empty_list("stat", data)
     stat_data = {x.get("type"): x.get("ranks") for x in data if isinstance(x, dict)}
     if 2 not in stat_data or 3 not in stat_data:
@@ -191,7 +167,7 @@ def main_fix_values(click, comment, danmu, stow, yb, part, fix_a_base, cap_fix_b
     }
 
 
-def convert_main_item(x: dict[str, Any]):
+def convert_main_item(x):
     data = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
@@ -232,7 +208,7 @@ def convert_main_item(x: dict[str, Any]):
     return data
 
 
-def convert_bangumi_item(x: dict[str, Any], cap_fix_b=True):
+def convert_bangumi_item(x, cap_fix_b=True):
     data = {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
@@ -272,7 +248,7 @@ def convert_bangumi_item(x: dict[str, Any], cap_fix_b=True):
     return data
 
 
-def convert_history_item(x: dict[str, Any]):
+def convert_history_item(x):
     return {
         "author": f"{x['author']}   投稿",
         "av": x["wid"],
@@ -286,7 +262,7 @@ def convert_history_item(x: dict[str, Any]):
     }
 
 
-def build_context(week: int):
+def build_context(week):
     m_rank = normalize_rank_data("main rank", load_json_file(f"{week}_results.json"))
     b_rank = normalize_rank_data(
         "bangumi rank", load_json_file(f"{week}_results_bangumi.json")
@@ -368,20 +344,20 @@ def build_context(week: int):
     h_rank_data = {
         x["wid"]: convert_history_item(x) for x in h_rank if x.get("info") is None
     }
-    return GenerateContext(
-        week=week,
-        m_rank=m_rank,
-        b_rank=b_rank,
-        g_rank=g_rank,
-        h_rank=h_rank,
-        s_rank_data={x["type"]: x.get("ranks") for x in s_rank},
-        invalid=invalid,
-        m_rank_data=m_rank_data,
-        b_rank_data=b_rank_data,
-        g_rank_data=g_rank_data,
-        h_rank_data=h_rank_data,
-        all_data={**m_rank_data, **b_rank_data, **g_rank_data, **h_rank_data},
-    )
+    return {
+        "week": week,
+        "m_rank": m_rank,
+        "b_rank": b_rank,
+        "g_rank": g_rank,
+        "h_rank": h_rank,
+        "s_rank_data": {x["type"]: x.get("ranks") for x in s_rank},
+        "invalid": invalid,
+        "m_rank_data": m_rank_data,
+        "b_rank_data": b_rank_data,
+        "g_rank_data": g_rank_data,
+        "h_rank_data": h_rank_data,
+        "all_data": {**m_rank_data, **b_rank_data, **g_rank_data, **h_rank_data},
+    }
 
 
 def create_browser():
@@ -439,11 +415,11 @@ def clean_title(title):
     return re.sub(CONTROL, "", nfc_title)
 
 
-def invalid_text(ctx: GenerateContext, aid, bid):
-    if f"av{aid}" in ctx.invalid:
-        return ctx.invalid[f"av{aid}"]
-    if bid in ctx.invalid:
-        return ctx.invalid[bid]
+def invalid_text(ctx, aid, bid):
+    if f"av{aid}" in ctx["invalid"]:
+        return ctx["invalid"][f"av{aid}"]
+    if bid in ctx["invalid"]:
+        return ctx["invalid"][bid]
     return ""
 
 
@@ -521,7 +497,7 @@ def pickup_aid(name):
     raise ValueError(f"Invalid pickup id: {name!r}")
 
 
-def PickupSingle(ctx: GenerateContext, browser, aid, rank):
+def PickupSingle(ctx, browser, aid, rank):
     info = get_pickup_info(aid)
     if info is None:
         info = LOST_INFO[str(aid)]
@@ -539,12 +515,12 @@ def PickupSingle(ctx: GenerateContext, browser, aid, rank):
         browser,
         "rank-card",
         {"card": card},
-        f"./ranking/#{ctx.week}/main/{rank:0>2}_{output_bid}.png",
+        f"./ranking/#{ctx['week']}/main/{rank:0>2}_{output_bid}.png",
     )
 
 
-def Pickup(ctx: GenerateContext, browser):
-    yml_path = Path(f"./ranking/#{ctx.week}/main/{ctx.week}_3.yml")
+def Pickup(ctx, browser):
+    yml_path = Path(f"./ranking/#{ctx['week']}/main/{ctx['week']}_3.yml")
     if not yml_path.exists():
         return
     with yml_path.open("r", encoding="utf-8-sig") as f:
@@ -554,9 +530,9 @@ def Pickup(ctx: GenerateContext, browser):
         PickupSingle(ctx, browser, aid, item[":rank"])
 
 
-def Single(ctx: GenerateContext, browser, args):
+def Single(ctx, browser, args):
     bid, rtype = args
-    item = ctx.all_data[bid]
+    item = ctx['all_data'][bid]
     Aid = item["av"]
     Author = item["author"]
     Bid = item["bv"]
@@ -566,7 +542,7 @@ def Single(ctx: GenerateContext, browser, args):
     UpTime = item["cdate"]
     Week = item["weekly_id"]
 
-    ishistory = bool(str(Week) != str(ctx.week))
+    ishistory = bool(str(Week) != str(ctx['week']))
 
     CoverFile = ""
     if not rtype:
@@ -594,7 +570,7 @@ def Single(ctx: GenerateContext, browser, args):
             browser,
             "rank-card",
             {"card": card},
-            f"./ranking/#{ctx.week}/main/{ScoreRank:0>2}_{Bid}.png",
+            f"./ranking/#{ctx['week']}/main/{ScoreRank:0>2}_{Bid}.png",
         )
         return 0
 
@@ -641,16 +617,16 @@ def Single(ctx: GenerateContext, browser, args):
         browser,
         "rank-card",
         {"card": card},
-        f"./ranking/#{ctx.week}/main/{ScoreRank:0>2}_{Bid}.png",
+        f"./ranking/#{ctx['week']}/main/{ScoreRank:0>2}_{Bid}.png",
     )
 
 
-def SubRank(ctx: GenerateContext, browser, rtype: int):
+def SubRank(ctx, browser, rtype):
     if rtype == 1:
-        LastRankNum = int(ctx.m_rank[0]["rank_from"])
+        LastRankNum = int(ctx['m_rank'][0]["rank_from"])
         SScoreRankData = {
             n + 1: v
-            for n, v in enumerate(ctx.m_rank_data.values())
+            for n, v in enumerate(ctx['m_rank_data'].values())
             if v["sp_type_id"] is None and int(v["score_rank"]) > LastRankNum
         }
         PageNum = 30
@@ -658,7 +634,7 @@ def SubRank(ctx: GenerateContext, browser, rtype: int):
         LastRankNum = 0
         SScoreRankData = {
             int(v["score_rank"]): v
-            for v in ctx.m_rank_data.values()
+            for v in ctx['m_rank_data'].values()
             if v["sp_type_id"] is not None and int(v["score_rank"]) > LastRankNum
         }
         PageNum = 3
@@ -666,7 +642,7 @@ def SubRank(ctx: GenerateContext, browser, rtype: int):
         LastRankNum = 10
         SScoreRankData = {
             int(v["score_rank"]): v
-            for v in ctx.b_rank_data.values()
+            for v in ctx['b_rank_data'].values()
             if int(v["score_rank"]) > LastRankNum
         }
         PageNum = 3
@@ -674,7 +650,7 @@ def SubRank(ctx: GenerateContext, browser, rtype: int):
         LastRankNum = 10
         SScoreRankData = {
             int(v["score_rank"]): v
-            for v in ctx.g_rank_data.values()
+            for v in ctx['g_rank_data'].values()
             if int(v["score_rank"]) > LastRankNum
         }
         PageNum = 3
@@ -712,13 +688,13 @@ def SubRank(ctx: GenerateContext, browser, rtype: int):
                 })
             rows.append(row)
         if rtype == 1:
-            output_path = f"./ranking/#{ctx.week}/sub/{i + 1:0>3}.png"
+            output_path = f"./ranking/#{ctx['week']}/sub/{i + 1:0>3}.png"
         elif rtype == 2:
-            output_path = f"./ranking/#{ctx.week}/sub/tv_{i + 1:0>3}.png"
+            output_path = f"./ranking/#{ctx['week']}/sub/tv_{i + 1:0>3}.png"
         elif rtype == 3:
-            output_path = f"./ranking/#{ctx.week}/sub/bangumi_{i + 1:0>3}.png"
+            output_path = f"./ranking/#{ctx['week']}/sub/bangumi_{i + 1:0>3}.png"
         elif rtype == 4:
-            output_path = f"./ranking/#{ctx.week}/sub/bangumi_{i + 4:0>3}.png"
+            output_path = f"./ranking/#{ctx['week']}/sub/bangumi_{i + 4:0>3}.png"
         render_png(
             browser,
             "sub-rank",
@@ -727,13 +703,13 @@ def SubRank(ctx: GenerateContext, browser, rtype: int):
         )
 
 
-def Stat(ctx: GenerateContext, browser):
+def Stat(ctx, browser):
     rows_1 = []
     for i in range(7):
-        AScore = format(ctx.s_rank_data[2][i][1], ",")
+        AScore = format(ctx['s_rank_data'][2][i][1], ",")
         ARank = (
-            str(ctx.s_rank_data[2][i][2])
-            if len(ctx.s_rank_data[2][i + 7]) > 2
+            str(ctx['s_rank_data'][2][i][2])
+            if len(ctx['s_rank_data'][2][i + 7]) > 2
             else "--"
         )
         if not ARank.isdigit() or int(ARank) > i + 1:
@@ -743,19 +719,19 @@ def Stat(ctx: GenerateContext, browser):
         else:
             trend = "draw"
         rows_1.append({
-            "category": ctx.s_rank_data[2][i][0],
+            "category": ctx['s_rank_data'][2][i][0],
             "rank": ARank,
             "score": AScore,
             "trend": trend,
         })
-    render_png(browser, "stat", {"kind": 1, "rows": rows_1}, f"./ranking/#{ctx.week}/stat_1.png")
+    render_png(browser, "stat", {"kind": 1, "rows": rows_1}, f"./ranking/#{ctx['week']}/stat_1.png")
 
     rows_2 = []
     for i in range(7):
-        AScore = format(ctx.s_rank_data[2][i + 7][1], ",")
+        AScore = format(ctx['s_rank_data'][2][i + 7][1], ",")
         ARank = (
-            str(ctx.s_rank_data[2][i + 7][2])
-            if len(ctx.s_rank_data[2][i + 7]) > 2
+            str(ctx['s_rank_data'][2][i + 7][2])
+            if len(ctx['s_rank_data'][2][i + 7]) > 2
             else "--"
         )
         if not ARank.isdigit() or int(ARank) > i + 8:
@@ -765,62 +741,62 @@ def Stat(ctx: GenerateContext, browser):
         else:
             trend = "draw"
         rows_2.append({
-            "category": ctx.s_rank_data[2][i + 7][0],
+            "category": ctx['s_rank_data'][2][i + 7][0],
             "rank": ARank,
             "score": AScore,
             "trend": trend,
         })
-    render_png(browser, "stat", {"kind": 2, "rows": rows_2}, f"./ranking/#{ctx.week}/stat_2.png")
+    render_png(browser, "stat", {"kind": 2, "rows": rows_2}, f"./ranking/#{ctx['week']}/stat_2.png")
 
     rows_3 = []
     for d in ["click", "comment", "stow", "danmu", "yb"]:
-        if int(ctx.s_rank_data[3][0][d]) > int(ctx.s_rank_data[3][1][d]):
+        if int(ctx['s_rank_data'][3][0][d]) > int(ctx['s_rank_data'][3][1][d]):
             trend = "up"
-        elif int(ctx.s_rank_data[3][0][d]) < int(ctx.s_rank_data[3][1][d]):
+        elif int(ctx['s_rank_data'][3][0][d]) < int(ctx['s_rank_data'][3][1][d]):
             trend = "down"
         else:
             trend = "draw"
         rows_3.append({
-            "current": format(ctx.s_rank_data[3][0][d], ","),
-            "last": format(ctx.s_rank_data[3][1][d], ","),
+            "current": format(ctx['s_rank_data'][3][0][d], ","),
+            "last": format(ctx['s_rank_data'][3][1][d], ","),
             "trend": trend,
         })
-    render_png(browser, "stat", {"kind": 3, "rows": rows_3}, f"./ranking/#{ctx.week}/stat_3.png")
+    render_png(browser, "stat", {"kind": 3, "rows": rows_3}, f"./ranking/#{ctx['week']}/stat_3.png")
 
 
-def MainRank(ctx: GenerateContext, browser):
-    LastRankNum = int(ctx.m_rank[0]["rank_from"])
+def MainRank(ctx, browser):
+    LastRankNum = int(ctx['m_rank'][0]["rank_from"])
     RankDataM = [
         (k, True)
-        for k, v in ctx.m_rank_data.items()
+        for k, v in ctx['m_rank_data'].items()
         if v["sp_type_id"] is None and int(v["score_rank"]) <= LastRankNum
     ]
     RankDataB = [
-        (k, False) for k, v in ctx.b_rank_data.items() if int(v["score_rank"]) <= 10
+        (k, False) for k, v in ctx['b_rank_data'].items() if int(v["score_rank"]) <= 10
     ]
     RankDataG = [
-        (k, False) for k, v in ctx.g_rank_data.items() if int(v["score_rank"]) <= 10
+        (k, False) for k, v in ctx['g_rank_data'].items() if int(v["score_rank"]) <= 10
     ]
     RankDataH = [
-        (k, True) for k, v in ctx.h_rank_data.items() if int(v["score_rank"]) <= 5
+        (k, True) for k, v in ctx['h_rank_data'].items() if int(v["score_rank"]) <= 5
     ]
     for item in RankDataM + RankDataB + RankDataG + RankDataH:
         Single(ctx, browser, item)
 
 
-def Opening(ctx: GenerateContext, browser):
-    MTitle = f"{ctx.m_rank[0]['name']}"
-    MWeek = f"#{ctx.m_rank[0]['id']}"
+def Opening(ctx, browser):
+    MTitle = f"{ctx['m_rank'][0]['name']}"
+    MWeek = f"#{ctx['m_rank'][0]['id']}"
     render_png(
         browser,
         "simple",
         {"kind": "opening", "title": MTitle, "week": MWeek},
-        f"./ranking/#{ctx.week}/title.png",
+        f"./ranking/#{ctx['week']}/title.png",
     )
 
 
-def LongTerm(ctx: GenerateContext, browser):
-    LastRankNum = int(ctx.m_rank[0]["rank_from"])
+def LongTerm(ctx, browser):
+    LastRankNum = int(ctx['m_rank'][0]["rank_from"])
     LTitle = f"{LastRankNum}-21"
     LongTerm_ = (
         f"长期作品：{LastRankNum - 30}个" if LastRankNum - 30 > 0 else "长期作品：没有"
@@ -829,25 +805,25 @@ def LongTerm(ctx: GenerateContext, browser):
         browser,
         "simple",
         {"kind": "long-term", "range": LTitle, "description": LongTerm_},
-        f"./ranking/#{ctx.week}/_1.png",
+        f"./ranking/#{ctx['week']}/_1.png",
     )
 
 
-def History(ctx: GenerateContext, browser):
-    HCount = f"该期集计投稿数：{format(ctx.h_rank[0]['count'], ',')}"
-    HUpTime = f"{ctx.h_rank[0]['name']} (av{ctx.h_rank[0]['wid']})"
+def History(ctx, browser):
+    HCount = f"该期集计投稿数：{format(ctx['h_rank'][0]['count'], ',')}"
+    HUpTime = f"{ctx['h_rank'][0]['name']} (av{ctx['h_rank'][0]['wid']})"
     render_png(
         browser,
         "simple",
         {"kind": "history-record", "count": HCount, "title": HUpTime},
-        f"./ranking/#{ctx.week}/history.png",
+        f"./ranking/#{ctx['week']}/history.png",
     )
 
 
-def Top(ctx: GenerateContext, browser):
+def Top(ctx, browser):
     TopData = {
         int(v["score_rank"]): (k, v["score"], v["bv"])
-        for k, v in ctx.m_rank_data.items()
+        for k, v in ctx['m_rank_data'].items()
         if v["sp_type_id"] is None and int(v["score_rank"]) <= 4
     }
     for t in range(3):
@@ -860,11 +836,11 @@ def Top(ctx: GenerateContext, browser):
             browser,
             "simple",
             {"kind": "top-diff", "place": f"{t + 1}", "diffText": DiffText},
-            f"./ranking/#{ctx.week}/main/{t + 1:0>2}_{Bid}_.png",
+            f"./ranking/#{ctx['week']}/main/{t + 1:0>2}_{Bid}_.png",
         )
 
 
-def Main(ctx: GenerateContext, browser):
+def Main(ctx, browser):
     Opening(ctx, browser)
     LongTerm(ctx, browser)
     History(ctx, browser)
@@ -876,7 +852,7 @@ def Main(ctx: GenerateContext, browser):
         SubRank(ctx, browser, i + 1)
 
 
-def run_generate(week: int):
+def run_generate(week):
     ctx = build_context(week)
     browser = create_browser()
     try:
