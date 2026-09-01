@@ -7,6 +7,7 @@ $TruePath = Split-Path $MyInvocation.MyCommand.Path
 $FootageFolder = "${TruePath}/ranking/#${RankNum}"
 $LOST_FILE = "${TruePath}/footage/LostFile.json"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
+$script:JsonSourceDir = $null
 
 Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 周刊哔哩哔哩排行榜#${RankNum}" -InformationAction Continue
 
@@ -112,7 +113,7 @@ function Get-YamlItem {
         [int]$Part
     )
 
-    $jsonPath = "./${RankNum}_${Suffix}.json"
+    $jsonPath = Join-Path $JsonSourceDir "${RankNum}_${Suffix}.json"
     if (-not (Test-Path $jsonPath)) { return $null }
     $content = Get-Content $jsonPath -Raw | ConvertFrom-Json
     $rankFrom = $content[0].rank_from
@@ -189,7 +190,7 @@ function Write-RankdoorCsv {
     $csvLines = New-Object System.Collections.Generic.List[string]
 
     foreach ($section in $sections) {
-        $jsonPath = "./${RankNum}_$($section.suffix).json"
+        $jsonPath = Join-Path $JsonSourceDir "${RankNum}_$($section.suffix).json"
         if (-not (Test-Path $jsonPath)) { continue }
 
         $content = Get-Content $jsonPath -Raw | ConvertFrom-Json
@@ -227,9 +228,9 @@ function Main {
     function Get-SourceJson {
         param ([string]$Suffix)
 
-        $file = "./${RankNum}_${Suffix}.json"
+        $file = Join-Path $JsonSourceDir "${RankNum}_${Suffix}.json"
         if (-not (Test-Path $file)) { return }
-        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 正在处理文件: $file" -InformationAction Continue
+        Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 正在处理文件: ${RankNum}_${Suffix}.json" -InformationAction Continue
         $data = Get-Content $file -Raw | ConvertFrom-Json
 
         foreach ($item in $data) {
@@ -307,12 +308,52 @@ function Main {
     }
     $targetFiles = @('results_bangumi', 'guoman_bangumi', 'results_history', 'results' )
 
-    foreach ($suffix in $targetFiles) {
-        Get-SourceJson -Suffix $suffix
+    $archivePath = "./json${RankNum}.zip"
+    if (-not (Test-Path $archivePath)) {
+        throw "缺少周刊 JSON 归档文件: $archivePath"
     }
 
-    Get-DerivedAsset
-    Get-OutputArchive
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $jsonTempDir = Join-Path ([System.IO.Path]::GetTempPath()) "bilibiliweek_${RankNum}_json_$([Guid]::NewGuid().ToString('N'))"
+    New-Item -ItemType Directory -Path $jsonTempDir -Force | Out-Null
+    $script:JsonSourceDir = $jsonTempDir
+
+    try {
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($archivePath, $jsonTempDir)
+
+        foreach ($suffix in $targetFiles) {
+            Get-SourceJson -Suffix $suffix
+        }
+
+        $archive = [System.IO.Compression.ZipFile]::Open($archivePath, 'Update')
+        try {
+            foreach ($suffix in $targetFiles) {
+                $tempFile = Join-Path $jsonTempDir "${RankNum}_${suffix}.json"
+                if (-not (Test-Path $tempFile)) { continue }
+                $entryName = "${RankNum}_${suffix}.json"
+                $existing = $archive.GetEntry($entryName)
+                if ($null -ne $existing) { $existing.Delete() }
+                $entry = $archive.CreateEntry($entryName)
+                $entryStream = $entry.Open()
+                try {
+                    $fileBytes = [System.IO.File]::ReadAllBytes($tempFile)
+                    $entryStream.Write($fileBytes, 0, $fileBytes.Length)
+                } finally {
+                    $entryStream.Dispose()
+                }
+            }
+        } finally {
+            $archive.Dispose()
+        }
+
+        Get-DerivedAsset
+        Get-OutputArchive
+    } finally {
+        if (Test-Path $jsonTempDir) {
+            Remove-Item -LiteralPath $jsonTempDir -Recurse -Force
+        }
+        $script:JsonSourceDir = $null
+    }
 }
 
 Main

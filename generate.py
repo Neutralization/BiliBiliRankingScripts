@@ -1,6 +1,7 @@
 import argparse
 import json
 import re
+import zipfile
 from math import floor, log10
 from pathlib import Path
 from unicodedata import combining, normalize
@@ -88,6 +89,24 @@ def load_json_file(path):
             return json.load(f)
     except json.JSONDecodeError as error:
         raise ValueError(f"Invalid JSON in {file_path}: {error}") from error
+
+
+def load_weekly_json(week, entry):
+    archive_path = Path(f"json{week}.zip")
+    if not archive_path.exists():
+        raise FileNotFoundError(f"Missing input archive: {archive_path}")
+    with zipfile.ZipFile(archive_path) as archive:
+        try:
+            with archive.open(entry) as f:
+                return json.load(f)
+        except KeyError as error:
+            raise FileNotFoundError(
+                f"Missing entry {entry} in archive: {archive_path}"
+            ) from error
+        except json.JSONDecodeError as error:
+            raise ValueError(
+                f"Invalid JSON in {archive_path} entry {entry}: {error}"
+            ) from error
 
 
 def normalize_rank_data(name, data):
@@ -263,17 +282,17 @@ def convert_history_item(x):
 
 
 def build_context(week):
-    m_rank = normalize_rank_data("main rank", load_json_file(f"{week}_results.json"))
+    m_rank = normalize_rank_data("main rank", load_weekly_json(week, f"{week}_results.json"))
     b_rank = normalize_rank_data(
-        "bangumi rank", load_json_file(f"{week}_results_bangumi.json")
+        "bangumi rank", load_weekly_json(week, f"{week}_results_bangumi.json")
     )
     g_rank = normalize_rank_data(
-        "guoman rank", load_json_file(f"{week}_guoman_bangumi.json")
+        "guoman rank", load_weekly_json(week, f"{week}_guoman_bangumi.json")
     )
     h_rank = normalize_rank_data(
-        "history rank", load_json_file(f"{week}_results_history.json")
+        "history rank", load_weekly_json(week, f"{week}_results_history.json")
     )
-    s_rank = load_json_file(f"{week}_stat.json")
+    s_rank = load_weekly_json(week, f"{week}_stat.json")
     invalid = load_json_file("./footage/LostFile.json")
 
     validate_rank(
