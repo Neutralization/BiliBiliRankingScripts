@@ -2,7 +2,6 @@
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 YUME = 1277009809;
 WEEK_NUM = Math.floor((Date.now() / 1000 - YUME + 133009) / 3600 / 24 / 7);
-WEEK_NUM = 844;
 
 CompFPS = 60;
 CompSize = [1920, 1080];
