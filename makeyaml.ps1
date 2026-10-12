@@ -220,7 +220,7 @@ function Write-RankdoorCsv {
     }
 
     $csvPath = "${TruePath}/ranking/#${RankNum}/${RankNum}_rankdoor.csv"
-    $csvLines | Set-Content -Path $csvPath -Encoding UTF8
+    $csvLines | Set-Content -Path $csvPath -Encoding UTF8BOM
     Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 已生成 Rankdoor CSV: ${csvPath}" -InformationAction Continue
 }
 
