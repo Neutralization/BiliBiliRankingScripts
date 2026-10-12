@@ -16,6 +16,7 @@ $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101
 
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 $Session.UserAgent = $UserAgent
+$Session.Cookies.PerDomainCapacity = 50
 if (Test-Path $CookieFile) {
     $Cookies = Get-Content -Path $CookieFile
     $Cookies | ForEach-Object {
