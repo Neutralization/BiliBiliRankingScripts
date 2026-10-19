@@ -2,6 +2,7 @@
 app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
 YUME = 1277009809;
 WEEK_NUM = Math.floor((Date.now() / 1000 - YUME + 133009) / 3600 / 24 / 7);
+BANGUMI = false;
 
 CompFPS = 60;
 CompSize = [1920, 1080];
@@ -573,9 +574,6 @@ RuleLayer_3 = AddLayer(Part_1, '普通规则', 4, 32.5);
 RuleLayer_4 = AddLayer(Part_1, '新番规则', 4, 36.5);
 AddVideoProperty(RuleLayer_4, 2, 0.7, 39.8, 2);
 
-AddLayer(FinalComp, Part_1.name, Part_1.duration, FinalComp.duration - FinalComp.duration);
-FinalComp.duration = Part_1.duration;
-
 // Part 2
 AudioLayer_2 = AddLayer(Part_2, 'Pickup_BGM', 4, 0);
 AddAudioProperty(AudioLayer_2, 1, 1, 0, 1);
@@ -638,25 +636,29 @@ AddVideoProperty(NextLayer_8, 2, 1, 0, 1);
 Part_9.duration = AddRankPart(Part_9, RankDataList[3], 11, true, false, 0, false);
 
 // Part 10 (bangumi)
-BlankLayer_10 = AddLayer(Part_10, '棕底', 33, 0);
-AudioLayer_10 = AddLayer(Part_10, '新番副榜_BGM', 33, 0 - 4.3);
-AudioLayer_10.inPoint = 0;
-AudioLayer_10.outPoint = 33;
-AddAudioProperty(AudioLayer_10, 1, 1.73, AudioLayer_10.inPoint, 1);
-AddAudioProperty(AudioLayer_10, 1, 3, AudioLayer_10.outPoint - 3, 2);
-BangumiLayer = AddLayer(Part_10, '新番切换', 5, 0);
-AddVideoProperty(BangumiLayer, 2, 0.5, 0, 1);
-AddVideoProperty(BangumiLayer, 2, 0.5, 4.5, 2);
-BangumiLayer_1 = AddLayer(Part_10, '新番副榜_1', 7, 5.3);
-AddVideoProperty(BangumiLayer_1, 2, 0.5, 5.3, 1);
-BangumiLayer_2 = AddLayer(Part_10, '新番副榜_2', 7, 12.3);
-BangumiLayer_3 = AddLayer(Part_10, '新番副榜_3', 7, 19.3);
-AddVideoProperty(BangumiLayer_3, 2, 0.5, 25.8, 2);
-BangumiTopLayer = AddLayer(Part_10, '新番主榜', 6.4, 26.6);
-AddVideoProperty(BangumiTopLayer, 1, 1, 26.6, 1);
+if (BANGUMI) {
+    BlankLayer_10 = AddLayer(Part_10, '棕底', 33, 0);
+    AudioLayer_10 = AddLayer(Part_10, '新番副榜_BGM', 33, 0 - 4.3);
+    AudioLayer_10.inPoint = 0;
+    AudioLayer_10.outPoint = 33;
+    AddAudioProperty(AudioLayer_10, 1, 1.73, AudioLayer_10.inPoint, 1);
+    AddAudioProperty(AudioLayer_10, 1, 3, AudioLayer_10.outPoint - 3, 2);
+    BangumiLayer = AddLayer(Part_10, '新番切换', 5, 0);
+    AddVideoProperty(BangumiLayer, 2, 0.5, 0, 1);
+    AddVideoProperty(BangumiLayer, 2, 0.5, 4.5, 2);
+    BangumiLayer_1 = AddLayer(Part_10, '新番副榜_1', 7, 5.3);
+    AddVideoProperty(BangumiLayer_1, 2, 0.5, 5.3, 1);
+    BangumiLayer_2 = AddLayer(Part_10, '新番副榜_2', 7, 12.3);
+    BangumiLayer_3 = AddLayer(Part_10, '新番副榜_3', 7, 19.3);
+    AddVideoProperty(BangumiLayer_3, 2, 0.5, 25.8, 2);
+    BangumiTopLayer = AddLayer(Part_10, '新番主榜', 6.4, 26.6);
+    AddVideoProperty(BangumiTopLayer, 1, 1, 26.6, 1);
+}
 
 // Part 11 (bangumi)
-Part_11.duration = AddRankPart(Part_11, RankDataList[4], 1, false, false, 0, false);
+if (BANGUMI) {
+    Part_11.duration = AddRankPart(Part_11, RankDataList[4], 1, false, false, 0, false);
+}
 
 // Part 12
 BlankLayer_12 = AddLayer(Part_12, '蓝底', 4, 0);
@@ -780,30 +782,32 @@ AddVideoProperty(EdCardLayer, 1, 0.6, EDAudioLength - 5, 1);
 AddVideoProperty(EdCardLayer, 1, 1, EDAudioLength - 1, 2);
 Part_18.duration = EDAudioLength + 0.1;
 
-Comps = [
-    Part_1,
-    Part_2,
-    Part_3,
-    Part_4,
-    Part_5,
-    Part_6,
-    Part_7,
-    Part_8,
-    Part_9,
-    Part_10,
-    Part_11,
-    Part_12,
-    Part_13,
-    Part_14,
-    Part_15,
-    Part_16,
-    Part_17,
-    Part_18,
+TimelineParts = [
+    { 'parts': [Part_1], 'content': 'OP' },
+    { 'parts': [Part_2, Part_3], 'content': 'Pickup' },
+    { 'parts': [Part_4, Part_5], 'content': '21-30+' },
+    { 'parts': [Part_6, Part_7], 'content': '影视&国创' },
+    { 'parts': [Part_8, Part_9], 'content': '11-20' },
 ];
-for (n = 1; n < Comps.length; n++) {
-    AddLayer(FinalComp, Comps[n].name, Comps[n].duration, FinalComp.duration);
-    FinalComp.duration += Comps[n].duration;
+if (BANGUMI) {
+    TimelineParts[TimelineParts.length] = { 'parts': [Part_10, Part_11], 'content': '番剧' };
 }
+TimelineParts[TimelineParts.length] = { 'parts': [Part_12, Part_13], 'content': '4-10' };
+TimelineParts[TimelineParts.length] = { 'parts': [Part_14, Part_15], 'content': '历史' };
+TimelineParts[TimelineParts.length] = { 'parts': [Part_16], 'content': '1-3' };
+TimelineParts[TimelineParts.length] = { 'parts': [Part_17, Part_18], 'content': 'ED' };
+
+FinalDuration = 0;
+for (n = 0; n < TimelineParts.length; n++) {
+    TimelineParts[n].from = FinalDuration;
+    for (i = 0; i < TimelineParts[n].parts.length; i++) {
+        Part = TimelineParts[n].parts[i];
+        AddLayer(FinalComp, Part.name, Part.duration, FinalDuration);
+        FinalDuration += Part.duration;
+    }
+    TimelineParts[n].to = FinalDuration;
+}
+FinalComp.duration = FinalDuration;
 CompBlackLayer.outPoint = FinalComp.duration;
 FinalComp.openInViewer();
 
@@ -849,28 +853,20 @@ render.outputModules[1].file = new File('./周刊哔哩哔哩排行榜#' + WEEK_
 app.project.consolidateFootage();
 app.project.save(new File('./bilibilirank_' + WEEK_NUM + '.aep'));
 
-Stamp = [];
-for (n = 0; n < Comps.length; n++) {
-    Stamp.push(Comps[n].duration);
+function TimelineStamp(Time) {
+    return Math.ceil(Time) + 1;
 }
 
-function SumStamp(Part) {
-    return Math.ceil(eval(Stamp.slice(0, Part).join('+'))) + 1;
+TimeLine = [];
+for (n = 0; n < TimelineParts.length; n++) {
+    TimeLine[n] = {
+        'from': n == 0 ? 0 : TimelineStamp(TimelineParts[n].from),
+        'to': TimelineStamp(TimelineParts[n].to),
+        'content': TimelineParts[n].content,
+    };
 }
-
-TimeLine = [
-    { 'from': 0, 'to': SumStamp(1), 'content': 'OP' },
-    { 'from': SumStamp(1), 'to': SumStamp(3), 'content': 'Pickup' },
-    { 'from': SumStamp(3), 'to': SumStamp(5), 'content': '21-30+' },
-    { 'from': SumStamp(5), 'to': SumStamp(7), 'content': '影视&国创' },
-    { 'from': SumStamp(7), 'to': SumStamp(9), 'content': '11-20' },
-    { 'from': SumStamp(9), 'to': SumStamp(11), 'content': '番剧' },
-    { 'from': SumStamp(11), 'to': SumStamp(13), 'content': '4-10' },
-    { 'from': SumStamp(13), 'to': SumStamp(15), 'content': '历史' },
-    { 'from': SumStamp(15), 'to': SumStamp(16), 'content': '1-3' },
-    { 'from': SumStamp(16), 'to': SumStamp(18), 'content': 'ED' },
-];
 doc = new File('./stamp.json');
+doc.encoding = 'UTF-8';
 doc.open('w');
 doc.write(JSON.stringify(TimeLine));
 doc.close();
