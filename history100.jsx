@@ -56,6 +56,7 @@ for (key in StaticResource) {
     ResourceFile = new ImportOptions(File(StaticResource[key]));
     ResourceFile.ImportAs = ImportAsType.FOOTAGE;
     FileItem = app.project.importFile(ResourceFile);
+    FileItem.pixelAspect = 1.0;
     FileItem.name = key;
     FileItem.parentFolder = StaticFolder;
 }
@@ -68,6 +69,7 @@ for (n = 0; n < RankDataList.length; n++) {
         ResourceFile = new ImportOptions(File(FileFullPath));
         ResourceFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(ResourceFile);
+        FileItem.pixelAspect = 1.0;
         FileItem.name = key + '_' + RankDataList[n][key][0];
         FileItem.parentFolder = WeeklyFolder;
     }
@@ -78,6 +80,7 @@ for (n = 0; n < RankDataList.length; n++) {
         ResourceFile = new ImportOptions(File(FileFullPath));
         ResourceFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(ResourceFile);
+        FileItem.pixelAspect = 1.0;
         FileItem.name = key + '_' + RankDataList[n][key][0] + '_';
         FileItem.parentFolder = WeeklyFolder;
     }

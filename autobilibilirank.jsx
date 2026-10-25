@@ -155,6 +155,7 @@ for (key in StaticFootage) {
     FootageFile = new ImportOptions(File(StaticFootage[key]));
     FootageFile.ImportAs = ImportAsType.FOOTAGE;
     FileItem = app.project.importFile(FootageFile);
+    FileItem.pixelAspect = 1.0;
     FileItem.name = key;
     FileItem.parentFolder = StaticFolder;
 }
@@ -168,6 +169,7 @@ for (n = 0; n < RankDataList.length; n++) {
         FootageFile = new ImportOptions(File(FileFullPath));
         FootageFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(FootageFile);
+        FileItem.pixelAspect = 1.0;
         FileItem.name = RankDataList[n][key][0];
         FileItem.parentFolder = WeeklyFolder;
     }
@@ -180,6 +182,7 @@ for (n = 0; n < RankDataList.length; n++) {
             FootageFile = new ImportOptions(File(FileFullPath));
             FootageFile.ImportAs = ImportAsType.FOOTAGE;
             FileItem = app.project.importFile(FootageFile);
+            FileItem.pixelAspect = 1.0;
             FileItem.name = RankDataList[n][key][0] + '_m';
             FileItem.parentFolder = WeeklyFolder;
         }
@@ -187,6 +190,7 @@ for (n = 0; n < RankDataList.length; n++) {
         FootageFile = new ImportOptions(File(FileFullPath));
         FootageFile.ImportAs = ImportAsType.FOOTAGE;
         FileItem = app.project.importFile(FootageFile);
+        FileItem.pixelAspect = 1.0;
         FileItem.name = RankDataList[n][key][0] + '_';
         FileItem.parentFolder = WeeklyFolder;
     }
@@ -862,7 +866,7 @@ for (n = 0; n < TimelineParts.length; n++) {
     TimeLine[n] = {
         'from': n == 0 ? 0 : TimelineStamp(TimelineParts[n].from),
         'to': TimelineStamp(TimelineParts[n].to),
-        'content': TimelineParts[n].content,
+        'content': TimelineParts[n].content
     };
 }
 doc = new File('./stamp.json');
