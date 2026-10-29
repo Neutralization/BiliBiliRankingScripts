@@ -4,60 +4,60 @@ YUME = 1277009809;
 WEEK_NUM = Math.floor((Date.now() / 1000 - YUME + 133009) / 3600 / 24 / 7);
 BANGUMI = false;
 
-CompFPS = 60;
-CompSize = [1920, 1080];
-RankSize = [1440, 810];
-AlbumSize = [188, 188];
-Prefix = './ranking/#' + WEEK_NUM + '/main/';
-Regex =
+compFPS = 60;
+compSize = [1920, 1080];
+rankVideoSize = [1440, 810];
+albumCoverSize = [188, 188];
+fileFolder = './ranking/#' + WEEK_NUM + '/main/';
+rankYamlRegex =
     /- :rank: (\d+)\n {2}:name: (\w+)\n {2}:length: (\d+)\n {2}:offset: (\d+)(\n {2}:short: \d+)?(\n {2}:no_pause: true)?/gm;
-Subst = '"$1": ["$2", $3, $4],';
-Parts = [3, 5, 7, 9, 11, 13, 15, 16];
-file = new File('./footage/LostFile.json');
-file.open('r');
-content = file.read();
-file.close();
-LostVideos = JSON.parse(content);
-RankDataList = [];
-for (n = 0; n < Parts.length; n++) {
-    file = new File(Prefix + WEEK_NUM + '_' + Parts[n] + '.yml');
+rankDataGroup = '"$1": ["$2", $3, $4],';
+rankDataPart = [3, 5, 7, 9, 11, 13, 15, 16];
+lostfile = new File('./footage/LostFile.json');
+lostfile.open('r');
+content = lostfile.read();
+lostfile.close();
+lostVideos = JSON.parse(content);
+rankDataList = [];
+for (n = 0; n < rankDataPart.length; n++) {
+    file = new File(fileFolder + WEEK_NUM + '_' + rankDataPart[n] + '.yml');
     file.open('r');
     content = file.read();
     file.close();
-    RankList = content.replace(Regex, Subst).replace('\'', '"').replace('---', '{') + '}';
-    RankList = RankList.replace(',\n}', '\n}');
-    RankDataList[RankDataList.length] = JSON.parse(RankList);
+    rankPartList = content.replace(rankYamlRegex, rankDataGroup).replace('\'', '"').replace('---', '{') + '}';
+    rankPartList = rankPartList.replace(',\n}', '\n}');
+    rankDataList[rankDataList.length] = JSON.parse(rankPartList);
 }
 app.newProject();
 app.project.expressionEngine = 'javascript-1.0';
 app.project.workingSpace = 'sRGB IEC61966-2.1';
 app.project.bitsPerChannel = 8;
-FinalComp = app.project.items.addComp('周刊哔哩哔哩排行榜#' + WEEK_NUM, CompSize[0], CompSize[1], 1, 1, CompFPS);
-Part_1 = app.project.items.addComp('Part_1', CompSize[0], CompSize[1], 1, 40.5, CompFPS);
-Part_2 = app.project.items.addComp('Part_2', CompSize[0], CompSize[1], 1, 4, CompFPS);
-Part_3 = app.project.items.addComp('Part_3', CompSize[0], CompSize[1], 1, 60, CompFPS);
-Part_4 = app.project.items.addComp('Part_4', CompSize[0], CompSize[1], 1, 4, CompFPS);
-Part_5 = app.project.items.addComp('Part_5', CompSize[0], CompSize[1], 1, 60, CompFPS);
-Part_6 = app.project.items.addComp('Part_6', CompSize[0], CompSize[1], 1, 56.6, CompFPS);
-Part_7 = app.project.items.addComp('Part_7', CompSize[0], CompSize[1], 1, 60, CompFPS);
-Part_8 = app.project.items.addComp('Part_8', CompSize[0], CompSize[1], 1, 4, CompFPS);
-Part_9 = app.project.items.addComp('Part_9', CompSize[0], CompSize[1], 1, 60, CompFPS);
-Part_10 = app.project.items.addComp('Part_10', CompSize[0], CompSize[1], 1, 33, CompFPS);
-Part_11 = app.project.items.addComp('Part_11', CompSize[0], CompSize[1], 1, 60, CompFPS);
-Part_12 = app.project.items.addComp('Part_12', CompSize[0], CompSize[1], 1, 4, CompFPS);
-Part_13 = app.project.items.addComp('Part_13', CompSize[0], CompSize[1], 1, 60, CompFPS);
-Part_14 = app.project.items.addComp('Part_14', CompSize[0], CompSize[1], 1, 14.4, CompFPS);
-Part_15 = app.project.items.addComp('Part_15', CompSize[0], CompSize[1], 1, 60, CompFPS);
-Part_16 = app.project.items.addComp('Part_16', CompSize[0], CompSize[1], 1, 60, CompFPS);
-Part_17 = app.project.items.addComp('Part_17', CompSize[0], CompSize[1], 1, 25, CompFPS);
-Part_18 = app.project.items.addComp('Part_18', CompSize[0], CompSize[1], 1, 60, CompFPS);
-CoverComp1 = app.project.items.addComp('封面_16-9', 1120, 630, 1, 1 / CompFPS, CompFPS);
-CoverComp2 = app.project.items.addComp('封面_4-3', 960, 720, 1, 1 / CompFPS, CompFPS);
+finalComp = app.project.items.addComp('周刊哔哩哔哩排行榜#' + WEEK_NUM, compSize[0], compSize[1], 1, 1, compFPS);
+rankPart1 = app.project.items.addComp('rankPart1', compSize[0], compSize[1], 1, 40.5, compFPS);
+rankPart2 = app.project.items.addComp('rankPart2', compSize[0], compSize[1], 1, 4, compFPS);
+rankPart3 = app.project.items.addComp('rankPart3', compSize[0], compSize[1], 1, 60, compFPS);
+rankPart4 = app.project.items.addComp('rankPart4', compSize[0], compSize[1], 1, 4, compFPS);
+rankPart5 = app.project.items.addComp('rankPart5', compSize[0], compSize[1], 1, 60, compFPS);
+rankPart6 = app.project.items.addComp('rankPart6', compSize[0], compSize[1], 1, 56.6, compFPS);
+rankPart7 = app.project.items.addComp('rankPart7', compSize[0], compSize[1], 1, 60, compFPS);
+rankPart8 = app.project.items.addComp('rankPart8', compSize[0], compSize[1], 1, 4, compFPS);
+rankPart9 = app.project.items.addComp('rankPart9', compSize[0], compSize[1], 1, 60, compFPS);
+rankPart10 = app.project.items.addComp('rankPart10', compSize[0], compSize[1], 1, 33, compFPS);
+rankPart11 = app.project.items.addComp('rankPart11', compSize[0], compSize[1], 1, 60, compFPS);
+rankPart12 = app.project.items.addComp('rankPart12', compSize[0], compSize[1], 1, 4, compFPS);
+rankPart13 = app.project.items.addComp('rankPart13', compSize[0], compSize[1], 1, 60, compFPS);
+rankPart14 = app.project.items.addComp('rankPart14', compSize[0], compSize[1], 1, 14.4, compFPS);
+rankPart15 = app.project.items.addComp('rankPart15', compSize[0], compSize[1], 1, 60, compFPS);
+rankPart16 = app.project.items.addComp('rankPart16', compSize[0], compSize[1], 1, 60, compFPS);
+rankPart17 = app.project.items.addComp('rankPart17', compSize[0], compSize[1], 1, 25, compFPS);
+rankPart18 = app.project.items.addComp('rankPart18', compSize[0], compSize[1], 1, 60, compFPS);
+coverComp1 = app.project.items.addComp('封面_16-9', 1120, 630, 1, 1 / compFPS, compFPS);
+coverComp2 = app.project.items.addComp('封面_4-3', 960, 720, 1, 1 / compFPS, compFPS);
 
-StaticFolder = app.project.items.addFolder('StaticFootage');
-WeeklyFolder = app.project.items.addFolder('WeeklyFootage');
+staticFolder = app.project.items.addFolder('StaticFootage');
+weeklyFolder = app.project.items.addFolder('WeeklyFootage');
 
-StaticFootage = {
+staticFootage = {
     // IMAGE
     投稿封面_1: './footage/public/ANNIVERSARY.png',
     投稿封面_2: './footage/public/STANDARD.png',
@@ -151,726 +151,714 @@ StaticFootage = {
     NotFound: './footage/public/error.mp4'
 };
 
-for (key in StaticFootage) {
-    FootageFile = new ImportOptions(File(StaticFootage[key]));
-    FootageFile.ImportAs = ImportAsType.FOOTAGE;
-    FileItem = app.project.importFile(FootageFile);
-    FileItem.pixelAspect = 1.0;
-    FileItem.name = key;
-    FileItem.parentFolder = StaticFolder;
+for (key in staticFootage) {
+    footageFile = new ImportOptions(File(staticFootage[key]));
+    footageFile.ImportAs = ImportAsType.FOOTAGE;
+    footageFileItem = app.project.importFile(footageFile);
+    footageFileItem.pixelAspect = 1.0;
+    footageFileItem.name = key;
+    footageFileItem.parentFolder = staticFolder;
 }
 
-for (n = 0; n < RankDataList.length; n++) {
+for (n = 0; n < rankDataList.length; n++) {
     // IMPORT VIDEO
-    for (key in RankDataList[n]) {
-        FileBaseName = RankDataList[n][key][0];
-        Rank = parseInt(key) < 10 ? '0' + key : key;
-        FileFullPath = Prefix + Rank + '_' + FileBaseName + '.mp4';
-        FootageFile = new ImportOptions(File(FileFullPath));
-        FootageFile.ImportAs = ImportAsType.FOOTAGE;
-        FileItem = app.project.importFile(FootageFile);
-        FileItem.pixelAspect = 1.0;
-        FileItem.name = RankDataList[n][key][0];
-        FileItem.parentFolder = WeeklyFolder;
+    for (key in rankDataList[n]) {
+        footageFileName = rankDataList[n][key][0];
+        footageFileRank = parseInt(key) < 10 ? '0' + key : key;
+        footageFilePath = fileFolder + footageFileRank + '_' + footageFileName + '.mp4';
+        footageFile = new ImportOptions(File(footageFilePath));
+        footageFile.ImportAs = ImportAsType.FOOTAGE;
+        footageFileItem = app.project.importFile(footageFile);
+        footageFileItem.pixelAspect = 1.0;
+        footageFileItem.name = rankDataList[n][key][0];
+        footageFileItem.parentFolder = weeklyFolder;
     }
     // IMPORT IMAGE
-    for (key in RankDataList[n]) {
-        FileBaseName = RankDataList[n][key][0];
-        Rank = parseInt(key) < 10 ? '0' + key : key;
+    for (key in rankDataList[n]) {
+        footageFileName = rankDataList[n][key][0];
+        footageFileRank = parseInt(key) < 10 ? '0' + key : key;
         if (n == 7) {
-            FileFullPath = Prefix + Rank + '_' + FileBaseName + '_.png';
-            FootageFile = new ImportOptions(File(FileFullPath));
-            FootageFile.ImportAs = ImportAsType.FOOTAGE;
-            FileItem = app.project.importFile(FootageFile);
-            FileItem.pixelAspect = 1.0;
-            FileItem.name = RankDataList[n][key][0] + '_m';
-            FileItem.parentFolder = WeeklyFolder;
+            footageFilePath = fileFolder + footageFileRank + '_' + footageFileName + '_.png';
+            footageFile = new ImportOptions(File(footageFilePath));
+            footageFile.ImportAs = ImportAsType.FOOTAGE;
+            footageFileItem = app.project.importFile(footageFile);
+            footageFileItem.pixelAspect = 1.0;
+            footageFileItem.name = rankDataList[n][key][0] + '_m';
+            footageFileItem.parentFolder = weeklyFolder;
         }
-        FileFullPath = Prefix + Rank + '_' + FileBaseName + '.png';
-        FootageFile = new ImportOptions(File(FileFullPath));
-        FootageFile.ImportAs = ImportAsType.FOOTAGE;
-        FileItem = app.project.importFile(FootageFile);
-        FileItem.pixelAspect = 1.0;
-        FileItem.name = RankDataList[n][key][0] + '_';
-        FileItem.parentFolder = WeeklyFolder;
+        footageFilePath = fileFolder + footageFileRank + '_' + footageFileName + '.png';
+        footageFile = new ImportOptions(File(footageFilePath));
+        footageFile.ImportAs = ImportAsType.FOOTAGE;
+        footageFileItem = app.project.importFile(footageFile);
+        footageFileItem.pixelAspect = 1.0;
+        footageFileItem.name = rankDataList[n][key][0] + '_';
+        footageFileItem.parentFolder = weeklyFolder;
     }
 }
 
 // ITEM INDEX
-ResourceID = {};
-function ReCountResource() {
+footageItemID = {};
+function renewItemID() {
     for (n = 1; n <= app.project.items.length; n++) {
-        ResourceID[app.project.items[n].name] = n;
+        footageItemID[app.project.items[n].name] = n;
     }
 }
-ReCountResource();
+renewItemID();
 
 // FUNCTION
-function AddLayer(Target, Name, Duration, Offset) {
-    NewLayer = Target.layers.add(app.project.items[ResourceID[Name]], Duration);
-    NewLayer.startTime = Offset;
-    return NewLayer;
+function addCompLayer(target, name, duration, start) {
+    newLayer = target.layers.add(app.project.items[footageItemID[name]], duration);
+    newLayer.startTime = start;
+    return newLayer;
 }
 
-function AddText(Target, text, justify, boxsize, position) {
-    TLayer = Target.layers.addBoxText(boxsize);
-    TDocument = TLayer.property('Source Text').value;
-    TDocument.resetCharStyle();
-    TDocument.resetParagraphStyle();
-    TDocument.applyFill = true; // 填充颜色
-    TDocument.applyStroke = false; // 描边颜色
-    //TDocument.autoLeading = true; // 自动行距
-    //TDocument.baselineShift = 0; // 基线偏移
-    //TDocument.fillColor = color; // 填充颜色 [R/255, G/255, B/255]
-    //TDocument.font = font; // 字体
-    //TDocument.fontSize = fontsize; // 字号
-    //TDocument.horizontalScale = 1; // 水平缩放
-    TDocument.justification = justify; // 段落对齐
-    //TDocument.leading = leading; // 行距
-    TDocument.text = text; // 文本
-    //TDocument.tracking = tracking; // 字间距
-    //TDocument.tsume = tsume; // 字符压缩
-    //TDocument.verticalScale = 1; // 垂直缩放
-    TLayer.property('Position').setValue(position);
-    TLayer.property('Source Text').setValue(TDocument);
-    return TLayer;
+function addTextLayer(target, text, justification, box, position) {
+    newLayer = target.layers.addBoxText(box);
+    textDocument = newLayer.property('Source Text').value;
+    textDocument.resetCharStyle();
+    textDocument.resetParagraphStyle();
+    textDocument.applyFill = true; // 填充颜色
+    textDocument.applyStroke = false; // 描边颜色
+    //textDocument.autoLeading = true; // 自动行距
+    //textDocument.baselineShift = 0; // 基线偏移
+    //textDocument.fillColor = color; // 填充颜色 [R/255, G/255, B/255]
+    //textDocument.font = font; // 字体
+    //textDocument.fontSize = fontsize; // 字号
+    //textDocument.horizontalScale = 1; // 水平缩放
+    textDocument.justification = justification; // 段落对齐
+    //textDocument.leading = leading; // 行距
+    textDocument.text = text; // 文本
+    //textDocument.tracking = tracking; // 字间距
+    //textDocument.tsume = tsume; // 字符压缩
+    //textDocument.verticalScale = 1; // 垂直缩放
+    newLayer.property('Position').setValue(position);
+    newLayer.property('Source Text').setValue(textDocument);
+    return newLayer;
 }
 
-function TextExpression(Font, Color, Size, Leading, Tracking, SourceText) {
+function textExpression(font, color, size, leading, tracking, content) {
     return (
         'text.sourceText.createStyle().setFont("' +
-        Font +
+        font +
         '").setFillColor(hexToRgb("' +
-        Color +
+        color +
         '")).setFontSize(' +
-        Size +
+        size +
         ').setLeading(' +
-        Leading +
+        leading +
         ').setTracking(' +
-        Tracking +
+        tracking +
         ').setText("' +
-        SourceText +
+        content +
         '");'
     );
 }
 
-function AddAudioProperty(Target, Ptype, Duration, Offset, Direction) {
-    NewProperty = Target.property('Audio Levels');
-    if (Ptype == 1) {
+function addAudioProperty(target, pType, duration, offset, direction) {
+    newProperty = target.property('Audio Levels');
+    if (pType == 1) {
         // 1/4 circle
-        if (Direction == 1) {
+        if (direction == 1) {
             // fade in
-            for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
-                NewProperty.setValueAtTime(t, [
-                    (Math.sqrt(1 - Math.pow(1 - (t - Offset) / Duration, 2)) - 1) * 50,
-                    (Math.sqrt(1 - Math.pow(1 - (t - Offset) / Duration, 2)) - 1) * 50,
+            for (t = offset; t <= offset + duration; t += duration / compFPS) {
+                newProperty.setValueAtTime(t, [
+                    (Math.sqrt(1 - Math.pow(1 - (t - offset) / duration, 2)) - 1) * 50,
+                    (Math.sqrt(1 - Math.pow(1 - (t - offset) / duration, 2)) - 1) * 50,
                 ]);
             }
-            NewProperty.setValueAtTime(Offset, [-Infinity, -Infinity]);
+            newProperty.setValueAtTime(offset, [-Infinity, -Infinity]);
         }
-        if (Direction == 2) {
+        if (direction == 2) {
             // fade out
-            for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
-                NewProperty.setValueAtTime(t, [
-                    (Math.sqrt(1 - Math.pow((t - Offset) / Duration, 2)) - 1) * 50,
-                    (Math.sqrt(1 - Math.pow((t - Offset) / Duration, 2)) - 1) * 50,
+            for (t = offset; t <= offset + duration; t += duration / compFPS) {
+                newProperty.setValueAtTime(t, [
+                    (Math.sqrt(1 - Math.pow((t - offset) / duration, 2)) - 1) * 50,
+                    (Math.sqrt(1 - Math.pow((t - offset) / duration, 2)) - 1) * 50,
                 ]);
             }
-            NewProperty.setValueAtTime(Offset + Duration, [-Infinity, -Infinity]);
+            newProperty.setValueAtTime(offset + duration, [-Infinity, -Infinity]);
         }
     }
-    if (Ptype == 2) {
+    if (pType == 2) {
         // sin
-        if (Direction == 1) {
+        if (direction == 1) {
             // fade in
-            for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
-                NewProperty.setValueAtTime(t, [
-                    ((Math.cos((Math.PI * (t - Offset)) / Duration) + 1) / 2) * -50,
-                    ((Math.cos((Math.PI * (t - Offset)) / Duration) + 1) / 2) * -50,
+            for (t = offset; t <= offset + duration; t += duration / compFPS) {
+                newProperty.setValueAtTime(t, [
+                    ((Math.cos((Math.PI * (t - offset)) / duration) + 1) / 2) * -50,
+                    ((Math.cos((Math.PI * (t - offset)) / duration) + 1) / 2) * -50,
                 ]);
             }
-            NewProperty.setValueAtTime(Offset, [-Infinity, -Infinity]);
+            newProperty.setValueAtTime(offset, [-Infinity, -Infinity]);
         }
-        if (Direction == 2) {
+        if (direction == 2) {
             // fade out
-            for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
-                NewProperty.setValueAtTime(t, [
-                    ((Math.cos((Math.PI * (t - Offset)) / Duration + Math.PI) + 1) / 2) * -50,
-                    ((Math.cos((Math.PI * (t - Offset)) / Duration + Math.PI) + 1) / 2) * -50,
+            for (t = offset; t <= offset + duration; t += duration / compFPS) {
+                newProperty.setValueAtTime(t, [
+                    ((Math.cos((Math.PI * (t - offset)) / duration + Math.PI) + 1) / 2) * -50,
+                    ((Math.cos((Math.PI * (t - offset)) / duration + Math.PI) + 1) / 2) * -50,
                 ]);
             }
-            NewProperty.setValueAtTime(Offset + Duration, [-Infinity, -Infinity]);
+            newProperty.setValueAtTime(offset + duration, [-Infinity, -Infinity]);
         }
     }
-    return NewProperty;
+    return newProperty;
 }
 
-function AddVideoProperty(Target, Ptype, Duration, Offset, Direction) {
-    if (Ptype == 1) {
+function addVideoProperty(target, pType, duration, offset, direction) {
+    if (pType == 1) {
         // Opacity
-        NewProperty = Target.property('Opacity');
-        if (Direction == 1) {
+        newProperty = target.property('Opacity');
+        if (direction == 1) {
             // fade in
-            for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
-                NewProperty.setValueAtTime(
+            for (t = offset; t <= offset + duration; t += duration / compFPS) {
+                newProperty.setValueAtTime(
                     t,
-                    ((Math.cos((Math.PI * (t - Offset)) / Duration + Math.PI) + 1) / 2) * 100
+                    ((Math.cos((Math.PI * (t - offset)) / duration + Math.PI) + 1) / 2) * 100
                 );
             }
-            NewProperty.setValueAtTime(Offset + Duration, 100);
+            newProperty.setValueAtTime(offset + duration, 100);
         }
-        if (Direction == 2) {
+        if (direction == 2) {
             // fade out
-            for (t = Offset; t <= Offset + Duration; t += Duration / CompFPS) {
-                NewProperty.setValueAtTime(t, ((Math.cos((Math.PI * (t - Offset)) / Duration) + 1) / 2) * 100);
+            for (t = offset; t <= offset + duration; t += duration / compFPS) {
+                newProperty.setValueAtTime(t, ((Math.cos((Math.PI * (t - offset)) / duration) + 1) / 2) * 100);
             }
-            NewProperty.setValueAtTime(Offset + Duration, 0);
+            newProperty.setValueAtTime(offset + duration, 0);
         }
     }
-    if (Ptype == 2) {
-        NewProperty = Target.property('Effects').addProperty('ADBE Linear Wipe');
-        if (Direction == 1) {
+    if (pType == 2) {
+        newProperty = target.property('Effects').addProperty('ADBE Linear Wipe');
+        if (direction == 1) {
             // fade in
             // Transition Completion
-            NewProperty.property('ADBE Linear Wipe-0001').setValueAtTime(Offset, 100);
-            NewProperty.property('ADBE Linear Wipe-0001').setValueAtTime(Offset + Duration, 0);
+            newProperty.property('ADBE Linear Wipe-0001').setValueAtTime(offset, 100);
+            newProperty.property('ADBE Linear Wipe-0001').setValueAtTime(offset + duration, 0);
 
             // Transition Angle
-            NewProperty.property('ADBE Linear Wipe-0002').setValueAtTime(Offset, 315);
-            NewProperty.property('ADBE Linear Wipe-0002').setValueAtTime(Offset + Duration, 315);
+            newProperty.property('ADBE Linear Wipe-0002').setValueAtTime(offset, 315);
+            newProperty.property('ADBE Linear Wipe-0002').setValueAtTime(offset + duration, 315);
 
             // Feather
-            NewProperty.property('ADBE Linear Wipe-0003').setValue(50);
+            newProperty.property('ADBE Linear Wipe-0003').setValue(50);
         }
-        if (Direction == 2) {
+        if (direction == 2) {
             // fade out
-            NewProperty.property('ADBE Linear Wipe-0001').setValueAtTime(Offset, 0);
-            NewProperty.property('ADBE Linear Wipe-0001').setValueAtTime(Offset + Duration, 100);
-            NewProperty.property('ADBE Linear Wipe-0002').setValueAtTime(Offset, 135);
-            NewProperty.property('ADBE Linear Wipe-0002').setValueAtTime(Offset + Duration, 135);
-            NewProperty.property('ADBE Linear Wipe-0003').setValue(50);
+            newProperty.property('ADBE Linear Wipe-0001').setValueAtTime(offset, 0);
+            newProperty.property('ADBE Linear Wipe-0001').setValueAtTime(offset + duration, 100);
+            newProperty.property('ADBE Linear Wipe-0002').setValueAtTime(offset, 135);
+            newProperty.property('ADBE Linear Wipe-0002').setValueAtTime(offset + duration, 135);
+            newProperty.property('ADBE Linear Wipe-0003').setValue(50);
         }
     }
-    return NewProperty;
+    return newProperty;
 }
 
-function AddRankPart(Target, RankData, FirstRank, AddNEXT, AddProperty, Offset, IsTop) {
-    SortRank = [];
-    PartSize = RankSize;
-    for (key in RankData) {
-        SortRank[SortRank.length] = key;
+function addRankPart(target, rankPartData, needNext, needProperty, partOffset, isTop) {
+    sortedRank = [];
+    rankPartSize = rankVideoSize;
+    for (key in rankPartData) {
+        sortedRank[sortedRank.length] = key;
     }
-    LastRank = Math.max.apply(Math, SortRank);
-    FirstRank = Math.min.apply(Math, SortRank);
-    for (i = 0; LastRank - i >= FirstRank; i++) {
-        if (!(LastRank - i in RankData)) {
+    lastRankNum = Math.max.apply(Math, sortedRank);
+    firstRankNum = Math.min.apply(Math, sortedRank);
+    for (i = 0; lastRankNum - i >= firstRankNum; i++) {
+        if (!(lastRankNum - i in rankPartData)) {
             continue;
         }
-        IsInvalid = false;
-        for (key in LostVideos) {
-            if (RankData[LastRank - i][0] == key) {
-                IsInvalid = true;
+        isInvalid = false;
+        for (key in lostVideos) {
+            if (rankPartData[lastRankNum - i][0] == key) {
+                isInvalid = true;
             }
         }
-        VideoFile = (IsInvalid == false) ? RankData[LastRank - i][0] : 'NotFound';
-        VideoMask = RankData[LastRank - i][0] + '_';
-        TopImage = RankData[LastRank - i][0] + '_m';
-        VideoDuration = RankData[LastRank - i][1];
-        TrueDuration = app.project.items[ResourceID[VideoFile]].duration;
-        if (TrueDuration < VideoDuration) {
-            VideoDuration = TrueDuration;
+        partVideoFile = (isInvalid == false) ? rankPartData[lastRankNum - i][0] : 'NotFound';
+        partVideoMask = rankPartData[lastRankNum - i][0] + '_';
+        partTopImg = rankPartData[lastRankNum - i][0] + '_m';
+        partVideoDuration = rankPartData[lastRankNum - i][1];
+        partTrueDuration = app.project.items[footageItemID[partVideoFile]].duration;
+        if (partTrueDuration < partVideoDuration) {
+            partVideoDuration = partTrueDuration;
         }
-        VideoOffset = RankData[LastRank - i][2];
-        VideoOffset = 0;
-        SubJson = new File(Prefix + VideoFile + '.json');
-        SubExist = SubJson.exists;
-        if (!SubExist) {
-            NewVideoLayer = AddLayer(Target, VideoFile, VideoDuration, Offset - VideoOffset);
+        // VideoOffset = rankPartData[lastRankNum - i][2];
+        videoOffset = 0;
+        subtitle = new File(fileFolder + partVideoFile + '.json');
+        hasSubtitle = subtitle.exists;
+        if (!hasSubtitle) {
+            newPartVideo = addCompLayer(target, partVideoFile, partVideoDuration, partOffset - videoOffset);
         } else {
-            SubJson.open('r');
-            content = SubJson.read();
-            SubJson.close();
-            Subs = JSON.parse(content).body;
-            VideoComp = app.project.items.addComp(VideoFile + '_CC', CompSize[0], CompSize[1], 1, TrueDuration, CompFPS);
-            VideoComp.hideShyLayers = true;
-            VideoComp.parentFolder = WeeklyFolder;
-            ReCountResource();
-            NewVideoLayer = AddLayer(VideoComp, VideoFile, TrueDuration, 0);
-            for (n = 0; n < Subs.length; n++) {
+            subtitle.open('r');
+            content = subtitle.read();
+            subtitle.close();
+            subtitleList = JSON.parse(content).body;
+            videoWithSub = app.project.items.addComp(partVideoFile + '_Subtitle', compSize[0], compSize[1], 1, partTrueDuration, compFPS);
+            videoWithSub.hideShyLayers = true;
+            videoWithSub.parentFolder = weeklyFolder;
+            renewItemID();
+            newPartVideo = addCompLayer(videoWithSub, partVideoFile, partTrueDuration, 0);
+            for (n = 0; n < subtitleList.length; n++) {
                 if (
-                    (Subs[n].from < RankData[LastRank - i][2] && Subs[n].to <= RankData[LastRank - i][2]) ||
-                    (Subs[n].from >= RankData[LastRank - i][2] + TrueDuration && Subs[n].to > RankData[LastRank - i][2] + TrueDuration)
+                    (subtitleList[n].from < rankPartData[lastRankNum - i][2] && subtitleList[n].to <= rankPartData[lastRankNum - i][2]) ||
+                    (subtitleList[n].from >= rankPartData[lastRankNum - i][2] + partTrueDuration && subtitleList[n].to > rankPartData[lastRankNum - i][2] + partTrueDuration)
                 ) {
                     continue;
                 } else {
-                    BlackLayer = VideoComp.layers.addSolid([0, 0, 0], '黑底', CompSize[0], CompSize[1], 1, 1);
-                    BlackLayer.startTime = 0 - RankData[LastRank - i][2];
-                    BlackLayer.inPoint = BlackLayer.startTime + Subs[n].from;
-                    BlackLayer.outPoint = BlackLayer.startTime + Subs[n].to;
-                    SubLayer = AddText(VideoComp, Subs[n].content, ParagraphJustification.CENTER_JUSTIFY, [CompSize[0], 120], [CompSize[0] / 2, CompSize[1] - 2 * 52]);
-                    SubLayer.startTime = BlackLayer.startTime;
-                    SubLayer.inPoint = BlackLayer.inPoint;
-                    SubLayer.outPoint = BlackLayer.outPoint;
-                    SubLayer.property('Source Text').expression = TextExpression('Microsoft YaHei', '#FFFFFF', 52, 52, 52, Subs[n].content.replace('\n', '\\n'));
-                    SubLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.width/2+s.left, s.height/2+s.top];';
-                    BlackLayer.property('Position').expression = 'thisComp.layer(thisLayer.index-1).transform.position;';
-                    BlackLayer.property('Scale').expression = 's=thisComp.layer(thisLayer.index-1).sourceRectAtTime();transform.scale=[(s.width+30)*100/thisLayer.width,(s.height+30)*100/thisLayer.height];';
-                    BlackLayer.property('Opacity').setValue(50);
-                    BlackLayer.shy = true;
+                    compBase = videoWithSub.layers.addSolid([0, 0, 0], '黑底', compSize[0], compSize[1], 1, 1);
+                    compBase.startTime = 0 - rankPartData[lastRankNum - i][2];
+                    compBase.inPoint = compBase.startTime + subtitleList[n].from;
+                    compBase.outPoint = compBase.startTime + subtitleList[n].to;
+                    subtitleText = addTextLayer(videoWithSub, subtitleList[n].content, ParagraphJustification.CENTER_JUSTIFY, [compSize[0], 120], [compSize[0] / 2, compSize[1] - 2 * 52]);
+                    subtitleText.startTime = compBase.startTime;
+                    subtitleText.inPoint = compBase.inPoint;
+                    subtitleText.outPoint = compBase.outPoint;
+                    subtitleText.property('Source Text').expression = textExpression('Microsoft YaHei', '#FFFFFF', 52, 52, 52, subtitleList[n].content.replace('\n', '\\n'));
+                    subtitleText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.width/2+s.left, s.height/2+s.top];';
+                    compBase.property('Position').expression = 'thisComp.layer(thisLayer.index-1).transform.position;';
+                    compBase.property('Scale').expression = 's=thisComp.layer(thisLayer.index-1).sourceRectAtTime();transform.scale=[(s.width+30)*100/thisLayer.width,(s.height+30)*100/thisLayer.height];';
+                    compBase.property('Opacity').setValue(50);
+                    compBase.shy = true;
                 }
             }
-            NewVideoLayer = AddLayer(Target, VideoFile + '_CC', VideoDuration, Offset - VideoOffset);
+            newPartVideo = addCompLayer(target, partVideoFile + '_Subtitle', partVideoDuration, partOffset - videoOffset);
         }
-        NewVideoLayer.inPoint = Offset;
-        NewVideoLayer.outPoint = Offset + VideoDuration;
-        NewVideoLayer.inPoint = NewVideoLayer.outPoint - VideoDuration;
-        NewVideoLayer.outPoint = NewVideoLayer.inPoint + VideoDuration;
-        NewVideoLayer.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
+        newPartVideo.inPoint = partOffset;
+        newPartVideo.outPoint = partOffset + partVideoDuration;
+        newPartVideo.inPoint = newPartVideo.outPoint - partVideoDuration;
+        newPartVideo.outPoint = newPartVideo.inPoint + partVideoDuration;
+        newPartVideo.property('Position').setValue([compSize[0] / 2 - 223, compSize[1] / 2 - 118]);
 
         // Add 16s
-        if (IsInvalid == true) {
-            VideoOffset = 0;
-            InvalidLayer = AddLayer(Target, '视频失效', VideoDuration, Offset);
-            // InvalidLayer.audioEnabled = false;
-            InvalidLayer.inPoint = Offset;
-            InvalidLayer.outPoint = Offset + VideoDuration;
-            InvalidLayer.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
-            OrigSize = InvalidLayer.sourceRectAtTime(InvalidLayer.inPoint, false);
-            InvalidLayer.property('Scale').setValue([
-                (PartSize[0] / OrigSize.width) * 100,
-                (PartSize[0] / OrigSize.width) * 100,
+        if (isInvalid) {
+            videoOffset = 0;
+            invalidText = addCompLayer(target, '视频失效', partVideoDuration, partOffset);
+            // invalidText.audioEnabled = false;
+            invalidText.inPoint = partOffset;
+            invalidText.outPoint = partOffset + partVideoDuration;
+            invalidText.property('Position').setValue([compSize[0] / 2 - 223, compSize[1] / 2 - 118]);
+            origLayerSize = invalidText.sourceRectAtTime(invalidText.inPoint, false);
+            invalidText.property('Scale').setValue([
+                (rankPartSize[0] / origLayerSize.width) * 100,
+                (rankPartSize[0] / origLayerSize.width) * 100,
             ]);
-            if (IsTop || AddProperty) {
-                InvalidLayer.property('Position').setValue([CompSize[0] / 2, CompSize[1] / 2]);
-                InvalidLayer.property('Scale').setValue([100, 100]);
-                AddVideoProperty(InvalidLayer, 1, 0.6, InvalidLayer.inPoint, 1);
-                AddVideoProperty(InvalidLayer, 1, 0.6, InvalidLayer.outPoint - 0.6, 2);
+            if (isTop || needProperty) {
+                invalidText.property('Position').setValue([compSize[0] / 2, compSize[1] / 2]);
+                invalidText.property('Scale').setValue([100, 100]);
+                addVideoProperty(invalidText, 1, 0.6, invalidText.inPoint, 1);
+                addVideoProperty(invalidText, 1, 0.6, invalidText.outPoint - 0.6, 2);
             }
         }
 
         // Change Size & Add Logo
-        if (IsTop) {
-            AddVideoProperty(NewVideoLayer, 1, 3, NewVideoLayer.outPoint - 3, 2);
-            AddAudioProperty(NewVideoLayer, 2, 1, NewVideoLayer.inPoint, 1);
-            AddAudioProperty(NewVideoLayer, 2, 3, NewVideoLayer.outPoint - 3, 2);
-            NewVideoLayer.property('Position').setValue([CompSize[0] / 2, CompSize[1] / 2]);
-            PartSize = CompSize;
-            LogoLayer = AddLayer(Target, '周刊Logo', VideoDuration + 0.2, Offset);
-            LogoLayer.property('Scale').setValue([(CompSize[0] / 640) * 100, (CompSize[1] / 384) * 100]);
-            LogoLayer.property('Position').setValue([CompSize[0] / 2, CompSize[1] / 2]);
-            AddVideoProperty(LogoLayer, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
-        } else if (AddProperty) {
-            AddVideoProperty(NewVideoLayer, 1, 0.6, NewVideoLayer.inPoint, 1);
-            AddVideoProperty(NewVideoLayer, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
-            AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.inPoint, 1);
-            AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.outPoint - 1, 2);
+        if (isTop) {
+            addVideoProperty(newPartVideo, 1, 3, newPartVideo.outPoint - 3, 2);
+            addAudioProperty(newPartVideo, 2, 1, newPartVideo.inPoint, 1);
+            addAudioProperty(newPartVideo, 2, 3, newPartVideo.outPoint - 3, 2);
+            newPartVideo.property('Position').setValue([compSize[0] / 2, compSize[1] / 2]);
+            rankPartSize = compSize;
+            topLogo = addCompLayer(target, '周刊Logo', partVideoDuration + 0.2, partOffset);
+            topLogo.property('Scale').setValue([(compSize[0] / 640) * 100, (compSize[1] / 384) * 100]);
+            topLogo.property('Position').setValue([compSize[0] / 2, compSize[1] / 2]);
+            addVideoProperty(topLogo, 1, 0.6, newPartVideo.outPoint - 0.6, 2);
+        } else if (needProperty) {
+            addVideoProperty(newPartVideo, 1, 0.6, newPartVideo.inPoint, 1);
+            addVideoProperty(newPartVideo, 1, 0.6, newPartVideo.outPoint - 0.6, 2);
+            addAudioProperty(newPartVideo, 1, 1, newPartVideo.inPoint, 1);
+            addAudioProperty(newPartVideo, 1, 1, newPartVideo.outPoint - 1, 2);
         } else {
-            AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.inPoint, 1);
-            AddAudioProperty(NewVideoLayer, 1, 1, NewVideoLayer.outPoint - 1, 2);
+            addAudioProperty(newPartVideo, 1, 1, newPartVideo.inPoint, 1);
+            addAudioProperty(newPartVideo, 1, 1, newPartVideo.outPoint - 1, 2);
         }
-        OrigSize = NewVideoLayer.sourceRectAtTime(NewVideoLayer.inPoint, false);
-        if (OrigSize.width / OrigSize.height >= 16 / 9) {
-            NewVideoLayer.property('Scale').setValue([
-                (PartSize[0] / OrigSize.width) * 100,
-                (PartSize[0] / OrigSize.width) * 100,
-            ]);
-        } else {
-            NewVideoLayer.property('Scale').setValue([
-                (PartSize[1] / OrigSize.height) * 100,
-                (PartSize[1] / OrigSize.height) * 100,
-            ]);
-        }
+        origLayerSize = newPartVideo.sourceRectAtTime(newPartVideo.inPoint, false);
+        setFootageScale(newPartVideo, origLayerSize, rankPartSize, false);
 
         // Extra Step For Top 3
-        if (IsTop) {
-            BlackLayer = Target.layers.addSolid([0, 0, 0], '黑底', CompSize[0], CompSize[1], 1, 12);
-            BlackLayer.inPoint = Offset - VideoOffset;
-            if (!SubExist) {
-                NewVideoLayerS = AddLayer(Target, VideoFile, 12, Offset - VideoOffset);
+        if (isTop) {
+            compBase = target.layers.addSolid([0, 0, 0], '黑底', compSize[0], compSize[1], 1, 12);
+            compBase.inPoint = partOffset - videoOffset;
+            if (!hasSubtitle) {
+                newPartVideoS = addCompLayer(target, partVideoFile, 12, partOffset - videoOffset);
             } else {
-                NewVideoLayerS = AddLayer(Target, VideoFile + '_CC', 12, Offset - VideoOffset);
+                newPartVideoS = addCompLayer(target, partVideoFile + '_Subtitle', 12, partOffset - videoOffset);
             }
-            NewVideoLayerS.audioEnabled = false;
-            NewVideoLayerS.inPoint = NewVideoLayer.inPoint;
-            NewVideoLayerS.outPoint = NewVideoLayer.inPoint + 12;
-            OrigSize = NewVideoLayerS.sourceRectAtTime(NewVideoLayerS.inPoint, false);
-            if (OrigSize.width / OrigSize.height >= 16 / 9) {
-                NewVideoLayerS.property('Scale').setValue([
-                    (RankSize[0] / OrigSize.width) * 100,
-                    (RankSize[0] / OrigSize.width) * 100,
+            newPartVideoS.audioEnabled = false;
+            newPartVideoS.inPoint = newPartVideo.inPoint;
+            newPartVideoS.outPoint = newPartVideo.inPoint + 12;
+            origLayerSize = newPartVideoS.sourceRectAtTime(newPartVideoS.inPoint, false);
+            setFootageScale(newPartVideoS, origLayerSize, rankVideoSize, false);
+            newPartVideoS.property('Position').setValue([compSize[0] / 2 - 223, compSize[1] / 2 - 118]);
+            if (isInvalid) {
+                videoOffset = 0;
+                invalidTextS = addCompLayer(target, '视频失效', partVideoDuration, partOffset);
+                // invalidTextS.audioEnabled = false;
+                invalidTextS.inPoint = partOffset;
+                invalidTextS.outPoint = invalidTextS.inPoint + 12;
+                origLayerSize = invalidTextS.sourceRectAtTime(invalidTextS.inPoint, false);
+                invalidTextS.property('Scale').setValue([
+                    (rankVideoSize[0] / origLayerSize.width) * 100,
+                    (rankVideoSize[0] / origLayerSize.width) * 100,
                 ]);
-            } else {
-                NewVideoLayerS.property('Scale').setValue([
-                    (RankSize[1] / OrigSize.height) * 100,
-                    (RankSize[1] / OrigSize.height) * 100,
-                ]);
+                invalidTextS.property('Position').setValue([compSize[0] / 2 - 223, compSize[1] / 2 - 118]);
             }
-            NewVideoLayerS.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
-            if (IsInvalid == true) {
-                VideoOffset = 0;
-                InvalidLayerS = AddLayer(Target, '视频失效', VideoDuration, Offset);
-                // InvalidLayerS.audioEnabled = false;
-                InvalidLayerS.inPoint = Offset;
-                InvalidLayerS.outPoint = InvalidLayerS.inPoint + 12;
-                OrigSize = InvalidLayerS.sourceRectAtTime(InvalidLayerS.inPoint, false);
-                InvalidLayerS.property('Scale').setValue([
-                    (RankSize[0] / OrigSize.width) * 100,
-                    (RankSize[0] / OrigSize.width) * 100,
-                ]);
-                InvalidLayerS.property('Position').setValue([CompSize[0] / 2 - 223, CompSize[1] / 2 - 118]);
-            }
-            BlueLayer = AddLayer(Target, '蓝底', 5.4, Offset - 0.4);
-            AddVideoProperty(BlueLayer, 1, 0.4, Offset - 0.4, 1);
-            AddLayer(Target, VideoMask, 7, Offset + 5);
-            TopRankLayer = AddLayer(Target, TopImage, 5, Offset);
-            AddVideoProperty(TopRankLayer, 1, 1, Offset, 1);
-            Offset = Offset + VideoDuration + 0.2;
+            compBase = addCompLayer(target, '蓝底', 5.4, partOffset - 0.4);
+            addVideoProperty(compBase, 1, 0.4, partOffset - 0.4, 1);
+            addCompLayer(target, partVideoMask, 7, partOffset + 5);
+            rankTop = addCompLayer(target, partTopImg, 5, partOffset);
+            addVideoProperty(rankTop, 1, 1, partOffset, 1);
+            partOffset = partOffset + partVideoDuration + 0.2;
         } else {
-            NewVideoLayer_mask = AddLayer(Target, VideoMask, VideoDuration, Offset);
-            if (AddNEXT && LastRank - i > FirstRank) {
-                NextBGMLayer = AddLayer(Target, 'NEXT_BGM', 1, Offset + VideoDuration);
-                NextLayer = AddLayer(Target, 'NEXT', 1, Offset + VideoDuration);
-                Offset = Offset + VideoDuration + 1;
-            } else if (LastRank - i > FirstRank) {
-                Offset = Offset + VideoDuration;
+            newPartMask = addCompLayer(target, partVideoMask, partVideoDuration, partOffset);
+            if (needNext && lastRankNum - i > firstRankNum) {
+                nextAudio = addCompLayer(target, 'NEXT_BGM', 1, partOffset + partVideoDuration);
+                nextText = addCompLayer(target, 'NEXT', 1, partOffset + partVideoDuration);
+                partOffset = partOffset + partVideoDuration + 1;
+            } else if (lastRankNum - i > firstRankNum) {
+                partOffset = partOffset + partVideoDuration;
             } else {
-                if (IsInvalid == true) {
-                    AddVideoProperty(InvalidLayer, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
+                if (isInvalid) {
+                    addVideoProperty(invalidText, 1, 0.6, newPartVideo.outPoint - 0.6, 2);
                 }
-                AddVideoProperty(NewVideoLayer, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
-                AddVideoProperty(NewVideoLayer_mask, 1, 0.6, NewVideoLayer.outPoint - 0.6, 2);
-                Offset = Offset + VideoDuration;
+                addVideoProperty(newPartVideo, 1, 0.6, newPartVideo.outPoint - 0.6, 2);
+                addVideoProperty(newPartMask, 1, 0.6, newPartVideo.outPoint - 0.6, 2);
+                partOffset = partOffset + partVideoDuration;
             }
         }
     }
-    return Offset;
+    return partOffset;
 }
 
-CompBlackLayer = FinalComp.layers.addSolid([0, 0, 0], '黑底', CompSize[0], CompSize[1], 1, 1);
+function setFootageScale(target, from, to, reverse) {
+    wide = from.width / from.height >= to[0] / to[1];
+    axis = (wide ? 0 : 1) ^ (reverse ? 1 : 0);
+    scale = (to[axis] / (axis == 0 ? from.width : from.height)) * 100;
+    target.property('Scale').setValue([scale, scale]);
+}
+
+function chapterTimeCount(time) {
+    return Math.ceil(time) + 1;
+}
+
+function getWeekLabel() {
+    date = new Date(
+        (YUME + WEEK_NUM * 3600 * 24 * 7 - 86400) * 1000
+    );
+    year = date.getUTCFullYear();
+    month = date.getUTCMonth() + 1;
+    day = date.getUTCDate();
+    firstDay = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+    week = Math.floor((day - 1) / 7) + 1;
+    if (firstDay === 0) {
+        week += 1;
+    }
+    return [year,month,week];
+}
 
 // Part 1
-AudioLayer_1 = AddLayer(Part_1, '夏之随想_BGM', 40.5, 0);
-AddAudioProperty(AudioLayer_1, 1, 2.3, 38.2, 2);
-BlankLayer_1 = AddLayer(Part_1, '蓝底', 40.5, 0);
-TitleLayer_1 = AddLayer(Part_1, '标题', 4.5, 0);
-AddVideoProperty(TitleLayer_1, 1, 0.6, 0, 1);
-AddVideoProperty(TitleLayer_1, 1, 0.6, 3.9, 2);
-WarnLayer_1 = AddLayer(Part_1, '注意事项_1', 2.3, 4.7);
-AddVideoProperty(WarnLayer_1, 2, 0.3, 4.7, 1);
-WarnLayer_2 = AddLayer(Part_1, '注意事项_2', 2.3, 7);
-AddVideoProperty(WarnLayer_2, 2, 0.3, 9, 2);
-BGMLayer = AddLayer(Part_1, '夏之随想', 5.5, 0.5);
-AddVideoProperty(BGMLayer, 2, 2, 0, 1);
-AddVideoProperty(BGMLayer, 2, 2, 4, 2);
-WorldLayer = AddLayer(Part_1, '哔哩哔哩', 4.5, 9.5);
-AddVideoProperty(WorldLayer, 1, 0.3, 9.5, 1);
-AddVideoProperty(WorldLayer, 1, 0.3, 13.7, 2);
-StartLayer = AddLayer(Part_1, '集计时间', 4.5, 14.3);
-AddVideoProperty(StartLayer, 2, 0.3, 14.3, 1);
-AddVideoProperty(StartLayer, 1, 0.3, 18.5, 2);
-OpeningLayer = AddLayer(Part_1, 'Opening', 4.8, 19);
-AddVideoProperty(OpeningLayer, 1, 0.5, 19, 1);
-AddVideoProperty(OpeningLayer, 1, 0.5, 23.3, 2);
-RuleLayer_1 = AddLayer(Part_1, '规则说明', 4.3, 24);
-AddVideoProperty(RuleLayer_1, 2, 0.6, 24, 1);
-RuleLayer_2 = AddLayer(Part_1, '特殊说明', 4.2, 28.3);
-RuleLayer_3 = AddLayer(Part_1, '普通规则', 4, 32.5);
-RuleLayer_4 = AddLayer(Part_1, '新番规则', 4, 36.5);
-AddVideoProperty(RuleLayer_4, 2, 0.7, 39.8, 2);
+compAudio1 = addCompLayer(rankPart1, '夏之随想_BGM', 40.5, 0);
+addAudioProperty(compAudio1, 1, 2.3, 38.2, 2);
+compBase1 = addCompLayer(rankPart1, '蓝底', 40.5, 0);
+titleText1 = addCompLayer(rankPart1, '标题', 4.5, 0);
+addVideoProperty(titleText1, 1, 0.6, 0, 1);
+addVideoProperty(titleText1, 1, 0.6, 3.9, 2);
+warningText1 = addCompLayer(rankPart1, '注意事项_1', 2.3, 4.7);
+addVideoProperty(warningText1, 2, 0.3, 4.7, 1);
+warningText2 = addCompLayer(rankPart1, '注意事项_2', 2.3, 7);
+addVideoProperty(warningText2, 2, 0.3, 9, 2);
+bgmText = addCompLayer(rankPart1, '夏之随想', 5.5, 0.5);
+addVideoProperty(bgmText, 2, 2, 0, 1);
+addVideoProperty(bgmText, 2, 2, 4, 2);
+worldText = addCompLayer(rankPart1, '哔哩哔哩', 4.5, 9.5);
+addVideoProperty(worldText, 1, 0.3, 9.5, 1);
+addVideoProperty(worldText, 1, 0.3, 13.7, 2);
+rangeText = addCompLayer(rankPart1, '集计时间', 4.5, 14.3);
+addVideoProperty(rangeText, 2, 0.3, 14.3, 1);
+addVideoProperty(rangeText, 1, 0.3, 18.5, 2);
+openingText = addCompLayer(rankPart1, 'Opening', 4.8, 19);
+addVideoProperty(openingText, 1, 0.5, 19, 1);
+addVideoProperty(openingText, 1, 0.5, 23.3, 2);
+ruleText1 = addCompLayer(rankPart1, '规则说明', 4.3, 24);
+addVideoProperty(ruleText1, 2, 0.6, 24, 1);
+ruleText2 = addCompLayer(rankPart1, '特殊说明', 4.2, 28.3);
+ruleText3 = addCompLayer(rankPart1, '普通规则', 4, 32.5);
+ruleText4 = addCompLayer(rankPart1, '新番规则', 4, 36.5);
+addVideoProperty(ruleText4, 2, 0.7, 39.8, 2);
 
 // Part 2
-AudioLayer_2 = AddLayer(Part_2, 'Pickup_BGM', 4, 0);
-AddAudioProperty(AudioLayer_2, 1, 1, 0, 1);
-AddAudioProperty(AudioLayer_2, 1, 1, 3, 2);
-BlankLayer_2 = AddLayer(Part_2, '蓝底', 4, 0);
-NextLayer_2 = AddLayer(Part_2, 'Pickup_切换', 4, 0);
-AddVideoProperty(NextLayer_2, 2, 1, 0, 1);
+compAudio2 = addCompLayer(rankPart2, 'Pickup_BGM', 4, 0);
+addAudioProperty(compAudio2, 1, 1, 0, 1);
+addAudioProperty(compAudio2, 1, 1, 3, 2);
+compBase2 = addCompLayer(rankPart2, '蓝底', 4, 0);
+nextText2 = addCompLayer(rankPart2, 'Pickup_切换', 4, 0);
+addVideoProperty(nextText2, 2, 1, 0, 1);
 
 // Part 3
-Part_3.duration = AddRankPart(Part_3, RankDataList[0], 1, false, true, 0, false);
+rankPart3.duration = addRankPart(rankPart3, rankDataList[0], false, true, 0, false);
 
 // Part 4
-BlankLayer_4 = AddLayer(Part_4, '蓝底', 4, 0);
-NextLayerAudio_4 = AddLayer(Part_4, '主榜切换_BGM', 4, 0);
-AddAudioProperty(NextLayerAudio_4, 1, 1, 3, 2);
-NextLayer_4 = AddLayer(Part_4, '主榜切换_1', 4, 0);
-AddVideoProperty(NextLayer_4, 2, 1, 0, 1);
+compBase4 = addCompLayer(rankPart4, '蓝底', 4, 0);
+nextAudio4 = addCompLayer(rankPart4, '主榜切换_BGM', 4, 0);
+addAudioProperty(nextAudio4, 1, 1, 3, 2);
+nextText4 = addCompLayer(rankPart4, '主榜切换_1', 4, 0);
+addVideoProperty(nextText4, 2, 1, 0, 1);
 
 // Part 5 (30+ to 21)
-Part_5.duration = AddRankPart(Part_5, RankDataList[1], 21, true, false, 0, false);
+rankPart5.duration = addRankPart(rankPart5, rankDataList[1], true, false, 0, false);
 
 // Part 6 (tv & bangumi)
-BlankLayer_6 = AddLayer(Part_6, '棕底', 56.6, 0);
-AudioLayer_6 = AddLayer(Part_6, '影视国创_BGM', 56.6, 0 - 30);
-AudioLayer_6.inPoint = 0;
-AudioLayer_6.outPoint = 56.6;
-AddAudioProperty(AudioLayer_6, 1, 1.8, AudioLayer_6.inPoint, 1);
-AddAudioProperty(AudioLayer_6, 1, 3.2, AudioLayer_6.outPoint - 3.2, 2);
-FilmLayer = AddLayer(Part_6, '影视切换', 3.73, 0);
-AddVideoProperty(FilmLayer, 2, 0.5, 0, 1);
-AddVideoProperty(FilmLayer, 2, 0.5, 3.23, 2);
-RankLayer_6_1 = AddLayer(Part_6, '影视副榜_1', 7.6, 4);
-AddVideoProperty(RankLayer_6_1, 2, 0.5, 4, 1);
-RankLayer_6_2 = AddLayer(Part_6, '影视副榜_2', 7, 11.6);
-RankLayer_6_3 = AddLayer(Part_6, '影视副榜_3', 7, 18.6);
-AddVideoProperty(RankLayer_6_3, 2, 0.6, 25, 2);
-RankLayer_6_cn_sub = AddLayer(Part_6, '国创副榜', 3.6, 26);
-AddVideoProperty(RankLayer_6_cn_sub, 2, 0.5, 26, 1);
-AddVideoProperty(RankLayer_6_cn_sub, 2, 0.5, 29.1, 2);
-RankLayer_6_bgm_4 = AddLayer(Part_6, '国创副榜_1', 7.5, 30);
-AddVideoProperty(RankLayer_6_bgm_4, 2, 0.5, 30, 1);
-RankLayer_6_bgm_5 = AddLayer(Part_6, '国创副榜_2', 7.5, 37.5);
-// AddVideoProperty(RankLayer_6_bgm_5, 2, 0.5, 44.5, 1);
-RankLayer_6_bgm_6 = AddLayer(Part_6, '国创副榜_3', 8.4, 45);
-AddVideoProperty(RankLayer_6_bgm_6, 2, 0.5, 52, 2);
-RankLayer_6_cn_main = AddLayer(Part_6, '国创切换', 3.7, 52.9);
-AddVideoProperty(RankLayer_6_cn_main, 2, 0.6, 52.9, 1);
+compBase6 = addCompLayer(rankPart6, '棕底', 56.6, 0);
+compAudio6 = addCompLayer(rankPart6, '影视国创_BGM', 56.6, 0 - 30);
+compAudio6.inPoint = 0;
+compAudio6.outPoint = 56.6;
+addAudioProperty(compAudio6, 1, 1.8, compAudio6.inPoint, 1);
+addAudioProperty(compAudio6, 1, 3.2, compAudio6.outPoint - 3.2, 2);
+filmSubCard = addCompLayer(rankPart6, '影视切换', 3.73, 0);
+addVideoProperty(filmSubCard, 2, 0.5, 0, 1);
+addVideoProperty(filmSubCard, 2, 0.5, 3.23, 2);
+filmSubRank1 = addCompLayer(rankPart6, '影视副榜_1', 7.6, 4);
+addVideoProperty(filmSubRank1, 2, 0.5, 4, 1);
+filmSubRank2 = addCompLayer(rankPart6, '影视副榜_2', 7, 11.6);
+filmSubRank3 = addCompLayer(rankPart6, '影视副榜_3', 7, 18.6);
+addVideoProperty(filmSubRank3, 2, 0.6, 25, 2);
+chineseSubCard = addCompLayer(rankPart6, '国创副榜', 3.6, 26);
+addVideoProperty(chineseSubCard, 2, 0.5, 26, 1);
+addVideoProperty(chineseSubCard, 2, 0.5, 29.1, 2);
+chineseSubRank4 = addCompLayer(rankPart6, '国创副榜_1', 7.5, 30);
+addVideoProperty(chineseSubRank4, 2, 0.5, 30, 1);
+chineseSubRank5 = addCompLayer(rankPart6, '国创副榜_2', 7.5, 37.5);
+// addVideoProperty(chineseSubRank5, 2, 0.5, 44.5, 1);
+chineseSubRank6 = addCompLayer(rankPart6, '国创副榜_3', 8.4, 45);
+addVideoProperty(chineseSubRank6, 2, 0.5, 52, 2);
+chineseCard = addCompLayer(rankPart6, '国创切换', 3.7, 52.9);
+addVideoProperty(chineseCard, 2, 0.6, 52.9, 1);
 
 // Part 7 (tv & bangumi)
-Part_7.duration = AddRankPart(Part_7, RankDataList[2], 1, false, false, 0, false);
+rankPart7.duration = addRankPart(rankPart7, rankDataList[2], false, false, 0, false);
 
 // Part 8
-BlankLayer_8 = AddLayer(Part_8, '蓝底', 4, 0);
-NextLayerAudio_8 = AddLayer(Part_8, '主榜切换_BGM', 4, 0);
-AddAudioProperty(NextLayerAudio_8, 1, 1, 3, 2);
-NextLayer_8 = AddLayer(Part_8, '主榜切换_2', 4, 0);
-AddVideoProperty(NextLayer_8, 2, 1, 0, 1);
+compBase8 = addCompLayer(rankPart8, '蓝底', 4, 0);
+nextAudio8 = addCompLayer(rankPart8, '主榜切换_BGM', 4, 0);
+addAudioProperty(nextAudio8, 1, 1, 3, 2);
+nextText8 = addCompLayer(rankPart8, '主榜切换_2', 4, 0);
+addVideoProperty(nextText8, 2, 1, 0, 1);
 
 // Part 9 (20 to 11)
-Part_9.duration = AddRankPart(Part_9, RankDataList[3], 11, true, false, 0, false);
+rankPart9.duration = addRankPart(rankPart9, rankDataList[3], true, false, 0, false);
 
 // Part 10 (bangumi)
 if (BANGUMI) {
-    BlankLayer_10 = AddLayer(Part_10, '棕底', 33, 0);
-    AudioLayer_10 = AddLayer(Part_10, '新番副榜_BGM', 33, 0 - 4.3);
-    AudioLayer_10.inPoint = 0;
-    AudioLayer_10.outPoint = 33;
-    AddAudioProperty(AudioLayer_10, 1, 1.73, AudioLayer_10.inPoint, 1);
-    AddAudioProperty(AudioLayer_10, 1, 3, AudioLayer_10.outPoint - 3, 2);
-    BangumiLayer = AddLayer(Part_10, '新番切换', 5, 0);
-    AddVideoProperty(BangumiLayer, 2, 0.5, 0, 1);
-    AddVideoProperty(BangumiLayer, 2, 0.5, 4.5, 2);
-    BangumiLayer_1 = AddLayer(Part_10, '新番副榜_1', 7, 5.3);
-    AddVideoProperty(BangumiLayer_1, 2, 0.5, 5.3, 1);
-    BangumiLayer_2 = AddLayer(Part_10, '新番副榜_2', 7, 12.3);
-    BangumiLayer_3 = AddLayer(Part_10, '新番副榜_3', 7, 19.3);
-    AddVideoProperty(BangumiLayer_3, 2, 0.5, 25.8, 2);
-    BangumiTopLayer = AddLayer(Part_10, '新番主榜', 6.4, 26.6);
-    AddVideoProperty(BangumiTopLayer, 1, 1, 26.6, 1);
+    compBase10 = addCompLayer(rankPart10, '棕底', 33, 0);
+    compAudio10 = addCompLayer(rankPart10, '新番副榜_BGM', 33, 0 - 4.3);
+    compAudio10.inPoint = 0;
+    compAudio10.outPoint = 33;
+    addAudioProperty(compAudio10, 1, 1.73, compAudio10.inPoint, 1);
+    addAudioProperty(compAudio10, 1, 3, compAudio10.outPoint - 3, 2);
+    bangumiSubCard = addCompLayer(rankPart10, '新番切换', 5, 0);
+    addVideoProperty(bangumiSubCard, 2, 0.5, 0, 1);
+    addVideoProperty(bangumiSubCard, 2, 0.5, 4.5, 2);
+    bangumiSubRank1 = addCompLayer(rankPart10, '新番副榜_1', 7, 5.3);
+    addVideoProperty(bangumiSubRank1, 2, 0.5, 5.3, 1);
+    bangumiSubRank2 = addCompLayer(rankPart10, '新番副榜_2', 7, 12.3);
+    bangumiSubRank3 = addCompLayer(rankPart10, '新番副榜_3', 7, 19.3);
+    addVideoProperty(bangumiSubRank3, 2, 0.5, 25.8, 2);
+    bangumiCard = addCompLayer(rankPart10, '新番主榜', 6.4, 26.6);
+    addVideoProperty(bangumiCard, 1, 1, 26.6, 1);
 }
 
 // Part 11 (bangumi)
 if (BANGUMI) {
-    Part_11.duration = AddRankPart(Part_11, RankDataList[4], 1, false, false, 0, false);
+    rankPart11.duration = addRankPart(rankPart11, rankDataList[4], false, false, 0, false);
 }
 
 // Part 12
-BlankLayer_12 = AddLayer(Part_12, '蓝底', 4, 0);
-NextLayerAudio_12 = AddLayer(Part_12, '主榜切换_BGM', 4, 0);
-AddAudioProperty(NextLayerAudio_12, 1, 1, 3, 2);
-NextLayer_12 = AddLayer(Part_12, '主榜切换_3', 4, 0);
-AddVideoProperty(NextLayer_12, 2, 1, 0, 1);
+compBase12 = addCompLayer(rankPart12, '蓝底', 4, 0);
+nextAudio12 = addCompLayer(rankPart12, '主榜切换_BGM', 4, 0);
+addAudioProperty(nextAudio12, 1, 1, 3, 2);
+nextText12 = addCompLayer(rankPart12, '主榜切换_3', 4, 0);
+addVideoProperty(nextText12, 2, 1, 0, 1);
 
 // Part 13 (10 to 4)
-Part_13.duration = AddRankPart(Part_13, RankDataList[5], 4, true, false, 0, false);
+rankPart13.duration = addRankPart(rankPart13, rankDataList[5], true, false, 0, false);
 
 // Part 14
-BlankLayer_14 = AddLayer(Part_14, '棕底', 14.4, 0);
-AudioLayer_14 = AddLayer(Part_14, '历史数据_BGM', 14.4, 0);
-AudioLayer_14.inPoint = 0;
-AudioLayer_14.outPoint = 14.4;
-AddAudioProperty(AudioLayer_14, 1, 1, AudioLayer_14.outPoint - 1, 2);
-RecordLayer = AddLayer(Part_14, '历史记录', 7.2, 0.2);
-AddVideoProperty(RecordLayer, 1, 0.5, 0.2, 1);
-AddVideoProperty(RecordLayer, 1, 0.5, 6.9, 2);
-HistoryLayer = AddLayer(Part_14, '历史切换', 6.5, 7.9);
-AddVideoProperty(HistoryLayer, 1, 0.5, 7.9, 1);
+compBase14 = addCompLayer(rankPart14, '棕底', 14.4, 0);
+compAudio14 = addCompLayer(rankPart14, '历史数据_BGM', 14.4, 0);
+compAudio14.inPoint = 0;
+compAudio14.outPoint = 14.4;
+addAudioProperty(compAudio14, 1, 1, compAudio14.outPoint - 1, 2);
+historyRecord = addCompLayer(rankPart14, '历史记录', 7.2, 0.2);
+addVideoProperty(historyRecord, 1, 0.5, 0.2, 1);
+addVideoProperty(historyRecord, 1, 0.5, 6.9, 2);
+historyCard = addCompLayer(rankPart14, '历史切换', 6.5, 7.9);
+addVideoProperty(historyCard, 1, 0.5, 7.9, 1);
 
 // Part 15 (history)
-Part_15.duration = AddRankPart(Part_15, RankDataList[6], 1, false, false, 0, false);
+rankPart15.duration = addRankPart(rankPart15, rankDataList[6], false, false, 0, false);
 
 // Part 16 (3 to 1)
-Part_16.duration = AddRankPart(Part_16, RankDataList[7], 1, false, false, 0, true);
+rankPart16.duration = addRankPart(rankPart16, rankDataList[7], false, false, 0, true);
 
 // Part 17
-BlankLayer_17 = AddLayer(Part_17, '棕底', 25, 0);
-AddVideoProperty(BlankLayer_17, 1, 0.5, 24.5, 2);
-bilibili_layer = AddLayer(Part_17, '哔哩哔哩_BGM', 25, 0);
-bilibili_layer.inPoint = 0;
-bilibili_layer.outPoint = 25;
-AddAudioProperty(bilibili_layer, 1, 3, bilibili_layer.outPoint - 3, 2);
-stat_1_layer = AddLayer(Part_17, '统计数据_1', 6, 0.4);
-AddVideoProperty(stat_1_layer, 2, 0.6, 0.4, 1);
-stat_2_layer = AddLayer(Part_17, '统计数据_2', 6, 6.4);
-stat_3_layer = AddLayer(Part_17, '统计数据_3', 6, 12.4);
-AddVideoProperty(stat_3_layer, 2, 0.6, 17.8, 2);
-over_layer = AddLayer(Part_17, '本周结语', 6.5, 18.5);
-AddVideoProperty(over_layer, 2, 0.5, 18.5, 1);
-AddVideoProperty(over_layer, 2, 0.5, 24.3, 2);
+compBase17 = addCompLayer(rankPart17, '棕底', 25, 0);
+addVideoProperty(compBase17, 1, 0.5, 24.5, 2);
+bilibiliAudio = addCompLayer(rankPart17, '哔哩哔哩_BGM', 25, 0);
+bilibiliAudio.inPoint = 0;
+bilibiliAudio.outPoint = 25;
+addAudioProperty(bilibiliAudio, 1, 3, bilibiliAudio.outPoint - 3, 2);
+statText1 = addCompLayer(rankPart17, '统计数据_1', 6, 0.4);
+addVideoProperty(statText1, 2, 0.6, 0.4, 1);
+statText2 = addCompLayer(rankPart17, '统计数据_2', 6, 6.4);
+statText3 = addCompLayer(rankPart17, '统计数据_3', 6, 12.4);
+addVideoProperty(statText3, 2, 0.6, 17.8, 2);
+freeTalkText = addCompLayer(rankPart17, '本周结语', 6.5, 18.5);
+addVideoProperty(freeTalkText, 2, 0.5, 18.5, 1);
+addVideoProperty(freeTalkText, 2, 0.5, 24.3, 2);
 
 // Part 18 (30+ to 150 +)
-AudioLayer_18 = AddLayer(Part_18, 'ED_BGM', null, 0);
-EDAudioLength = app.project.items[ResourceID.ED_BGM].duration;
-AudioLayer_18.inPoint = 0;
-AudioLayer_18.outPoint = EDAudioLength;
+compAudio18 = addCompLayer(rankPart18, 'ED_BGM', null, 0);
+endingAudioLength = app.project.items[footageItemID.ED_BGM].duration;
+compAudio18.inPoint = 0;
+compAudio18.outPoint = endingAudioLength;
 
-//BlankLayer_18 = AddLayer(Part_18, '蓝底', 5, 1);
-BlankLayer_18 = AddLayer(Part_18, '棕底', EDAudioLength - 9, 9);
-AddVideoProperty(BlankLayer_18, 1, 1, EDAudioLength - 1, 2);
-AddAudioProperty(AudioLayer_18, 1, 0.6, 0, 1);
-AddAudioProperty(AudioLayer_18, 1, 1, EDAudioLength - 1, 2);
-SubRankLength = (EDAudioLength - 19.5) / 30;
+compBase18 = addCompLayer(rankPart18, '棕底', endingAudioLength - 9, 9);
+addVideoProperty(compBase18, 1, 1, endingAudioLength - 1, 2);
+addAudioProperty(compAudio18, 1, 0.6, 0, 1);
+addAudioProperty(compAudio18, 1, 1, endingAudioLength - 1, 2);
+subRankLength = (endingAudioLength - 19.5) / 30;
 for (i = 1; i < 30; i++) {
-    AddLayer(Part_18, i, SubRankLength, 9 + (i - 1) * SubRankLength);
+    addCompLayer(rankPart18, i, subRankLength, 9 + (i - 1) * subRankLength);
 }
-LastRankCardLayer = AddLayer(Part_18, i, SubRankLength, 9 + SubRankLength * 29);
-AddVideoProperty(LastRankCardLayer, 1, 0.6, 9 + SubRankLength * 30 - 0.6, 2);
-StaffLayer = AddLayer(Part_18, 'STAFF_名单', 4.6, 0);
-AddVideoProperty(StaffLayer, 1, 0.6, 0, 1);
-AddVideoProperty(StaffLayer, 1, 0.6, 4, 2);
-AlbumLayer = AddLayer(Part_18, 'ED封面', 5.9, 4);
-AlbumLayer.property('Position').setValue([170, 926]);
-OrigSize = AlbumLayer.sourceRectAtTime(AlbumLayer.inPoint, false);
-if (OrigSize.width / OrigSize.height <= 1) {
-    AlbumLayer.property('Scale').setValue([
-        (AlbumSize[0] / OrigSize.width) * 100,
-        (AlbumSize[0] / OrigSize.width) * 100,
-    ]);
-} else {
-    AlbumLayer.property('Scale').setValue([
-        (AlbumSize[1] / OrigSize.height) * 100,
-        (AlbumSize[1] / OrigSize.height) * 100,
-    ]);
+lastRankCard = addCompLayer(rankPart18, i, subRankLength, 9 + subRankLength * 29);
+addVideoProperty(lastRankCard, 1, 0.6, 9 + subRankLength * 30 - 0.6, 2);
+staffList = addCompLayer(rankPart18, 'STAFF_名单', 4.6, 0);
+addVideoProperty(staffList, 1, 0.6, 0, 1);
+addVideoProperty(staffList, 1, 0.6, 4, 2);
+albumCover = addCompLayer(rankPart18, 'ED封面', 5.9, 4);
+albumCover.property('Position').setValue([170, 926]);
+origLayerSize = albumCover.sourceRectAtTime(albumCover.inPoint, false);
+setFootageScale(albumCover,origLayerSize,albumCoverSize,true);
+
+nextText18 = addCompLayer(rankPart18, '主榜切换_4', 5.9, 4);
+sortedRank = [];
+for (key in rankDataList[1]) {
+    sortedRank[sortedRank.length] = key;
 }
-NextLayer_18 = AddLayer(Part_18, '主榜切换_4', 5.9, 4);
-SortRank = [];
-for (key in RankDataList[1]) {
-    SortRank[SortRank.length] = key;
-}
-LastRank = Math.max.apply(Math, SortRank);
-SubRankText = AddText(Part_18, (LastRank + 1) + '-' + (LastRank + 120), ParagraphJustification.CENTER_JUSTIFY, [700, 226], [605, 523]);
-SubRankText.startTime = 4;
-SubRankText.outPoint = 4 + 5.9;
-SubRankText.property('Source Text').expression = TextExpression('HYm2gj', 'FFFFFF', 216, 108, 0, (LastRank + 1) + '-' + (LastRank + 120));
-SubRankText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.width/2+s.left, s.height/2+s.top];';
+lastRankNum = Math.max.apply(Math, sortedRank);
+subRankRange = addTextLayer(rankPart18, (lastRankNum + 1) + '-' + (lastRankNum + 120), ParagraphJustification.CENTER_JUSTIFY, [700, 226], [605, 523]);
+subRankRange.startTime = 4;
+subRankRange.outPoint = 4 + 5.9;
+subRankRange.property('Source Text').expression = textExpression('HYm2gj', 'FFFFFF', 216, 108, 0, (lastRankNum + 1) + '-' + (lastRankNum + 120));
+subRankRange.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.width/2+s.left, s.height/2+s.top];';
 file = new File('./ranking/#' + WEEK_NUM + '/' + WEEK_NUM + '.txt');
 file.open('r');
 content = file.read();
 file.close();
-EDInfoTextShadow = AddText(Part_18, content, ParagraphJustification.LEFT_JUSTIFY, [1640, 140], [291, 861]);
-EDInfoTextShadow.startTime = 4;
-EDInfoTextShadow.outPoint = 4 + 5.9;
-EDInfoTextShadow.property('Source Text').expression = 'text.sourceText.createStyle().setFont("FZY3K--GBK1-0").setFillColor(hexToRgb("000000")).setFontSize(30).setLeading(48).setTracking(100).setFauxBold(true);';
-EDInfoTextShadow.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
-EDInfoText = AddText(Part_18, content, ParagraphJustification.LEFT_JUSTIFY, [1640, 140], [290, 860]);
-EDInfoText.startTime = 4;
-EDInfoText.outPoint = 4 + 5.9;
-EDInfoText.property('Source Text').expression = 'text.sourceText.createStyle().setFont("FZY3K--GBK1-0").setFillColor(hexToRgb("FFFFFF")).setFontSize(30).setLeading(48).setTracking(100).setFauxBold(true);';
-EDInfoText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
+endingAlbumTextShadow = addTextLayer(rankPart18, content, ParagraphJustification.LEFT_JUSTIFY, [1640, 140], [291, 861]);
+endingAlbumTextShadow.startTime = 4;
+endingAlbumTextShadow.outPoint = 4 + 5.9;
+endingAlbumTextShadow.property('Source Text').expression = 'text.sourceText.createStyle().setFont("FZY3K--GBK1-0").setFillColor(hexToRgb("000000")).setFontSize(30).setLeading(48).setTracking(100).setFauxBold(true);';
+endingAlbumTextShadow.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
+endingAlbumText = addTextLayer(rankPart18, content, ParagraphJustification.LEFT_JUSTIFY, [1640, 140], [290, 860]);
+endingAlbumText.startTime = 4;
+endingAlbumText.outPoint = 4 + 5.9;
+endingAlbumText.property('Source Text').expression = 'text.sourceText.createStyle().setFont("FZY3K--GBK1-0").setFillColor(hexToRgb("FFFFFF")).setFontSize(30).setLeading(48).setTracking(100).setFauxBold(true);';
+endingAlbumText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
 
-AddVideoProperty(AlbumLayer, 1, 0.6, 4, 1);
-AddVideoProperty(AlbumLayer, 1, 0.6, 9.3, 2);
-AddVideoProperty(NextLayer_18, 1, 0.6, 4, 1);
-AddVideoProperty(NextLayer_18, 1, 0.6, 9.3, 2);
-AddVideoProperty(SubRankText, 1, 0.6, 4, 1);
-AddVideoProperty(SubRankText, 1, 0.6, 9.3, 2);
-AddVideoProperty(EDInfoText, 1, 0.6, 4, 1);
-AddVideoProperty(EDInfoText, 1, 0.6, 9.3, 2);
-AddVideoProperty(EDInfoTextShadow, 1, 0.6, 4, 1);
-AddVideoProperty(EDInfoTextShadow, 1, 0.6, 9.3, 2);
-AddrLayer = AddLayer(Part_18, '插入素材', 5, EDAudioLength - 10);
-AddVideoProperty(AddrLayer, 1, 0.6, EDAudioLength - 10, 1);
-AddVideoProperty(AddrLayer, 1, 0.6, EDAudioLength - 5.6, 2);
-EdCardLayer = AddLayer(Part_18, 'EDCard', 5, EDAudioLength - 5);
-AddVideoProperty(EdCardLayer, 1, 0.6, EDAudioLength - 5, 1);
-AddVideoProperty(EdCardLayer, 1, 1, EDAudioLength - 1, 2);
-Part_18.duration = EDAudioLength + 0.1;
+addVideoProperty(albumCover, 1, 0.6, 4, 1);
+addVideoProperty(albumCover, 1, 0.6, 9.3, 2);
+addVideoProperty(nextText18, 1, 0.6, 4, 1);
+addVideoProperty(nextText18, 1, 0.6, 9.3, 2);
+addVideoProperty(subRankRange, 1, 0.6, 4, 1);
+addVideoProperty(subRankRange, 1, 0.6, 9.3, 2);
+addVideoProperty(endingAlbumText, 1, 0.6, 4, 1);
+addVideoProperty(endingAlbumText, 1, 0.6, 9.3, 2);
+addVideoProperty(endingAlbumTextShadow, 1, 0.6, 4, 1);
+addVideoProperty(endingAlbumTextShadow, 1, 0.6, 9.3, 2);
+usedFootage = addCompLayer(rankPart18, '插入素材', 5, endingAudioLength - 10);
+addVideoProperty(usedFootage, 1, 0.6, endingAudioLength - 10, 1);
+addVideoProperty(usedFootage, 1, 0.6, endingAudioLength - 5.6, 2);
+endingCardLayer = addCompLayer(rankPart18, 'EDCard', 5, endingAudioLength - 5);
+addVideoProperty(endingCardLayer, 1, 0.6, endingAudioLength - 5, 1);
+addVideoProperty(endingCardLayer, 1, 1, endingAudioLength - 1, 2);
+rankPart18.duration = endingAudioLength + 0.1;
 
-TimelineParts = [
-    { 'parts': [Part_1], 'content': 'OP' },
-    { 'parts': [Part_2, Part_3], 'content': 'Pickup' },
-    { 'parts': [Part_4, Part_5], 'content': '21-30+' },
-    { 'parts': [Part_6, Part_7], 'content': '影视&国创' },
-    { 'parts': [Part_8, Part_9], 'content': '11-20' },
+chapterRankPart = [
+    { 'parts': [rankPart1], 'content': 'OP' },
+    { 'parts': [rankPart2, rankPart3], 'content': 'Pickup' },
+    { 'parts': [rankPart4, rankPart5], 'content': '21-30+' },
+    { 'parts': [rankPart6, rankPart7], 'content': '影视&国创' },
+    { 'parts': [rankPart8, rankPart9], 'content': '11-20' },
 ];
 if (BANGUMI) {
-    TimelineParts[TimelineParts.length] = { 'parts': [Part_10, Part_11], 'content': '番剧' };
+    chapterRankPart[chapterRankPart.length] = { 'parts': [rankPart10, rankPart11], 'content': '番剧' };
 }
-TimelineParts[TimelineParts.length] = { 'parts': [Part_12, Part_13], 'content': '4-10' };
-TimelineParts[TimelineParts.length] = { 'parts': [Part_14, Part_15], 'content': '历史' };
-TimelineParts[TimelineParts.length] = { 'parts': [Part_16], 'content': '1-3' };
-TimelineParts[TimelineParts.length] = { 'parts': [Part_17, Part_18], 'content': 'ED' };
+chapterRankPart[chapterRankPart.length] = { 'parts': [rankPart12, rankPart13], 'content': '4-10' };
+chapterRankPart[chapterRankPart.length] = { 'parts': [rankPart14, rankPart15], 'content': '历史' };
+chapterRankPart[chapterRankPart.length] = { 'parts': [rankPart16], 'content': '1-3' };
+chapterRankPart[chapterRankPart.length] = { 'parts': [rankPart17, rankPart18], 'content': 'ED' };
 
-FinalDuration = 0;
-for (n = 0; n < TimelineParts.length; n++) {
-    TimelineParts[n].from = FinalDuration;
-    for (i = 0; i < TimelineParts[n].parts.length; i++) {
-        Part = TimelineParts[n].parts[i];
-        AddLayer(FinalComp, Part.name, Part.duration, FinalDuration);
-        FinalDuration += Part.duration;
+compBaseLayer = finalComp.layers.addSolid([0, 0, 0], '黑底', compSize[0], compSize[1], 1, 1);
+finalCompDuration = 0;
+for (n = 0; n < chapterRankPart.length; n++) {
+    chapterRankPart[n].from = finalCompDuration;
+    for (i = 0; i < chapterRankPart[n].parts.length; i++) {
+        part = chapterRankPart[n].parts[i];
+        addCompLayer(finalComp, part.name, part.duration, finalCompDuration);
+        finalCompDuration += part.duration;
     }
-    TimelineParts[n].to = FinalDuration;
+    chapterRankPart[n].to = finalCompDuration;
 }
-FinalComp.duration = FinalDuration;
-CompBlackLayer.outPoint = FinalComp.duration;
-FinalComp.openInViewer();
+finalComp.duration = finalCompDuration;
+compBaseLayer.outPoint = finalComp.duration;
+finalComp.openInViewer();
 
-AddLayer(CoverComp1, '投稿封面_1', 25, 0);
-AddLayer(CoverComp1, '投稿封面_2', 25, 0);
-AddLayer(CoverComp1, '投稿封面_3', 25, 0);
-AnniversaryLayer = AddText(CoverComp1, 'The 15th year', ParagraphJustification.LEFT_JUSTIFY, [540, 100], [128, 384]);
-AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60, 'The 15th year');
-AnniversaryLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
-AnniversaryLayer.applyPreset(new File('./footage/DropShadow.ffx'));
-AnniversaryLayer.enabled = false;
-WEEKLayer = AddText(CoverComp1, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [440, 140], [134, 254]);
-WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100, '#' + WEEK_NUM);
-WEEKLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
-WEEKLayer.applyPreset(new File('./footage/DropShadow.ffx'));
-CoverComp1.openInViewer();
-
-AddLayer(CoverComp2, '投稿封面_1', 25, 0);
-AddLayer(CoverComp2, '投稿封面_2', 25, 0);
-AddLayer(CoverComp2, '投稿封面_3', 25, 0);
-AnniversaryLayer = AddText(CoverComp2, 'The 15th year', ParagraphJustification.LEFT_JUSTIFY, [540, 100], [48, 428]);
-AnniversaryLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60, 'The 15th year');
-AnniversaryLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
-AnniversaryLayer.applyPreset(new File('./footage/DropShadow.ffx'));
-AnniversaryLayer.enabled = false;
-WEEKLayer = AddText(CoverComp2, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [440, 140], [54, 298]);
-WEEKLayer.property('Source Text').expression = TextExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100, '#' + WEEK_NUM);
-WEEKLayer.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
-WEEKLayer.applyPreset(new File('./footage/DropShadow.ffx'));
-CoverComp2.openInViewer();
+CURRENT_WEEK = getWeekLabel();
+yearText = 'The ' + (CURRENT_WEEK[0] - 2009) + 'th year';
+coverConfigs = [
+    { comp: coverComp1, anniversaryPosition: [128, 384], weekPosition: [134, 254] },
+    { comp: coverComp2, anniversaryPosition: [48, 428], weekPosition: [54, 298] },
+];
+for (i = 0; i < coverConfigs.length; i++) {
+    cover = coverConfigs[i];
+    addCompLayer(cover.comp, '投稿封面_1', 25, 0);
+    normalCover = addCompLayer(cover.comp, '投稿封面_2', 25, 0);
+    addCompLayer(cover.comp, '投稿封面_3', 25, 0);
+    weekText = addTextLayer(cover.comp, '#' + WEEK_NUM, ParagraphJustification.LEFT_JUSTIFY, [440, 140], cover.weekPosition);
+    weekText.property('Source Text').expression = textExpression('HYQiHei-AZEJ', 'FFFFFF', 122, 60, 100, '#' + WEEK_NUM);
+    weekText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
+    weekText.applyPreset(new File('./footage/DropShadow.ffx'));
+    if (CURRENT_WEEK[1] == 6 && CURRENT_WEEK[2] == 4) {
+        normalCover.enabled = false;
+        anniversaryText = addTextLayer(cover.comp, yearText, ParagraphJustification.LEFT_JUSTIFY, [540, 100], cover.anniversaryPosition);
+        anniversaryText.property('Source Text').expression = textExpression('HYQiHei-AZEJ', 'FFFFFF', 64, 60, 60, yearText);
+        anniversaryText.property('Anchor Point').expression = 's=sourceRectAtTime();transform.anchorPoint=[s.left, s.top];';
+        anniversaryText.applyPreset(new File('./footage/DropShadow.ffx'));
+    }
+    cover.comp.openInViewer();
+}
 
 renderQueue = app.project.renderQueue;
-render = renderQueue.items.add(CoverComp1);
+render = renderQueue.items.add(coverComp1);
 render.outputModules[1].applyTemplate('JPEG 序列');
 render.outputModules[1].file = new File('./封面_169_[#].jpg');
-render = renderQueue.items.add(CoverComp2);
+render = renderQueue.items.add(coverComp2);
 render.outputModules[1].applyTemplate('JPEG 序列');
 render.outputModules[1].file = new File('./封面_43_[#].jpg');
-render = renderQueue.items.add(FinalComp);
+render = renderQueue.items.add(finalComp);
 render.outputModules[1].applyTemplate('Voukoder Classic MP4');
 render.outputModules[1].file = new File('./周刊哔哩哔哩排行榜#' + WEEK_NUM + '.mp4');
 
 app.project.consolidateFootage();
 app.project.save(new File('./bilibilirank_' + WEEK_NUM + '.aep'));
 
-function TimelineStamp(Time) {
-    return Math.ceil(Time) + 1;
-}
-
-TimeLine = [];
-for (n = 0; n < TimelineParts.length; n++) {
-    TimeLine[n] = {
-        'from': n == 0 ? 0 : TimelineStamp(TimelineParts[n].from),
-        'to': TimelineStamp(TimelineParts[n].to),
-        'content': TimelineParts[n].content
+chapterTimeStamp = [];
+for (n = 0; n < chapterRankPart.length; n++) {
+    chapterTimeStamp[n] = {
+        'from': n == 0 ? 0 : chapterTimeCount(chapterRankPart[n].from),
+        'to': chapterTimeCount(chapterRankPart[n].to),
+        'content': chapterRankPart[n].content
     };
 }
 doc = new File('./stamp.json');
 doc.encoding = 'UTF-8';
 doc.open('w');
-doc.write(JSON.stringify(TimeLine));
+doc.write(JSON.stringify(chapterTimeStamp));
 doc.close();
