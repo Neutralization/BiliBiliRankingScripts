@@ -6,4 +6,10 @@
 
     ExcludeRules = @(
     )
+
+    IncludeRules = @(
+        'PSUseApprovedVerbs',
+        'PSUseSingularNouns',
+        'PSUseCorrectCasing'
+    )
 }

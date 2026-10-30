@@ -28,9 +28,6 @@
   ],
   "python.analysis.typeCheckingMode": "basic",
   "ruff.configuration": "pyproject.toml",
-  "ruff.exclude": [
-    "*/**"
-  ],
   "ruff.lint.enable": true,
   "files.associations": {
     "*.ps1": "powershell",

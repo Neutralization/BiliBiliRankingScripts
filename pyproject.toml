@@ -21,6 +21,7 @@ preview = true
 
 [tool.ruff.lint]
 preview = false
+extend-select = ["N"]
 
 [dependency-groups]
 dev = [

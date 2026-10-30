@@ -5,8 +5,8 @@
   "main": "autobilibilirank.jsx",
   "scripts": {
     "lint": "npm run lint:js && npm run lint:py && npm run lint:ps",
-    "lint:js": "eslint autobilibilirank.jsx history100.jsx",
-    "lint:js:fix": "eslint autobilibilirank.jsx history100.jsx --fix",
+    "lint:js": "eslint --config eslint.config.cjs autobilibilirank.jsx history100.jsx",
+    "lint:js:fix": "eslint --config eslint.config.cjs autobilibilirank.jsx history100.jsx --fix",
     "lint:py": "uv run ruff check generate.py history100.py history100_lost_info.py",
     "lint:py:fix": "uv run ruff check generate.py history100.py history100_lost_info.py --fix",
     "lint:ps": "pwsh -NoProfile -Command \"$results = @('download.ps1','makeyaml.ps1','normalize.ps1','favorite.ps1','fakerank.ps1') | ForEach-Object { Invoke-ScriptAnalyzer -Path $_ -Settings ./.vscode/PSScriptAnalyzerSettings.psd1 }; $results; if ($results | Where-Object Severity -eq 'Error') { exit 1 }\"",
