@@ -7,11 +7,10 @@
     [array]$Part = $null
 )
 $ProgressPreference = 'SilentlyContinue'
-$TruePath = Split-Path $MyInvocation.MyCommand.Path
-$DownloadFolder = "${TruePath}/footage/videos"
+$DownloadFolder = "${PSScriptRoot}/footage/videos"
 $UseHistory = $PSBoundParameters.ContainsKey('HistoryNum')
-$FootageFolder = if ($UseHistory) { "${TruePath}/ranking/history${HistoryNum}" } else { "${TruePath}/ranking/#${RankNum}" }
-$CookieFile = "${TruePath}/bilibili.com_cookies.txt"
+$FootageFolder = if ($UseHistory) { "${PSScriptRoot}/ranking/history${HistoryNum}" } else { "${PSScriptRoot}/ranking/#${RankNum}" }
+$CookieFile = "${PSScriptRoot}/bilibili.com_cookies.txt"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
@@ -150,7 +149,7 @@ function Get-LocalVideo {
 }
 
 function Get-LostVideo {
-    return @((Get-Content "${TruePath}/footage/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name)
+    return @((Get-Content "${PSScriptRoot}/footage/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name)
 }
 
 function Clear-OldVideo {

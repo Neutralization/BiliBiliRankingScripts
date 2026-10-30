@@ -3,9 +3,8 @@
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 )
 $ProgressPreference = 'SilentlyContinue'
-$TruePath = Split-Path $MyInvocation.MyCommand.Path
-$FootageFolder = "${TruePath}/ranking/#${RankNum}"
-$LOST_FILE = "${TruePath}/footage/LostFile.json"
+$FootageFolder = "${PSScriptRoot}/ranking/#${RankNum}"
+$LOST_FILE = "${PSScriptRoot}/footage/LostFile.json"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 $script:JsonSourceDir = $null
 
@@ -65,12 +64,12 @@ function Get-Cover {
         [string]$Name
     )
     if ([string]::IsNullOrWhiteSpace($Link)) {
-        return './footage/public/cover_lost.png'
+        return "${PSScriptRoot}/footage/public/cover_lost.png"
     }
-    $destination = Join-Path './footage/covers' "${Id}_${Name}.$((($Link -split '\.')[-1]))"
+    $destination = Join-Path "${PSScriptRoot}/footage/covers" "${Id}_${Name}.$((($Link -split '\.')[-1]))"
     if (-not (Test-Path $destination)) {
-        if (-not (Test-Path './footage/covers')) {
-            New-Item -ItemType Directory -Path './footage/covers' | Out-Null
+        if (-not (Test-Path "${PSScriptRoot}/footage/covers")) {
+            New-Item -ItemType Directory -Path "${PSScriptRoot}/footage/covers" | Out-Null
         }
         try {
             Invoke-WebRequest -Uri $Link -OutFile $destination -UserAgent $UserAgent
@@ -219,7 +218,7 @@ function Write-RankdoorCsv {
         }
     }
 
-    $csvPath = "${TruePath}/ranking/#${RankNum}/${RankNum}_rankdoor.csv"
+    $csvPath = "${PSScriptRoot}/ranking/#${RankNum}/${RankNum}_rankdoor.csv"
     $csvLines | Set-Content -Path $csvPath -Encoding UTF8BOM
     Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - 已生成 Rankdoor CSV: ${csvPath}" -InformationAction Continue
 }
@@ -272,7 +271,7 @@ function Main {
         Write-YamlItemList -Suffix 'results_history' -Max 5 -Min 1 -Part 15
         Write-YamlItemList -Suffix 'results' -Max 3 -Min 1 -Part 16
         Write-RankdoorCsv
-        uv run .\generate.py --week $RankNum
+        uv run "${PSScriptRoot}/generate.py" --week $RankNum
     }
 
     function Get-OutputArchive {
@@ -292,7 +291,7 @@ function Main {
                     Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $archiveListFolder $_.Name) -Force
                 }
             }
-            Compress-Archive -Path $archiveListFolder -DestinationPath "${TruePath}/${RankNum}_main.zip" -Force
+            Compress-Archive -Path $archiveListFolder -DestinationPath "${PSScriptRoot}/${RankNum}_main.zip" -Force
         } finally {
             if (Test-Path $archiveTemp) {
                 Remove-Item -LiteralPath $archiveTemp -Recurse -Force
@@ -308,7 +307,7 @@ function Main {
     }
     $targetFiles = @('results_bangumi', 'guoman_bangumi', 'results_history', 'results' )
 
-    $archivePath = "./json${RankNum}.zip"
+    $archivePath = "${PSScriptRoot}/json${RankNum}.zip"
     if (-not (Test-Path $archivePath)) {
         throw "缺少周刊 JSON 归档文件: $archivePath"
     }

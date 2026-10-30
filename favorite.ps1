@@ -3,10 +3,9 @@
         ((Get-Date).ToFileTime() / 10000000 - 11644473600 - 1277009809 + 133009) / 3600 / 24 / 7)
 )
 $ProgressPreference = 'SilentlyContinue'
-$TruePath = Split-Path $MyInvocation.MyCommand.Path
-$CookieFile = "${TruePath}/cookies.txt"
-$StampFile = "${TruePath}/stamp.json"
-$FootageFolder = "${TruePath}/ranking/#${RankNum}"
+$CookieFile = "${PSScriptRoot}/cookies.txt"
+$StampFile = "${PSScriptRoot}/stamp.json"
+$FootageFolder = "${PSScriptRoot}/ranking/#${RankNum}"
 $ReplyFile = "${FootageFolder}/${RankNum}_rankdoor.csv"
 $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'
 $Session = New-Object Microsoft.PowerShell.Commands.WebRequestSession

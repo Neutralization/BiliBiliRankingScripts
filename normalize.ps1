@@ -5,15 +5,14 @@
     [array]$Part = $null
 )
 $ProgressPreference = 'SilentlyContinue'
-$TruePath = Split-Path $MyInvocation.MyCommand.Path
-$DownloadFolder = "${TruePath}/footage/videos"
+$DownloadFolder = "${PSScriptRoot}/footage/videos"
 $UseHistory = $PSBoundParameters.ContainsKey('HistoryNum')
-$RankFolder = "${TruePath}/ranking/#${RankNum}"
-$FootageFolder = if ($UseHistory) { "${TruePath}/ranking/history${HistoryNum}" } else { "${RankFolder}/main" }
+$RankFolder = "${PSScriptRoot}/ranking/#${RankNum}"
+$FootageFolder = if ($UseHistory) { "${PSScriptRoot}/ranking/history${HistoryNum}" } else { "${RankFolder}/main" }
 
-$tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_nvenc -f null -' -RedirectStandardError '.\NUL'
+$tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_nvenc -f null -' -RedirectStandardError 'NUL'
 if ($tmp.ExitCode -eq 0 ) { $Nvidia = $true } else { $Nvidia = $false }
-$tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_qsv -f null -' -RedirectStandardError '.\NUL'
+$tmp = Start-Process -NoNewWindow -Wait -PassThru -FilePath 'ffmpeg.exe' -ArgumentList '-loglevel error -f lavfi -i color=black:s=1920x1080 -vframes 1 -an -c:v h264_qsv -f null -' -RedirectStandardError 'NUL'
 if ($tmp.ExitCode -eq 0 ) { $Intel = $true } else { $Intel = $false }
 $Encoder = if ($Nvidia) { 'h264_nvenc' } else { if ($Intel) { 'h264_qsv' } else { 'libx264' } }
 
@@ -74,24 +73,24 @@ function Invoke-NormalizeEd {
     $Target = 'loudnorm=I=-23.0:LRA=+7.0:tp=-1.0'
     $AudioArg = @(
         '-y', '-hide_banner',
-        '-i', "./ranking/#${RankNum}/${FileName}",
+        '-i', "${PSScriptRoot}/ranking/#${RankNum}/${FileName}",
         '-af', "${Target}:print_format=json",
         '-f', 'null', '-'
     )
-    $AudioInfo = "./ranking/#${RankNum}/ed.log"
+    $AudioInfo = "${PSScriptRoot}/ranking/#${RankNum}/ed.log"
     & ffmpeg.exe $AudioArg 2> $AudioInfo
     $AudioData = [Regex]::Match((Get-Content -Raw $AudioInfo), '(?s)({.+?})\r?\n').Value | ConvertFrom-Json
     $Source = "measured_I=$($AudioData.input_i):measured_LRA=$($AudioData.input_lra):measured_tp=$($AudioData.input_tp):measured_thresh=$($AudioData.input_thresh):offset=$($AudioData.target_offset)"
     $EncodeArg = @(
         '-y', '-hide_banner', '-loglevel', 'error',
-        '-i', "./ranking/#${RankNum}/${FileName}",
-        '-i', "./ranking/#${RankNum}/Cover.jpg",
+        '-i', "${PSScriptRoot}/ranking/#${RankNum}/${FileName}",
+        '-i', "${PSScriptRoot}/ranking/#${RankNum}/Cover.jpg",
         '-map', '0:0', '-map', '1:0',
         '-id3v2_version', '3',
         '-metadata:s:v', "title='Album cover'", '-metadata:s:v', "comment='Cover (front)'",
         '-af', "${Target}:print_format=summary:linear=true:${Source}", '-ar', '48000',
         '-c:a', 'libmp3lame', '-q:a', '0',
-        "./ranking/#${RankNum}/ed.mp3"
+        "${PSScriptRoot}/ranking/#${RankNum}/ed.mp3"
     )
     Write-Information "$(Get-Date -Format 'MM/dd HH:mm:ss') - ${FileName} 标准化音频音量" -InformationAction Continue
     & ffmpeg.exe @EncodeArg 2> $null
@@ -124,7 +123,7 @@ function Main {
         $items = (ConvertFrom-Yaml $content) | ForEach-Object { $_ } | ForEach-Object { $_ }
         $RankVideos += $items
     }
-    (Get-Content "${TruePath}/footage/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
+    (Get-Content "${PSScriptRoot}/footage/LostFile.json" | ConvertFrom-Json).psobject.Properties.Name | ForEach-Object {
         $LostVideos += $_
     }
 

@@ -6,7 +6,7 @@
     ) * 100
 )
 $ProgressPreference = 'SilentlyContinue'
-$TruePath = Split-Path $MyInvocation.MyCommand.Path
+$PublicFolder = "${PSScriptRoot}/footage/public"
 $UseHistory = $PSBoundParameters.ContainsKey('History')
 $UseRank = $PSBoundParameters.ContainsKey('RankNum') -or -not $UseHistory
 
@@ -32,7 +32,8 @@ function Invoke-FakeRankTask {
     param (
         [parameter(position = 1)]$Item,
         [parameter(position = 2)][string]$FootageFolder,
-        [parameter(position = 3)][bool]$GenerateMask
+        [parameter(position = 3)][bool]$GenerateMask,
+        [parameter(position = 4)][string]$PublicFolder
     )
 
     $rank = $Item.':rank'.ToString().PadLeft(2, '0')
@@ -41,11 +42,11 @@ function Invoke-FakeRankTask {
     $fileName = "${rank}_${name}"
 
     if (-not (Test-Path -LiteralPath "${FootageFolder}/${fileName}.png")) {
-        Copy-Item './footage/public/MAINRANKIMG.png' "${FootageFolder}/${fileName}.png"
+        Copy-Item "${PublicFolder}/MAINRANKIMG.png" "${FootageFolder}/${fileName}.png"
     }
     if ($GenerateMask -and $len -ge 30) {
         if (-not (Test-Path -LiteralPath "${FootageFolder}/${fileName}_.png")) {
-            Copy-Item './footage/public/TOPIMG.png' "${FootageFolder}/${fileName}_.png"
+            Copy-Item "${PublicFolder}/TOPIMG.png" "${FootageFolder}/${fileName}_.png"
         }
     }
 
@@ -65,7 +66,8 @@ function Invoke-FakeRankBatch {
     param (
         [array]$TaskQueue,
         [string]$FootageFolder,
-        [bool]$GenerateMask
+        [bool]$GenerateMask,
+        [string]$PublicFolder
     )
 
     if ($null -eq $TaskQueue -or $TaskQueue.Count -eq 0) {
@@ -75,23 +77,23 @@ function Invoke-FakeRankBatch {
     $taskDef = ${Function:Invoke-FakeRankTask}.ToString()
     $TaskQueue | ForEach-Object -ThrottleLimit $TaskLimit -Parallel {
         ${Function:Invoke-FakeRankTask} = [ScriptBlock]::Create($using:taskDef)
-        Invoke-FakeRankTask -Item $_ -FootageFolder $using:FootageFolder -GenerateMask $using:GenerateMask
+        Invoke-FakeRankTask -Item $_ -FootageFolder $using:FootageFolder -GenerateMask $using:GenerateMask -PublicFolder $using:PublicFolder
     }
 }
 
 if ($UseRank) {
-    $FootageFolder = "${TruePath}/ranking/#${RankNum}/main"
+    $FootageFolder = "${PSScriptRoot}/ranking/#${RankNum}/main"
     $Files = @(Get-Content -Raw "${FootageFolder}/${RankNum}_*.yml")
     $TaskQueue = @(ConvertFrom-RankYaml $Files)
-    Invoke-FakeRankBatch -TaskQueue $TaskQueue -FootageFolder $FootageFolder -GenerateMask $true
+    Invoke-FakeRankBatch -TaskQueue $TaskQueue -FootageFolder $FootageFolder -GenerateMask $true -PublicFolder $PublicFolder
 }
 
 if ($UseHistory) {
-    $FootageFolder = "${TruePath}/ranking/history${History}"
+    $FootageFolder = "${PSScriptRoot}/ranking/history${History}"
     $HistoryYml = "${FootageFolder}/${History}.yml"
     if (-not (Test-Path -LiteralPath $HistoryYml)) {
         throw "Missing history YAML: ${HistoryYml}"
     }
     $TaskQueue = @(ConvertFrom-RankYaml @(Get-Content -Raw $HistoryYml))
-    Invoke-FakeRankBatch -TaskQueue $TaskQueue -FootageFolder $FootageFolder -GenerateMask $false
+    Invoke-FakeRankBatch -TaskQueue $TaskQueue -FootageFolder $FootageFolder -GenerateMask $false -PublicFolder $PublicFolder
 }
